@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
-import { Button, buttonVariants } from "@heroui/react";
+import { buttonVariants } from "@heroui/react";
 import { usePathname } from "next/navigation";
+import UserDropdown from "./userDropdown";
 
 export default function Navbar() {
   const pathName = usePathname();
@@ -45,12 +46,7 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:inline-block">
-            <Link
-              href={"/login"}
-              className={buttonVariants({ variant: "primary" })}
-            >
-              Login
-            </Link>
+            <UserDropdown />
           </div>
 
           {/* Mobile Menu Button */}
