@@ -1,7 +1,7 @@
 "use client";
 
 import { buttonVariants } from "@heroui/styles";
-import { CalendarCheck, LayoutDashboard, Star, Users } from "lucide-react";
+import { CalendarCheck, Car, LayoutDashboard, Star, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React from "react";
@@ -10,6 +10,7 @@ import { Tabs, Tab } from "@heroui/react";
 const navLinks = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Users", href: "/admin/users", icon: Users },
+  { name: "Drivers", href: "/admin/drivers", icon: Car },
   { name: "Bookings", href: "/admin/bookings", icon: CalendarCheck },
   { name: "Reviews", href: "/admin/reviews", icon: Star },
 ];
