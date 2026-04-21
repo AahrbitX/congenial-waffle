@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { buttonVariants } from "@heroui/react";
-import { usePathname } from "next/navigation";
 import UserDropdown from "./userDropdown";
+import { usePathname } from "next/navigation";
 
 export default function Navbar() {
   const pathName = usePathname();

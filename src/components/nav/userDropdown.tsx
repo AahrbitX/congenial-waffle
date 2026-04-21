@@ -47,13 +47,11 @@ function UserDropdown() {
             </Link>
           )}
           <Dropdown>
-            <Dropdown.Trigger
-              children={
-                <Avatar>
-                  <Avatar.Fallback>{userName.charAt(0)}</Avatar.Fallback>
-                </Avatar>
-              }
-            />
+            <Dropdown.Trigger>
+              <Avatar>
+                <Avatar.Fallback>{userName.charAt(0)}</Avatar.Fallback>
+              </Avatar>
+            </Dropdown.Trigger>
             <Dropdown.Popover placement="bottom end">
               <Dropdown.Menu>
                 <Dropdown.Item onPress={() => router.push("/profile")}>

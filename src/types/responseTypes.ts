@@ -1,4 +1,4 @@
-interface PaginatedResponse<T> {
+export interface PaginatedResponse<T> {
   data: T[];
   pagination: {
     page: number;

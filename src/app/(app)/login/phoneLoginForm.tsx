@@ -4,6 +4,11 @@ import { useState } from "react";
 
 export default function PhoneLoginForm() {
   const [otpSent, setOtpSent] = useState(false);
+
+  const handleOTP = () => {
+    setOtpSent(true);
+  };
+
   return (
     <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
       <div>
@@ -33,7 +38,7 @@ export default function PhoneLoginForm() {
           </InputOTP.Group>
         </InputOTP>
       </div>
-      <Button className="w-full mt-4" size="lg">
+      <Button className="w-full mt-4" size="lg" onClick={handleOTP}>
         {otpSent ? "Verify OTP" : "Send OTP"}
       </Button>
     </form>
