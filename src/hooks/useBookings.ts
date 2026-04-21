@@ -3,6 +3,7 @@
 import { request } from "@/lib/api-client";
 import { Booking } from "@/types/bookings";
 import { useQuery } from "@tanstack/react-query";
+import { PaginatedResponse } from "@/types/responseTypes";
 
 export function useBookings({
   id,
