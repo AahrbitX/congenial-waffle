@@ -1,0 +1,82 @@
+import { Booking } from "@/types/bookings";
+import { Button, Chip } from "@heroui/react";
+import { createColumnHelper } from "@tanstack/react-table";
+import { Edit } from "lucide-react";
+import AssignDriver from "./assignDriver";
+import Link from "next/link";
+
+const columnHelper = createColumnHelper<Booking>();
+
+const statusColorMap: Record<
+  string,
+  "default" | "accent" | "success" | "danger" | "warning" | undefined
+> = {
+  pending: "warning",
+  confirmed: "accent",
+  completed: "success",
+  cancelled: "danger",
+};
+
+export const bookingColumns = [
+  columnHelper.accessor("id", {
+    header: "Booking ID",
+    size: 30,
+    cell: (id) => {
+      const bookingId = id.getValue();
+      return (
+        <Link
+          href={`/admin/bookings/${bookingId}`}
+          className="text-accent font-bold hover:underline cursor-pointer underline-offset-2"
+        >
+          {bookingId}
+        </Link>
+      );
+    },
+    meta: { isRowHeader: true },
+  }),
+  columnHelper.accessor("rider", {
+    header: "Rider",
+    meta: { isRowHeader: true },
+  }),
+  columnHelper.accessor("bookingDate", {
+    header: "Booking Date",
+  }),
+  columnHelper.accessor("driver", {
+    header: "Driver",
+    cell: (info) => {
+      const driver = info.getValue();
+      const bookingId = info.row.original.id;
+      const driverId = info.row.original.driverId;
+      if (!driver) {
+        return <AssignDriver id={bookingId} />;
+      }
+
+      return (
+        <p className="flex items-center justify-start gap-2">
+          <Link
+            href={`/admin/drivers/${driverId}`}
+            className="text-accent font-bold hover:underline underline-offset-2"
+          >
+            {driver}
+          </Link>
+          <Button isIconOnly size="sm" variant="tertiary">
+            <Edit size={16} />
+          </Button>
+        </p>
+      );
+    },
+  }),
+  columnHelper.accessor("status", {
+    header: "Status",
+    cell: (info) => (
+      <Chip size="sm" color={statusColorMap[info.getValue()]} variant="primary">
+        {info.getValue()}
+      </Chip>
+    ),
+    size: 30,
+  }),
+  columnHelper.accessor("fare", {
+    header: "Fare",
+    size: 30,
+  }),
+];
