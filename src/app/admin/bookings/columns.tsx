@@ -1,6 +1,6 @@
 import { Booking } from "@/types/bookings";
 import { Button, Chip } from "@heroui/react";
-import { createColumnHelper } from "@tanstack/react-table";
+import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import { Edit } from "lucide-react";
 import AssignDriver from "./assignDriver";
 import Link from "next/link";
@@ -17,7 +17,7 @@ const statusColorMap: Record<
   cancelled: "danger",
 };
 
-export const bookingColumns = [
+export const bookingColumns: ColumnDef<Booking, any>[] = [
   columnHelper.accessor("id", {
     header: "Booking ID",
     size: 30,
@@ -59,7 +59,7 @@ export const bookingColumns = [
           >
             {driver}
           </Link>
-          <Button isIconOnly size="sm" variant="tertiary">
+          <Button isIconOnly size="sm" variant="outline">
             <Edit size={16} />
           </Button>
         </p>
@@ -69,7 +69,7 @@ export const bookingColumns = [
   columnHelper.accessor("status", {
     header: "Status",
     cell: (info) => (
-      <Chip size="sm" color={statusColorMap[info.getValue()]} variant="primary">
+      <Chip size="sm" color={statusColorMap[info.getValue()]} variant="soft">
         {info.getValue()}
       </Chip>
     ),

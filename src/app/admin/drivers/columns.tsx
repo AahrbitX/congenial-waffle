@@ -1,31 +1,39 @@
+import Link from "next/link";
 import { User } from "@/types/user";
-import { createColumnHelper } from "@tanstack/react-table";
-import DriverProfile from "./driverProfile";
+import { Driver } from "@/types/driver";
+import { dateParser } from "@/utils/date-parser";
+import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 
-const columnHelper = createColumnHelper<User>();
+const columnHelper = createColumnHelper<Driver>();
 
-export const driverColumns = [
+export const driverColumns: ColumnDef<Driver, any>[] = [
   columnHelper.accessor("id", {
-    header: "Driver ID",
-    cell: (id) => <DriverProfile id={id.getValue()} />,
-    meta: { isRowHeader: true },
+    header: "Driver Id",
   }),
   columnHelper.accessor("name", {
     header: "Driver Name",
+    meta: { isRowHeader: true },
   }),
-  columnHelper.accessor("phone", {
+  columnHelper.accessor("phoneNumber", {
     header: "Phone",
   }),
-  columnHelper.accessor("ratings", {
-    header: "Ratings",
-  }),
-  columnHelper.accessor("totalTrips", {
-    header: "Total Trips",
-  }),
-  columnHelper.accessor("joinedAt", {
+  columnHelper.accessor("createdAt", {
     header: "Joined At",
+    cell: ({ getValue }) => dateParser({ getValue }),
   }),
-  columnHelper.accessor("totalEarning", {
-    header: "Total Earning",
+  columnHelper.accessor("vehicleType", {
+    header: "Vehicle Type",
+  }),
+  columnHelper.display({
+    id: "actions",
+    header: "Actions",
+    cell: ({ row }) => (
+      <Link
+        href={`/admin/drivers/${row.original.id}`}
+        className="text-accent hover:underline underline-offset-2 font-bold"
+      >
+        View Details
+      </Link>
+    ),
   }),
 ];

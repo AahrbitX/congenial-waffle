@@ -63,7 +63,7 @@ export default function BookingsPage() {
   ];
 
   return (
-    <Surface className="px-2 py-4 ">
+    <Surface className="p-4 ">
       <div className="flex items-center justify-between my-0">
         <div className="flex items-center justify-center gap-2">
           <h1 className="text-2xl font-bold">Bookings</h1>
@@ -72,10 +72,10 @@ export default function BookingsPage() {
           </Button>
         </div>
         <div className="flex items-center justify-center gap-2">
-          <Button variant="primary">
+          <Button variant="secondary">
             <Upload /> Export
           </Button>
-          <Button variant="primary" className={"bg-orange-500"}>
+          <Button variant="primary" className={""}>
             <Plus /> Add Booking
           </Button>
         </div>
@@ -181,7 +181,7 @@ export default function BookingsPage() {
         </div>
       </div>
       <div>
-        <DataTable columns={bookingColumns} data={data} pageSize={5} />
+        <DataTable<Booking> data={data} columns={bookingColumns} />
       </div>
     </Surface>
   );

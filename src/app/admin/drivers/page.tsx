@@ -1,36 +1,47 @@
 "use client";
 
 import React from "react";
+import AddDriver from "./addDriver";
 import { driverColumns } from "./columns";
-import { Button, SearchField, Surface } from "@heroui/react";
+
+import { Driver } from "@/types/driver";
+import { request } from "@/lib/api-client";
+import { useQuery } from "@tanstack/react-query";
 import { DataTable } from "@/components/dataTable";
 import { RefreshCcw, Upload } from "lucide-react";
-import AddDriver from "./addDriver";
+import { PaginatedResponse } from "@/types/responseTypes";
+import { Button, SearchField, Surface } from "@heroui/react";
 
 function AdminDriversPage() {
-  const data = [
-    {
-      id: "1234",
-      name: "Ravi R",
-      phone: "1231212487",
-      ratings: 5.0,
-      totalTrips: 43,
-      joinedAt: "10-12-22",
-      totalEarning: "67,123",
+  const [page, setPage] = React.useState(1);
+  const limit = 10;
+
+  const { data: driversData, isLoading } = useQuery<PaginatedResponse<Driver>>({
+    queryKey: ["drivers"],
+    queryFn: async () => {
+      return request(`/api/drivers?page=${page}&limit=${limit}`, {
+        method: "GET",
+      });
     },
-  ];
+  });
 
   return (
-    <Surface className="px-2 py-4 ">
+    <Surface className="p-4 ">
       <div className="flex items-center justify-between my-0">
         <div className="flex items-center justify-center gap-2">
           <h1 className="text-2xl font-bold">Drivers</h1>
           <Button isIconOnly variant="ghost" name="refresh">
-            <RefreshCcw />
+            <RefreshCcw
+              className={
+                isLoading
+                  ? " animate-spin-fast direction-alternate-reverse"
+                  : ""
+              }
+            />
           </Button>
         </div>
         <div className="flex items-center justify-center gap-2">
-          <Button variant="primary">
+          <Button variant="secondary">
             <Upload /> Export
           </Button>
           <AddDriver />
@@ -48,7 +59,13 @@ function AdminDriversPage() {
         </div>
       </div>
       <div>
-        <DataTable columns={driverColumns} data={data} pageSize={5} />
+        <DataTable<Driver>
+          isLoading={isLoading}
+          onPageChange={setPage}
+          pagination={driversData?.pagination!}
+          columns={driverColumns}
+          data={driversData?.data ?? []}
+        />
       </div>
     </Surface>
   );

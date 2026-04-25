@@ -4,12 +4,20 @@ import React from "react";
 import Link from "next/link";
 import { buttonVariants } from "@heroui/styles";
 import { usePathname, useRouter } from "next/navigation";
-import { CalendarCheck, Car, LayoutDashboard, Star, Users } from "lucide-react";
+import {
+  CalendarCheck,
+  Car,
+  LayoutDashboard,
+  Star,
+  User,
+  Users,
+} from "lucide-react";
 
 const navLinks = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Bookings", href: "/admin/bookings", icon: CalendarCheck },
-  { name: "Users", href: "/admin/users", icon: Users },
+  { name: "Dispatchers", href: "/admin/dispatchers", icon: Users },
+  { name: "Users", href: "/admin/users", icon: User },
   { name: "Drivers", href: "/admin/drivers", icon: Car },
   { name: "Reviews", href: "/admin/reviews", icon: Star },
 ];
@@ -54,11 +62,8 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Main Content Area */}
-        <div className="px-2 overflow-y-auto col-span-2 md:col-span-1">
-          {/* Mobile Navigation (Tabs as Links) */}
-          <div className="md:hidden"></div>
-
-          <section className="">{children}</section>
+        <div className="overflow-hidden min-h-0 col-span-2 md:col-span-1">
+          <section className="w-full h-full min-h-0">{children}</section>
         </div>
       </div>
     </div>

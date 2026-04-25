@@ -15,6 +15,7 @@ import {
   TableFooter,
   PaginationSummary,
   EmptyState,
+  Skeleton,
 } from "@heroui/react";
 import {
   flexRender,
@@ -26,13 +27,15 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { Box, ChevronUp } from "lucide-react";
+import { PaginationData } from "@/types/responseTypes";
 
 interface DataTableProps<TData> {
-  data: TData[];
-  pageSize?: number;
+  data?: TData[];
+  isLoading: boolean;
   ariaLabel?: string;
-  showPagination?: boolean;
+  pagination?: PaginationData;
   columns: ColumnDef<TData, any>[];
+  onPageChange: (page: number) => void;
 }
 
 declare module "@tanstack/react-table" {
@@ -84,12 +87,19 @@ function SortableColumnHeader({
 
 export function DataTable<TData>({
   columns,
-  data,
-  pageSize = 15,
-  showPagination = true,
+  data = [],
+  isLoading,
+  pagination,
   ariaLabel = "Data Table",
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
+
+  const {
+    page = 1,
+    pageSize = 10,
+    totalCount = 0,
+    totalPages = 1,
+  } = pagination || {};
 
   const table = useReactTable({
     columns,
@@ -102,12 +112,20 @@ export function DataTable<TData>({
     state: { sorting },
   });
 
-  const sortDescriptor = useMemo(() => toSortDescriptor(sorting), [sorting]);
-  const { pageIndex } = table.getState().pagination;
-  const pageCount = table.getPageCount();
-  const pages = Array.from({ length: pageCount }, (_, i) => i + 1);
-  const start = pageIndex * pageSize + 1;
-  const end = Math.min((pageIndex + 1) * pageSize, data.length);
+  const start = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
+  const end = Math.min(page * pageSize, totalCount);
+
+  const renderLoadingRows = () => {
+    return Array.from({ length: 5 }).map((_, rowIndex) => (
+      <TableRow key={`skeleton-row-${rowIndex}`}>
+        {columns.map((_, colIndex) => (
+          <TableCell key={`skeleton-col-${colIndex}`}>
+            <Skeleton className="h-4 w-full rounded-lg" />
+          </TableCell>
+        ))}
+      </TableRow>
+    ));
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -142,22 +160,27 @@ export function DataTable<TData>({
               </EmptyState>
             )}
           >
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell
-                    key={cell.id}
-                    style={{ width: cell.column.columnDef.size }}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
+            {isLoading
+              ? renderLoadingRows()
+              : table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        style={{ width: cell.column.columnDef.size }}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
                 ))}
-              </TableRow>
-            ))}
           </TableBody>
         </TableContent>
-        <TableFooter>
-          {showPagination && (
+        {pagination?.totalCount && pagination.totalCount > pageSize && (
+          <TableFooter>
             <Pagination>
               <PaginationSummary>
                 Showing {start} to {end} of {data.length} results
@@ -186,8 +209,8 @@ export function DataTable<TData>({
                 </Pagination.Item>
               </Pagination.Content>
             </Pagination>
-          )}
-        </TableFooter>
+          </TableFooter>
+        )}
       </Table>
     </div>
   );
