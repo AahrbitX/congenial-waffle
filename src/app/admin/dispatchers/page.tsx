@@ -5,6 +5,10 @@ import { ScrollShadow, SearchField, Surface } from "@heroui/react";
 import TripCard from "./tripCard";
 import TripDetails from "./tripDetails";
 import AvailableDrivers from "./availableDrivers";
+import { useQuery } from "@tanstack/react-query";
+import { Booking } from "@/types/bookings";
+import { request } from "@/lib/api-client";
+import { TripsList } from "./tripsList";
 
 const MOCK_TRIPS = [
   {
@@ -103,43 +107,21 @@ const MOCK_DRIVERS = [
 ];
 
 export default function AdminDispatchersPage() {
-  const [activeTripId, setActiveTripId] = useState("TRPAA001");
-
-  const activeTrip = (tripId: string) =>
-    MOCK_TRIPS.find((t) => t.id === tripId);
+  const [activeTripId, setActiveTripId] = useState("");
 
   return (
     <Surface className="h-full min-h-0 p-4" variant="secondary">
       <Surface className="grid h-full min-h-0 grid-cols-[0.75fr_1fr_0.85fr] rounded-2xl overflow-hidden">
-        <div className="flex min-h-0 flex-col border-r">
-          <div className="p-4 border-b shrink-0">
-            <SearchField aria-label="Search trips">
-              <SearchField.Group>
-                <SearchField.SearchIcon />
-                <SearchField.Input placeholder="Search trips..." />
-                <SearchField.ClearButton />
-              </SearchField.Group>
-            </SearchField>
-          </div>
-          <ScrollShadow className="scrollbar-thin">
-            <div className="min-h-0 flex-1 overflow-y-auto ">
-              {MOCK_TRIPS.map((trip) => (
-                <TripCard
-                  key={trip.id}
-                  trip={trip}
-                  isActive={activeTripId === trip.id}
-                  onSelect={setActiveTripId}
-                />
-              ))}
-            </div>
-          </ScrollShadow>
-        </div>
+        <TripsList
+          activeTripId={activeTripId}
+          setActiveTripIdAction={setActiveTripId}
+        />
 
         <div className="border-r">
-          <TripDetails trip={activeTrip(activeTripId)} />
+          <TripDetails tripId={activeTripId} />
         </div>
         <div>
-          <AvailableDrivers drivers={MOCK_DRIVERS} />
+          <AvailableDrivers tripId={activeTripId} />
         </div>
       </Surface>
     </Surface>

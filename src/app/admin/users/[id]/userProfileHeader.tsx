@@ -39,13 +39,13 @@ export default function UserProfileHeader({ user }: { user: User }) {
 
             {/* Meta Info Row */}
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-default-500">
-              <InfoItem icon={<FileText size={16} />} text="R-501" />
-              <InfoItem icon={<Phone size={16} />} text="98765 43210" />
-              <InfoItem
+              {/* <InfoItem icon={<FileText size={16} />} text="R-501" /> */}
+              <InfoItem icon={<Phone size={16} />} text={user.phoneNumber} />
+              {/* <InfoItem
                 icon={<Mail size={16} />}
                 text="priya.sharma@gmail.com"
-              />
-              <InfoItem icon={<MapPin size={16} />} text="Mumbai" />
+              /> */}
+              {/* <InfoItem icon={<MapPin size={16} />} text="Mumbai" /> */}
             </div>
 
             {/* Stats Grid */}

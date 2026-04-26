@@ -12,6 +12,7 @@ import {
   User,
   Users,
 } from "lucide-react";
+import AddBookings from "./bookings/addBookings";
 
 const navLinks = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -35,10 +36,11 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Sidebar (Desktop Only) */}
-        <div className="border-r border-divider py-4 px-2 hidden md:block">
-          <nav className="space-y-2">
+        <div className="hidden md:flex flex-col border-r border-divider py-4 px-2">
+          <nav className="space-y-2 flex-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
+
               const isActive =
                 pathName === link.href ||
                 (link.href !== "/admin" && pathName.startsWith(link.href));
@@ -50,7 +52,9 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
                   className={buttonVariants({
                     variant: isActive ? "secondary" : "ghost",
                     fullWidth: true,
-                    className: `flex items-center justify-start gap-2 px-3 py-2 rounded-lg ${isActive ? "bg-accent text-white" : ""}`,
+                    className: `flex items-center justify-start gap-2 px-3 py-2 rounded-lg ${
+                      isActive ? "bg-accent text-white" : ""
+                    }`,
                   })}
                 >
                   <Icon size={18} />
@@ -59,6 +63,10 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
               );
             })}
           </nav>
+
+          <div className="pt-4 border-t border-divider mt-4">
+            <AddBookings className="w-full rounded-xl" />
+          </div>
         </div>
 
         {/* Main Content Area */}

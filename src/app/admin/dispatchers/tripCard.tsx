@@ -2,6 +2,7 @@
 import React from "react";
 import { cn, Chip, Avatar } from "@heroui/react";
 import { Circle, CircleDot, Square } from "lucide-react";
+import UserAvatar from "@/components/user/avatar";
 
 interface TripCardProps {
   trip: any;
@@ -39,9 +40,7 @@ export default function TripCard({ trip, isActive, onSelect }: TripCardProps) {
 
         {/* Customer & Badges */}
         <div className="flex items-center gap-2">
-          <Avatar color="accent" variant="soft" size="sm">
-            <Avatar.Fallback className="text-xs">DF</Avatar.Fallback>
-          </Avatar>
+          <UserAvatar username={trip.customerName} size="sm" />
           <span className="text-sm font-medium text-default-700">
             {trip.customerName}
           </span>
@@ -64,7 +63,7 @@ export default function TripCard({ trip, isActive, onSelect }: TripCardProps) {
           <div className="flex items-center gap-2">
             <Circle size={14} fill="var(--accent)" className="text-accent" />
             <span className="text-xs text-default-600 truncate">
-              {trip.pickup}
+              {trip.pickupName}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -74,7 +73,7 @@ export default function TripCard({ trip, isActive, onSelect }: TripCardProps) {
               className="text-default-900 fill-default-900 shrink-0 ml-[1px]"
             />
             <span className="text-xs text-default-600 truncate">
-              {trip.drop}
+              {trip.dropName}
             </span>
           </div>
         </div>

@@ -16,7 +16,6 @@ import {
   Switch,
   ListBox,
   Description,
-  Toast,
   toast,
 } from "@heroui/react";
 import { queryClient } from "@/lib/query-client";
@@ -24,42 +23,39 @@ import { queryClient } from "@/lib/query-client";
 function AddDriver() {
   const [isOpen, setIsOpen] = React.useState(false);
   return (
-    <>
-      <Toast.Provider />
-      <Modal>
-        <Button onPress={() => setIsOpen(true)}>
-          <Plus size={18} />
-          Add Drivers
-        </Button>
-        <Modal.Backdrop isOpen={isOpen} onOpenChange={setIsOpen}>
-          <Modal.Container size="lg">
-            <Modal.Dialog>
-              <Modal.CloseTrigger />
-              <Modal.Header>
-                <Modal.Heading>Register New Driver</Modal.Heading>
-              </Modal.Header>
-              <Modal.Body className="py-4">
-                <AddDriverForm setIsOpen={setIsOpen} />
-              </Modal.Body>
-              <Modal.Footer>
-                <Button
-                  variant="ghost"
-                  onPress={(e) => {
-                    e.continuePropagation();
-                    setIsOpen(false);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" form="driver-registration-form">
-                  Confirm Registration
-                </Button>
-              </Modal.Footer>
-            </Modal.Dialog>
-          </Modal.Container>
-        </Modal.Backdrop>
-      </Modal>
-    </>
+    <Modal>
+      <Button onPress={() => setIsOpen(true)}>
+        <Plus size={18} />
+        Add Drivers
+      </Button>
+      <Modal.Backdrop isOpen={isOpen} onOpenChange={setIsOpen}>
+        <Modal.Container size="lg">
+          <Modal.Dialog>
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading>Register New Driver</Modal.Heading>
+            </Modal.Header>
+            <Modal.Body className="py-4">
+              <AddDriverForm setIsOpen={setIsOpen} />
+            </Modal.Body>
+            <Modal.Footer>
+              <Button
+                variant="ghost"
+                onPress={(e) => {
+                  e.continuePropagation();
+                  setIsOpen(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" form="driver-registration-form">
+                Confirm Registration
+              </Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+    </Modal>
   );
 }
 
@@ -78,7 +74,7 @@ const AddDriverForm = ({
       };
 
       // Using your existing request helper
-      return request("/api/drivers", {
+      return request("/api/drivers/onboard", {
         method: "POST",
         body: JSON.stringify(payload),
       });
@@ -227,7 +223,7 @@ const AddDriverForm = ({
 
       {/* AC Preference - Checkbox */}
 
-      <Checkbox name="ac" id="ac">
+      <Checkbox name="ac" id="ac" variant="secondary">
         <Checkbox.Control>
           <Checkbox.Indicator />
         </Checkbox.Control>

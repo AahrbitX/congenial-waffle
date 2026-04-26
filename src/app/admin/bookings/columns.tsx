@@ -1,9 +1,11 @@
-import { Booking } from "@/types/bookings";
+import Link from "next/link";
+import { Edit } from "lucide-react";
 import { Button, Chip } from "@heroui/react";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
-import { Edit } from "lucide-react";
+
 import AssignDriver from "./assignDriver";
-import Link from "next/link";
+import { Booking } from "@/types/bookings";
+import { dateParser } from "@/utils/date-parser";
 
 const columnHelper = createColumnHelper<Booking>();
 
@@ -36,10 +38,18 @@ export const bookingColumns: ColumnDef<Booking, any>[] = [
   }),
   columnHelper.accessor("rider", {
     header: "Rider",
-    meta: { isRowHeader: true },
+  }),
+  columnHelper.accessor("source", {
+    header: "Source",
+    cell: ({ getValue }) => {
+      const source = getValue();
+      if (source === "admin") return "Staff Booked";
+      else return "Self Booked";
+    },
   }),
   columnHelper.accessor("bookingDate", {
     header: "Booking Date",
+    cell: ({ getValue }) => dateParser({ getValue }),
   }),
   columnHelper.accessor("driver", {
     header: "Driver",

@@ -16,51 +16,27 @@ import {
   Surface,
   Switch,
 } from "@heroui/react";
-import { Plus, RefreshCcw, Upload } from "lucide-react";
+import { RefreshCcw, Upload } from "lucide-react";
+import AddBookings from "./addBookings";
+import { useQuery } from "@tanstack/react-query";
+import { PaginatedResponse } from "@/types/responseTypes";
+import { request } from "@/lib/api-client";
+import { useState } from "react";
 
 export default function BookingsPage() {
-  const data: Booking[] = [
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  const { data: bookingData, isLoading } = useQuery<PaginatedResponse<Booking>>(
     {
-      id: "123",
-      rider: "John Doe",
-      bookingDate: "2024-06-01",
-      driver: "Jane Smith",
-      fare: "$25.00",
-      status: "pending",
+      queryKey: ["drivers"],
+      queryFn: async () => {
+        return request(`/api/bookings?page=${page}&limit=${limit}`, {
+          method: "GET",
+        });
+      },
     },
-    {
-      id: "123",
-      rider: "John Doe",
-      bookingDate: "2024-06-01",
-      driver: "Jane Smith",
-      fare: "$25.00",
-      status: "pending",
-    },
-    {
-      id: "123",
-      rider: "John Doe",
-      bookingDate: "2024-06-01",
-      driver: null,
-      fare: "$25.00",
-      status: "confirmed",
-    },
-    {
-      id: "123",
-      rider: "John Doe",
-      bookingDate: "2024-06-01",
-      driver: "Jane Smith",
-      fare: "$25.00",
-      status: "completed",
-    },
-    {
-      id: "123",
-      rider: "John Doe",
-      bookingDate: "2024-06-01",
-      driver: "Jane Smith",
-      fare: "$25.00",
-      status: "cancelled",
-    },
-  ];
+  );
 
   return (
     <Surface className="p-4 ">
@@ -75,9 +51,7 @@ export default function BookingsPage() {
           <Button variant="secondary">
             <Upload /> Export
           </Button>
-          <Button variant="primary" className={""}>
-            <Plus /> Add Booking
-          </Button>
+          <AddBookings />
         </div>
       </div>
       <div className="w-full my-4 flex items-center justify-between">
@@ -101,27 +75,19 @@ export default function BookingsPage() {
             <Select.Popover>
               <ListBox>
                 <ListBox.Item id="pending" textValue="pending">
-                  <Chip variant="primary" color="warning">
-                    Pending
-                  </Chip>
+                  Pending
                   <ListBox.ItemIndicator />
                 </ListBox.Item>
                 <ListBox.Item id="confirmed" textValue="confirmed">
-                  <Chip variant="primary" color="accent">
-                    Confirmed
-                  </Chip>
+                  Confirmed
                   <ListBox.ItemIndicator />
                 </ListBox.Item>
                 <ListBox.Item id="completed" textValue="completed">
-                  <Chip variant="primary" color="success">
-                    Completed
-                  </Chip>
+                  Completed
                   <ListBox.ItemIndicator />
                 </ListBox.Item>
                 <ListBox.Item id="cancelled" textValue="cancelled">
-                  <Chip variant="primary" color="danger">
-                    Cancelled
-                  </Chip>
+                  Cancelled
                   <ListBox.ItemIndicator />
                 </ListBox.Item>
               </ListBox>
@@ -167,21 +133,19 @@ export default function BookingsPage() {
               </RangeCalendar>
             </DateRangePicker.Popover>
           </DateRangePicker>
-          <Switch size="lg">
-            <Switch.Control>
-              <Switch.Thumb />
-            </Switch.Control>
-            <Switch.Content>
-              <Label className="text-muted">Show Unassigned</Label>
-            </Switch.Content>
-          </Switch>
         </div>
         <div className="flex items-center justify-center gap-2">
           <Button variant="secondary">Reset Filter</Button>
         </div>
       </div>
       <div>
-        <DataTable<Booking> data={data} columns={bookingColumns} />
+        <DataTable<Booking>
+          isLoading={isLoading}
+          onPageChange={setPage}
+          pagination={bookingData?.pagination}
+          data={bookingData?.data || []}
+          columns={bookingColumns}
+        />
       </div>
     </Surface>
   );

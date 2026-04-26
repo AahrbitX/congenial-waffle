@@ -32,7 +32,7 @@ function DriverProfilePage() {
   const userData = data.user;
 
   return (
-    <Surface className="px-2 py-4 ">
+    <Surface className="h-full overflow-y-auto p-4 scrollbar-thin">
       <div className="flex items-center justify-between">
         <Breadcrumbs>
           <Breadcrumbs.Item href="/admin/drivers">Drivers</Breadcrumbs.Item>

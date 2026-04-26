@@ -38,7 +38,7 @@ function UserDetailsPage() {
     <Surface className="h-full overflow-y-auto p-4 scrollbar-thin">
       <div className="flex items-center justify-between shrink-0">
         <Breadcrumbs>
-          <Breadcrumbs.Item href="/admin/drivers">Drivers</Breadcrumbs.Item>
+          <Breadcrumbs.Item href="/admin/users">Users</Breadcrumbs.Item>
           <Breadcrumbs.Item>{userData.name}</Breadcrumbs.Item>
         </Breadcrumbs>
       </div>
