@@ -1,9 +1,11 @@
-import { Booking } from "@/types/bookings";
-import { Button, Chip } from "@heroui/react";
-import { createColumnHelper } from "@tanstack/react-table";
-import { Edit } from "lucide-react";
-import AssignDriver from "./assignDriver";
 import Link from "next/link";
+import { Edit } from "lucide-react";
+import { Button, Chip } from "@heroui/react";
+import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
+
+import AssignDriver from "./assignDriver";
+import { Booking } from "@/types/bookings";
+import { dateParser } from "@/utils/date-parser";
 
 const columnHelper = createColumnHelper<Booking>();
 
@@ -17,7 +19,7 @@ const statusColorMap: Record<
   cancelled: "danger",
 };
 
-export const bookingColumns = [
+export const bookingColumns: ColumnDef<Booking, any>[] = [
   columnHelper.accessor("id", {
     header: "Booking ID",
     size: 30,
@@ -36,10 +38,18 @@ export const bookingColumns = [
   }),
   columnHelper.accessor("rider", {
     header: "Rider",
-    meta: { isRowHeader: true },
+  }),
+  columnHelper.accessor("source", {
+    header: "Source",
+    cell: ({ getValue }) => {
+      const source = getValue();
+      if (source === "admin") return "Staff Booked";
+      else return "Self Booked";
+    },
   }),
   columnHelper.accessor("bookingDate", {
     header: "Booking Date",
+    cell: ({ getValue }) => dateParser({ getValue }),
   }),
   columnHelper.accessor("driver", {
     header: "Driver",
@@ -59,7 +69,7 @@ export const bookingColumns = [
           >
             {driver}
           </Link>
-          <Button isIconOnly size="sm" variant="tertiary">
+          <Button isIconOnly size="sm" variant="outline">
             <Edit size={16} />
           </Button>
         </p>
@@ -69,7 +79,7 @@ export const bookingColumns = [
   columnHelper.accessor("status", {
     header: "Status",
     cell: (info) => (
-      <Chip size="sm" color={statusColorMap[info.getValue()]} variant="primary">
+      <Chip size="sm" color={statusColorMap[info.getValue()]} variant="soft">
         {info.getValue()}
       </Chip>
     ),
