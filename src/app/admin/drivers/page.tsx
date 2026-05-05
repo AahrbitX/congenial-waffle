@@ -7,7 +7,7 @@ import { driverColumns } from "./columns";
 import { Driver } from "@/types/driver";
 import { request } from "@/lib/api-client";
 import { useQuery } from "@tanstack/react-query";
-import { DataTable } from "@/components/dataTable";
+import { DataTable } from "@/components/dataTable/dynamic";
 import { RefreshCcw, Upload } from "lucide-react";
 import { PaginatedResponse } from "@/types/responseTypes";
 import { Button, SearchField, Surface } from "@heroui/react";
@@ -24,6 +24,8 @@ function AdminDriversPage() {
       });
     },
   });
+
+  // console.log(driversData);
 
   return (
     <Surface className="p-4 ">
@@ -62,7 +64,7 @@ function AdminDriversPage() {
         <DataTable<Driver>
           isLoading={isLoading}
           onPageChange={setPage}
-          pagination={driversData?.pagination!}
+          pagination={driversData?.pagination}
           columns={driverColumns}
           data={driversData?.data ?? []}
         />

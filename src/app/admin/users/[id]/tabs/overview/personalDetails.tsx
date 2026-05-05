@@ -21,7 +21,9 @@ export function PersonalDetails({ user }: { user: any }) {
         <DetailItem label="Member Since" value="Jan 2025" />
 
         <div className="col-span-2 flex flex-col gap-1">
-          <span className="text-xs text-default-400 font-medium">Address</span>
+          <span className="text-xs text-default-400 font-medium text-muted">
+            Address
+          </span>
           <span className="text-sm font-bold text-default-800">
             B-204, Hiranandani Gardens, Powai, Mumbai 400076
           </span>

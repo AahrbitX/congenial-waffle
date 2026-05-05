@@ -2,17 +2,19 @@
 
 import React from "react";
 import { request } from "@/lib/api-client";
-import { ChevronLeft, Edit } from "lucide-react";
+import { Edit } from "lucide-react";
 import { DriverJoined } from "@/types/driver";
 import { Breadcrumbs, Button, Card, Surface, Tabs } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import {
+  ProfileHeader,
+  ProfileHeaderSkeleton,
+} from "@/components/user/ProfileHeader";
 
 function DriverProfilePage() {
   const params = useParams<{ id: string }>();
   const driverId = params.id;
-
-  const router = useRouter();
 
   const { data: responseData, isLoading } = useQuery<DriverJoined>({
     queryKey: [driverId],
@@ -23,34 +25,52 @@ function DriverProfilePage() {
     },
   });
 
-  if (!responseData || !responseData?.success) {
+  if (!responseData?.success) {
     return <div>No data found</div>;
   }
 
   const data = responseData.data;
-  const driverData = data.drivers;
   const userData = data.user;
+  const driverData = data.drivers;
 
   return (
     <Surface className="h-full overflow-y-auto p-4 scrollbar-thin">
       <div className="flex items-center justify-between">
         <Breadcrumbs>
           <Breadcrumbs.Item href="/admin/drivers">Drivers</Breadcrumbs.Item>
-          <Breadcrumbs.Item>{userData.name}</Breadcrumbs.Item>
+          <Breadcrumbs.Item>{driverData.id}</Breadcrumbs.Item>
         </Breadcrumbs>
-        <Button size="sm">
+        <Button variant="primary">
           <Edit />
           Edit Driver
         </Button>
       </div>
       <div className="my-2">
-        <Card variant="secondary">
-          <Card.Header>
-            <h1 className="font-semibold text-2xl">{userData.name}</h1>
-          </Card.Header>
-          <Card.Content></Card.Content>
-          <Card.Footer></Card.Footer>
-        </Card>
+        {isLoading ? (
+          <ProfileHeaderSkeleton />
+        ) : (
+          <ProfileHeader
+            name={userData.name}
+            details={[
+              {
+                label: "Phone",
+                value: userData.phoneNumber,
+              },
+            ]}
+            stats={[
+              {
+                label: "Member Since",
+                value: new Date(userData.createdAt).toLocaleDateString(
+                  "en-IN",
+                  {
+                    month: "short",
+                    year: "numeric",
+                  },
+                ),
+              },
+            ]}
+          />
+        )}
       </div>
       <div className="">
         <Card variant="transparent" className="px-0 py-1">

@@ -93,7 +93,7 @@ function AddBookings({ className }: { className?: string }) {
         journeyTime: formData.tripTime,
         members: Number(formData.seatsRequired),
         vehicleType: formData.vehicleType.toLowerCase(),
-        ac: formData.acPreference === "AC",
+        ac: formData.acPreference === "ac",
 
         totalFare: "0.00",
       };
@@ -109,7 +109,7 @@ function AddBookings({ className }: { className?: string }) {
       setIsOpen(false);
       toast.success("New Booking Created");
     },
-    onError: (error: Error) => {
+    onError: () => {
       toast.danger("Failed to create new Booking");
     },
   });
@@ -119,7 +119,7 @@ function AddBookings({ className }: { className?: string }) {
   };
 
   return (
-    <Modal>
+    <Modal isOpen={isOpen} onOpenChange={setIsOpen}>
       <Button
         variant="primary"
         className={cn("", className)}
@@ -129,7 +129,7 @@ function AddBookings({ className }: { className?: string }) {
         Add Booking
       </Button>
 
-      <ModalBackdrop isOpen={isOpen} onOpenChange={setIsOpen}>
+      <ModalBackdrop>
         <Modal.Container size="lg">
           <Modal.Dialog>
             <Modal.CloseTrigger />
@@ -414,7 +414,7 @@ function CreateBookingStepThree(props: BookingStepProps) {
       </TextField>
 
       <TextField name="notes">
-        <Label id="notes">Special Instructions</Label>
+        <Label id="notes">Special Instructions / Notes</Label>
         <TextArea
           variant="secondary"
           value={data.notes}
@@ -435,16 +435,11 @@ function AssignDriverForBookingForm() {
     <ComboBox className="w-[256px]">
       <Label>Assign Driver</Label>
       <ComboBox.InputGroup>
-        <Input placeholder="Search drivers..." />
+        <Input placeholder="Search drivers..." variant="secondary" />
         <ComboBox.Trigger />
       </ComboBox.InputGroup>
       <ComboBox.Popover>
-        <ListBox>
-          <ListBox.Item id="DVR-XXAD" textValue="ravi">
-            Ravi
-            <ListBox.ItemIndicator />
-          </ListBox.Item>
-        </ListBox>
+        <ListBox></ListBox>
       </ComboBox.Popover>
     </ComboBox>
   );

@@ -1,9 +1,7 @@
 import React from "react";
 import { Tabs } from "@heroui/react";
 
-interface IndexProps {}
-
-const PaymentsTab: React.FC<IndexProps> = () => {
+const PaymentsTab = () => {
   return (
     <Tabs.Panel className="pt-2 px-0" id="payments">
       Payments

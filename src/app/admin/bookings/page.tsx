@@ -2,19 +2,16 @@
 
 import { Booking } from "@/types/bookings";
 import { bookingColumns } from "./columns";
-import { DataTable } from "@/components/dataTable";
+import { DataTable } from "@/components/dataTable/dynamic";
 import {
   Button,
-  Chip,
   DateField,
   DateRangePicker,
-  Label,
   ListBox,
   RangeCalendar,
   SearchField,
   Select,
   Surface,
-  Switch,
 } from "@heroui/react";
 import { RefreshCcw, Upload } from "lucide-react";
 import AddBookings from "./addBookings";
@@ -29,7 +26,7 @@ export default function BookingsPage() {
 
   const { data: bookingData, isLoading } = useQuery<PaginatedResponse<Booking>>(
     {
-      queryKey: ["drivers"],
+      queryKey: ["bookings"],
       queryFn: async () => {
         return request(`/api/bookings?page=${page}&limit=${limit}`, {
           method: "GET",

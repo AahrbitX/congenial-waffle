@@ -4,8 +4,8 @@ import { Dispatch, SetStateAction } from "react";
 import { ScrollShadow, SearchField } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
 
-import TripCard from "./tripCard";
 import { request } from "@/lib/api-client";
+import TripCard, { TripCardSkeleton } from "./tripCard";
 
 type DispatcherTrip = {
   id: string;
@@ -44,15 +44,22 @@ export const TripsList = ({
     refetchInterval: 5000,
   });
 
-  if (isLoading) {
-    return <div className="p-4 text-sm">Loading trips...</div>;
-  }
-
   if (isError) {
     return <div className="p-4 text-sm">Failed to load trips</div>;
   }
 
   const dispatchers = data?.data ?? [];
+
+  if (dispatchers.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center px-6 text-center text-default-400 border-r">
+        <div className="space-y-2">
+          <p className="text-lg font-semibold">No Unassigned Trips</p>
+          <p className="text-sm">There is no unassigned trips for now</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-0 flex-col border-r">
@@ -67,14 +74,18 @@ export const TripsList = ({
       </div>
 
       <ScrollShadow className="scrollbar-thin min-h-0 flex-1">
-        {dispatchers.map((trip) => (
-          <TripCard
-            key={trip.id}
-            trip={trip}
-            isActive={activeTripId === trip.id}
-            onSelect={setActiveTripIdAction}
-          />
-        ))}
+        {isLoading
+          ? Array.from({ length: 3 }).map((_, index) => (
+              <TripCardSkeleton key={index} />
+            ))
+          : dispatchers.map((trip) => (
+              <TripCard
+                key={trip.id}
+                trip={trip}
+                isActive={activeTripId === trip.id}
+                onSelect={setActiveTripIdAction}
+              />
+            ))}
       </ScrollShadow>
     </div>
   );

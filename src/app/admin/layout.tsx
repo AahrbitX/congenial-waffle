@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { buttonVariants } from "@heroui/styles";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   CalendarCheck,
   Car,
@@ -24,7 +24,6 @@ const navLinks = [
 ];
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const pathName = usePathname();
 
   return (

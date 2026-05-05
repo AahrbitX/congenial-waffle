@@ -10,6 +10,7 @@ import {
   cn,
   Card,
   Surface,
+  Skeleton,
 } from "@heroui/react";
 import { Users } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -64,7 +65,7 @@ export default function AvailableDrivers({ tripId }: Props) {
     return params.toString();
   }, [filters]);
 
-  const { data, isLoading } = useQuery<ApiResponse>({
+  const { data, isLoading, isError } = useQuery<ApiResponse>({
     queryKey: ["dispatcher-drivers", tripId, filters],
     queryFn: async () => {
       return request(
@@ -93,12 +94,16 @@ export default function AvailableDrivers({ tripId }: Props) {
     setFilters((prev) => ({
       ...prev,
       vehicleType: prev.vehicleType ?? data.filters.vehicleType,
+
       ac:
         prev.ac ??
-        (typeof data.filters.ac === "boolean"
-          ? String(data.filters.ac)
-          : data.filters.ac),
-      seats: prev.seats ?? data.filters.seats,
+        (data.filters.ac !== undefined ? String(data.filters.ac) : undefined),
+
+      seats:
+        prev.seats ??
+        (data.filters.seats !== undefined
+          ? String(data.filters.seats)
+          : undefined),
     }));
 
     setHydratedDefaults(true);
@@ -124,10 +129,19 @@ export default function AvailableDrivers({ tripId }: Props) {
 
   if (!tripId) {
     return (
-      <div className="h-full flex items-center justify-center text-default-400">
-        Select trip
+      <div className="h-full flex items-center justify-center px-6 text-center text-default-400">
+        <div className="space-y-2">
+          <p className="text-lg font-semibold">Select a Trip</p>
+          <p className="text-sm">
+            Choose a trip from the queue to view assign driver.
+          </p>
+        </div>
       </div>
     );
+  }
+
+  if (isError) {
+    return <EmptyState message="Failed to load drivers" danger />;
   }
 
   const drivers = data?.data ?? [];
@@ -168,10 +182,17 @@ export default function AvailableDrivers({ tripId }: Props) {
       </div>
 
       <Surface
-        variant="secondary"
+        variant="tertiary"
         className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 scrollbar-thin"
       >
-        {isLoading && <p>Loading...</p>}
+        {isLoading && (
+          <>
+            <DriverCardSkeleton />
+            <DriverCardSkeleton />
+            <DriverCardSkeleton />
+            <DriverCardSkeleton />
+          </>
+        )}
 
         {!isLoading &&
           drivers.map((driver) => (
@@ -348,5 +369,49 @@ function SelectChip({
     >
       {label}
     </Chip>
+  );
+}
+
+function DriverCardSkeleton() {
+  return (
+    <Card variant="default">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3 flex-1">
+          <Skeleton className="h-10 w-10 rounded-full" />
+
+          <div className="flex-1 space-y-3">
+            <Skeleton className="h-5 w-40 rounded-md" />
+
+            <div className="flex gap-2 flex-wrap">
+              <Skeleton className="h-6 w-20 rounded-full" />
+              <Skeleton className="h-6 w-20 rounded-full" />
+              <Skeleton className="h-6 w-20 rounded-full" />
+              <Skeleton className="h-6 w-24 rounded-full" />
+            </div>
+          </div>
+        </div>
+
+        <Skeleton className="h-9 w-20 rounded-lg" />
+      </div>
+    </Card>
+  );
+}
+
+function EmptyState({
+  message,
+  danger,
+}: {
+  message: string;
+  danger?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "h-full flex items-center justify-center text-sm",
+        danger ? "text-danger" : "text-default-400",
+      )}
+    >
+      {message}
+    </div>
   );
 }
