@@ -1,68 +1,93 @@
 "use client";
 
-import { Pie, PieChart } from "recharts";
-import { ChartConfig, ChartContainer } from ".";
+import { Pie, PieChart, Tooltip } from "recharts";
+
 import { Card } from "@heroui/react";
 
-export const description = "A pie chart with no separator";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from ".";
 
 const chartData = [
-  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 187, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 90, fill: "var(--color-other)" },
+  {
+    name: "Completed",
+    value: 124,
+    fill: "var(--color-green-500)",
+  },
+
+  {
+    name: "Pending",
+    value: 32,
+    fill: "var(--color-yellow-500)",
+  },
+
+  {
+    name: "On Trip",
+    value: 18,
+    fill: "var(--color-accent)",
+  },
+
+  {
+    name: "Cancelled",
+    value: 11,
+    fill: "var(--color-red-500)",
+  },
 ];
 
 const chartConfig = {
-  visitors: {
-    label: "Visitors",
+  completed: {
+    label: "Completed",
+    color: "var(--color-green-500)",
   },
-  chrome: {
-    label: "Chrome",
-    color: "var(--chart-1)",
+
+  pending: {
+    label: "Pending",
+    color: "var(--color-yellow-500)",
   },
-  safari: {
-    label: "Safari",
-    color: "var(--chart-2)",
+
+  onTrip: {
+    label: "On Trip",
+    color: "var(--color-accent)",
   },
-  firefox: {
-    label: "Firefox",
-    color: "var(--chart-3)",
-  },
-  edge: {
-    label: "Edge",
-    color: "var(--chart-4)",
-  },
-  other: {
-    label: "Other",
-    color: "var(--chart-5)",
+
+  cancelled: {
+    label: "Cancelled",
+    color: "var(--color-red-500)",
   },
 } satisfies ChartConfig;
 
 export function PieChartComponent() {
   return (
     <Card className="flex flex-col">
-      <Card.Header className="items-center pb-0">
-        <Card.Title>Pie Chart - Separator None</Card.Title>
-        <Card.Description>January - June 2024</Card.Description>
+      <Card.Header>
+        <Card.Title>Ride Status Distribution</Card.Title>
+        <Card.Description>Current ride status breakdown</Card.Description>
       </Card.Header>
-      <>
-        <ChartContainer
-          config={chartConfig}
-          className="mx-auto aspect-square max-h-[250px]"
-        >
-          <PieChart>
-            <Pie
-              data={chartData}
-              dataKey="visitors"
-              nameKey="browser"
-              stroke="0"
-            />
-          </PieChart>
-        </ChartContainer>
-      </>
-      <Card.Footer className="flex-col gap-2 text-sm"></Card.Footer>
+
+      <ChartContainer
+        config={chartConfig}
+        className="mx-auto aspect-square w-full max-h-[286px]"
+      >
+        <PieChart>
+          <ChartTooltip
+            cursor={false}
+            content={<ChartTooltipContent indicator="line" />}
+          />
+
+          <Pie
+            data={chartData}
+            innerRadius="10%"
+            outerRadius="100%"
+            cornerRadius={8}
+            paddingAngle={2}
+            dataKey="value"
+            isAnimationActive
+          />
+        </PieChart>
+      </ChartContainer>
     </Card>
   );
 }

@@ -6,13 +6,14 @@ import UserAvatar from "@/components/user/avatar";
 
 type Props = {
   name: string;
+  isActive?: boolean;
   details?: { label: string; value: string }[];
   stats?: { label: string; value: string }[];
 };
 
 export function ProfileHeader(props: Props) {
   return (
-    <Card variant="secondary" className="my-4 border-none p-6">
+    <Card className="my-4 border-none p-6">
       <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
         <div className="flex-1 space-y-5">
           <div className="flex items-center gap-4">
@@ -21,10 +22,15 @@ export function ProfileHeader(props: Props) {
             <div className="space-y-1">
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-semibold">{props.name}</h1>
-
-                <Chip size="sm" variant="soft" color="success">
-                  Active
-                </Chip>
+                {props.isActive ? (
+                  <Chip size="sm" variant="soft" color="success">
+                    Active
+                  </Chip>
+                ) : (
+                  <Chip size="sm" variant="soft" color="danger">
+                    Inactive
+                  </Chip>
+                )}
               </div>
             </div>
           </div>
@@ -42,7 +48,7 @@ export function ProfileHeader(props: Props) {
               {props.stats.map((stat) => (
                 <Card
                   key={stat.label}
-                  variant="default"
+                  variant="secondary"
                   className="rounded-xl gap-0 px-4 py-3 flex flex-col justify-center min-h-[82px]"
                 >
                   <p className="text-lg font-bold text-center">{stat.value}</p>

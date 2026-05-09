@@ -3,7 +3,7 @@ import { User } from "lucide-react";
 
 export function PersonalDetails({ user }: { user: any }) {
   return (
-    <Card className="p-6 h-full row-span-2 " variant="secondary">
+    <Card className="p-6 h-full row-span-2 " variant="default">
       <div className="flex items-center gap-2 text-accent">
         <User size={18} />
         <h3 className="font-semibold text-accent">Personal Details</h3>

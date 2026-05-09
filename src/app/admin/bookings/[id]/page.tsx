@@ -40,7 +40,10 @@ function BookingDetailsPage() {
   const bookingDetails = responseData.data;
 
   return (
-    <Surface className="h-full overflow-y-auto p-4 scrollbar-thin">
+    <Surface
+      className="h-full overflow-y-auto p-4 scrollbar-thin"
+      variant="secondary"
+    >
       <div className="flex items-center justify-between">
         <Breadcrumbs>
           <Breadcrumbs.Item href="/admin/drivers">Bookings</Breadcrumbs.Item>

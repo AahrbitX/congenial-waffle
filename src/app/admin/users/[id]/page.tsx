@@ -35,7 +35,10 @@ function UserDetailsPage() {
   const userData = responseData.data;
 
   return (
-    <Surface className="h-full overflow-y-auto p-4 scrollbar-thin">
+    <Surface
+      className="h-full overflow-y-auto p-4 scrollbar-thin"
+      variant="secondary"
+    >
       <div className="flex items-center justify-between shrink-0">
         <Breadcrumbs>
           <Breadcrumbs.Item href="/admin/users">Users</Breadcrumbs.Item>

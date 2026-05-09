@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 import { Phone, User, Calendar, Hash } from "lucide-react";
 import {
@@ -14,27 +14,29 @@ import {
 } from "@heroui/react";
 
 export const DriverForm = ({
+  formData,
   handleSubmit,
 }: {
+  formData?: Record<string, any>;
   handleSubmit: (e: React.SubmitEvent<HTMLFormElement>) => void;
 }) => {
   return (
     <form
-      id="driver-registration-form"
+      id="driver-form"
       className="flex flex-col gap-6 p-2"
       onSubmit={handleSubmit}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         {/* Name */}
-        <TextField isRequired name="name">
+        <TextField isRequired name="name" defaultValue={formData?.name}>
           <Label id="name">Full Name</Label>
           <div className="relative flex items-center">
             <User size={16} className="absolute left-3 text-default-400" />
             <Input
               id="name"
-              placeholder="Driver Name"
-              className="pl-9 w-full"
               variant="secondary"
+              className="pl-9 w-full"
+              placeholder="Driver Name"
             />
           </div>
           <FieldError />
@@ -45,6 +47,7 @@ export const DriverForm = ({
           isRequired
           name="phone"
           type="tel"
+          defaultValue={formData?.phone}
           validate={(value) => {
             if (!/^\d{10}$/.test(value)) {
               return "Phone number must be exactly 10 digits without spaces or symbols.";
@@ -66,7 +69,12 @@ export const DriverForm = ({
         </TextField>
 
         {/* DOB */}
-        <TextField isRequired name="dob" type="date">
+        <TextField
+          isRequired
+          name="dob"
+          type="date"
+          defaultValue={formData?.dob}
+        >
           <Label>Date of Birth</Label>
           <div className="relative flex items-center">
             <Calendar size={16} className="absolute left-3 text-default-400" />
@@ -76,7 +84,11 @@ export const DriverForm = ({
         </TextField>
 
         {/* Vehicle Number */}
-        <TextField isRequired name="vehicleNumber">
+        <TextField
+          isRequired
+          name="vehicleNumber"
+          defaultValue={formData?.vehicleNumber}
+        >
           <Label>Vehicle Number</Label>
           <div className="relative flex items-center">
             <Hash size={16} className="absolute left-3 text-default-400" />
@@ -99,6 +111,7 @@ export const DriverForm = ({
             name="vehicleType"
             placeholder="Select one"
             variant="secondary"
+            defaultValue={formData?.vehicleType}
           >
             <Label>Vehicle Type</Label>
             <Select.Trigger>
@@ -128,7 +141,11 @@ export const DriverForm = ({
         {/* Initial Availability - Switch Component */}
         <div className="flex flex-col gap-1.5">
           <Label>Availability</Label>
-          <Switch id="isAvailable" defaultSelected name="isAvailable">
+          <Switch
+            id="isAvailable"
+            name="isAvailable"
+            defaultSelected={formData?.isAvailable}
+          >
             <Switch.Control>
               <Switch.Thumb>
                 <Switch.Icon />
@@ -143,7 +160,12 @@ export const DriverForm = ({
       </div>
 
       {/* AC Preference - Checkbox */}
-      <Checkbox name="ac" id="ac" variant="secondary">
+      <Checkbox
+        name="ac"
+        id="ac"
+        variant="secondary"
+        defaultSelected={formData?.ac}
+      >
         <Checkbox.Control>
           <Checkbox.Indicator />
         </Checkbox.Control>

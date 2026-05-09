@@ -26,7 +26,7 @@ function AdminPage() {
           Here&apos;s what&apos;s happening with Mohan Cabs today.
         </Description>
       </div>
-      <div className="my-4 grid grid-cols-3 gap-4">
+      <div className="my-4 grid grid-cols-[1fr_1fr_0.8fr] gap-4">
         <LineChartComponent />
         <BarChartHorizontal />
         <PieChartComponent />

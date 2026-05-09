@@ -90,7 +90,7 @@ export function BarChartHorizontal() {
           </BarChart>
         </ChartContainer>
       </>
-      <Card.Footer className="flex-col items-start gap-2 text-sm"></Card.Footer>
+      {/* <Card.Footer className="flex-col items-start gap-2 text-sm"></Card.Footer> */}
     </Card>
   );
 }

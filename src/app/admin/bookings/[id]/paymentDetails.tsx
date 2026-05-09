@@ -3,9 +3,11 @@ import React from "react";
 
 export default function PaymentDetails() {
   return (
-    <Card variant="secondary" className="gap-2">
-      <Card.Header>Payment &amp; balance</Card.Header>
-      <Separator variant="secondary" />
+    <Card className="gap-2">
+      <Card.Header>
+        <Card.Title>Payment &amp; balance</Card.Title>
+      </Card.Header>
+      <Separator />
     </Card>
   );
 }

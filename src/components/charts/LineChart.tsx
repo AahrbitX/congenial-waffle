@@ -10,8 +10,6 @@ import {
 } from "./index";
 import { Card } from "@heroui/react";
 
-export const description = "A line chart with dots";
-
 const chartData = [
   { month: "January", desktop: 186, mobile: 80 },
   { month: "February", desktop: 305, mobile: 200 },
@@ -74,7 +72,7 @@ export function LineChartComponent() {
           />
         </LineChart>
       </ChartContainer>
-      <Card.Footer className="flex-col items-start gap-2 text-sm"></Card.Footer>
+      {/* <Card.Footer className="flex-col items-start gap-2 text-sm"></Card.Footer> */}
     </Card>
   );
 }

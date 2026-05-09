@@ -25,8 +25,6 @@ function AdminDriversPage() {
     },
   });
 
-  // console.log(driversData);
-
   return (
     <Surface className="p-4 ">
       <div className="flex items-center justify-between my-0">
