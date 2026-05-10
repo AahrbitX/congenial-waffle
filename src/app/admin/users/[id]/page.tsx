@@ -1,25 +1,25 @@
 "use client";
 
 import React from "react";
-import { User } from "@/types/user";
-import OverviewTab from "./tabs/overview";
-import { request } from "@/lib/api-client";
 import { useQuery } from "@tanstack/react-query";
-import UserProfileHeader from "./userProfileHeader";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Breadcrumbs, Surface, Tabs } from "@heroui/react";
-import RideHistoryTab from "./tabs/ride-history";
-import PaymentsTab from "./tabs/payments";
+
+import { User } from "@/types/user";
+import { request } from "@/lib/api-client";
+import { ProfileHeader } from "@/components/user/ProfileHeader";
+
 import ReviewsTab from "./tabs/reviews";
 import TicketsTab from "./tabs/tickets";
+import OverviewTab from "./tabs/overview";
+import PaymentsTab from "./tabs/payments";
+import RideHistoryTab from "./tabs/ride-history";
 
 function UserDetailsPage() {
   const params = useParams<{ id: string }>();
   const userId = params.id;
 
-  const router = useRouter();
-
-  const { data: responseData, isLoading } = useQuery<User>({
+  const { data: responseData } = useQuery<User>({
     queryKey: [userId],
     queryFn: async () => {
       return request(`/api/users/${userId}`, {
@@ -35,7 +35,10 @@ function UserDetailsPage() {
   const userData = responseData.data;
 
   return (
-    <Surface className="h-full overflow-y-auto p-4 scrollbar-thin">
+    <Surface
+      className="h-full overflow-y-auto p-4 scrollbar-thin"
+      variant="secondary"
+    >
       <div className="flex items-center justify-between shrink-0">
         <Breadcrumbs>
           <Breadcrumbs.Item href="/admin/users">Users</Breadcrumbs.Item>
@@ -43,7 +46,29 @@ function UserDetailsPage() {
         </Breadcrumbs>
       </div>
       <div className="shrink-0">
-        <UserProfileHeader user={userData} />
+        <ProfileHeader
+          name={userData.name}
+          details={[
+            {
+              label: "Phone",
+              value: userData.phoneNumber,
+            },
+          ]}
+          stats={[
+            { label: "Total Rides", value: "28" },
+            { label: "Avg Rating", value: "4.3" },
+            { label: "Total Spent", value: "₹2370" },
+            { label: "Balance Due", value: "₹520" },
+            {
+              label: "Member Since",
+              value: new Date(userData.createdAt).toLocaleDateString("en-IN", {
+                month: "short",
+                year: "numeric",
+              }),
+            },
+            { label: "Open Tickets", value: "1" },
+          ]}
+        />
       </div>
       <div className="flex-1 min-h-0">
         <Tabs className="w-full ">

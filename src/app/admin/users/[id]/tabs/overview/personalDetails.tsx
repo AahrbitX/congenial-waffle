@@ -3,7 +3,7 @@ import { User } from "lucide-react";
 
 export function PersonalDetails({ user }: { user: any }) {
   return (
-    <Card className="p-6 h-full row-span-2 " variant="secondary">
+    <Card className="p-6 h-full row-span-2 " variant="default">
       <div className="flex items-center gap-2 text-accent">
         <User size={18} />
         <h3 className="font-semibold text-accent">Personal Details</h3>
@@ -21,7 +21,9 @@ export function PersonalDetails({ user }: { user: any }) {
         <DetailItem label="Member Since" value="Jan 2025" />
 
         <div className="col-span-2 flex flex-col gap-1">
-          <span className="text-xs text-default-400 font-medium">Address</span>
+          <span className="text-xs text-default-400 font-medium text-muted">
+            Address
+          </span>
           <span className="text-sm font-bold text-default-800">
             B-204, Hiranandani Gardens, Powai, Mumbai 400076
           </span>

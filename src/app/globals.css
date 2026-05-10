@@ -7,6 +7,10 @@
 }
 
 @theme inline {
+  /* --color-accent: var(--color-orange-400);
+  --color-accent-hover: var(--color-orange-500);
+  --color-accent-soft-foreground: var(--color-orange-600); */
+
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-foreground: var(--foreground);

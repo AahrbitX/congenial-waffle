@@ -3,7 +3,7 @@
 import React from "react";
 import { usersColumns } from "./columns";
 import { RefreshCcw, Upload } from "lucide-react";
-import { DataTable } from "@/components/dataTable";
+import { DataTable } from "@/components/dataTable/dynamic";
 import { Button, SearchField, Surface } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
 import { PaginatedResponse } from "@/types/responseTypes";

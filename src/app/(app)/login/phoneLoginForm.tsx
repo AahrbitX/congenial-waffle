@@ -17,6 +17,7 @@ export default function PhoneLoginForm() {
         </Label>
         <Input
           id="phone"
+          variant="secondary"
           className="mt-2 w-full"
           placeholder="+91 XXXXX XXXXX"
           type="tel"
@@ -26,7 +27,12 @@ export default function PhoneLoginForm() {
         <Label htmlFor="otp" className="mb-2">
           One-Time Password (OTP)
         </Label>
-        <InputOTP maxLength={4} isDisabled={!otpSent} className="mt-2 w-full">
+        <InputOTP
+          maxLength={4}
+          isDisabled={!otpSent}
+          className="mt-2 w-full"
+          variant="secondary"
+        >
           <InputOTP.Group className="flex items-center justify-center w-full">
             <InputOTP.Slot index={0} />
             <InputOTP.Slot index={1} />

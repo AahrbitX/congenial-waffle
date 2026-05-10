@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { SortDescriptor } from "@heroui/react";
 import {
   cn,
@@ -29,13 +29,13 @@ import {
 import { Box, ChevronUp } from "lucide-react";
 import { PaginationData } from "@/types/responseTypes";
 
-interface DataTableProps<TData> {
+export interface DataTableProps<TData> {
   data?: TData[];
   isLoading: boolean;
   ariaLabel?: string;
   pagination?: PaginationData;
   columns: ColumnDef<TData, any>[];
-  onPageChange: (page: number) => void;
+  onPageChange?: (page: number) => void;
 }
 
 declare module "@tanstack/react-table" {
@@ -85,7 +85,7 @@ function SortableColumnHeader({
   );
 }
 
-export function DataTable<TData>({
+function DataTable<TData>({
   columns,
   data = [],
   isLoading,
@@ -215,3 +215,5 @@ export function DataTable<TData>({
     </div>
   );
 }
+
+export { DataTable };

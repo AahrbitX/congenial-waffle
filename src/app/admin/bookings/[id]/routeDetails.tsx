@@ -7,9 +7,11 @@ type Props = {
 
 export default function RouteDetails({ route }: Props) {
   return (
-    <Card variant="secondary" className="gap-2">
-      <Card.Header>Route Details</Card.Header>
-      <Separator variant="secondary" />
+    <Card className="gap-2">
+      <Card.Header>
+        <Card.Title>Route Details</Card.Title>
+      </Card.Header>
+      <Separator />
       <Card.Content>{JSON.stringify(route, null, 2)}</Card.Content>
     </Card>
   );

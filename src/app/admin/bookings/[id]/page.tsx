@@ -3,7 +3,7 @@
 import React from "react";
 import { Edit } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Breadcrumbs, Button, Surface } from "@heroui/react";
 
 import { Booking } from "@/types/bookings";
@@ -40,11 +40,14 @@ function BookingDetailsPage() {
   const bookingDetails = responseData.data;
 
   return (
-    <Surface className="h-full overflow-y-auto p-4 scrollbar-thin">
+    <Surface
+      className="h-full overflow-y-auto p-4 scrollbar-thin"
+      variant="secondary"
+    >
       <div className="flex items-center justify-between">
         <Breadcrumbs>
           <Breadcrumbs.Item href="/admin/drivers">Bookings</Breadcrumbs.Item>
-          <Breadcrumbs.Item>Booking ID</Breadcrumbs.Item>
+          <Breadcrumbs.Item>{bookingId}</Breadcrumbs.Item>
         </Breadcrumbs>
         <Button size="sm">
           <Edit />

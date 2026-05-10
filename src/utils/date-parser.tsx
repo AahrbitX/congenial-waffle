@@ -1,4 +1,4 @@
-import { Description, Tooltip, TooltipTrigger } from "@heroui/react";
+import { Tooltip, TooltipTrigger } from "@heroui/react";
 
 export function dateParser({ getValue }: { getValue: any }) {
   const dateValue = getValue();

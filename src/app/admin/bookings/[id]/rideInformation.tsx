@@ -7,9 +7,11 @@ type Props = {
 
 export default function RideInformation({ info }: Props) {
   return (
-    <Card variant="secondary" className="gap-2">
-      <Card.Header>Trip Completion Details</Card.Header>
-      <Separator variant="secondary" />
+    <Card className="gap-2">
+      <Card.Header>
+        <Card.Title>Trip Completion Details</Card.Title>
+      </Card.Header>
+      <Separator />
       <Card.Content>{JSON.stringify(info, null, 2)}</Card.Content>
     </Card>
   );

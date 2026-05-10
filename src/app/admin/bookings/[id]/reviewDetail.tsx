@@ -3,9 +3,11 @@ import { Card, Separator } from "@heroui/react";
 
 function ReviewDetails() {
   return (
-    <Card variant="secondary" className="gap-2">
-      <Card.Header>Review Details</Card.Header>
-      <Separator variant="secondary" />
+    <Card className="gap-2">
+      <Card.Header>
+        <Card.Title>Review Details</Card.Title>
+      </Card.Header>
+      <Separator />
     </Card>
   );
 }

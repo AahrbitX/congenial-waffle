@@ -11,6 +11,9 @@ export const authClient = createAuthClient({
   advanced: {
     cookiePrefix: "mohan-cabs",
   },
+  fetchOptions: {
+    credentials: "include",
+  },
 });
 
 export const { useSession, signIn, signOut, signUp } = authClient;

@@ -6,6 +6,7 @@ import {
   Button,
   Avatar,
   Separator,
+  Skeleton,
   buttonVariants,
 } from "@heroui/react";
 import {
@@ -57,24 +58,32 @@ export default function TripDetails({ tripId }: TripDetailsProps) {
 
   if (!tripId) {
     return (
-      <div className="h-full flex items-center justify-center text-default-400">
-        Select a trip to view details
+      <div className="h-full flex items-center justify-center px-6 text-center text-default-400">
+        <div className="space-y-2">
+          <p className="text-lg font-semibold">Select a Trip</p>
+          <p className="text-sm">
+            Choose a trip from the queue to view ride details
+          </p>
+        </div>
       </div>
     );
   }
 
   if (isLoading) {
-    return (
-      <div className="h-full flex items-center justify-center text-default-400">
-        Loading trip...
-      </div>
-    );
+    return <TripDetailsSkeleton />;
   }
 
   if (isError || !data) {
     return (
-      <div className="h-full flex items-center justify-center text-danger">
-        Failed to load trip
+      <div className="h-full flex items-center justify-center px-6 text-center">
+        <div className="space-y-2">
+          <p className="text-lg font-semibold text-danger">
+            Failed to load trip
+          </p>
+          <p className="text-sm text-default-500">
+            Please retry or select another booking.
+          </p>
+        </div>
       </div>
     );
   }
@@ -112,7 +121,7 @@ export default function TripDetails({ tripId }: TripDetailsProps) {
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center gap-2">
           <Button isIconOnly variant="secondary">
             <Eye size={16} />
           </Button>
@@ -166,11 +175,9 @@ export default function TripDetails({ tripId }: TripDetailsProps) {
           <div className="flex items-center justify-between relative pl-6">
             <div className="absolute left-0 top-1.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-white ring-1 ring-accent" />
 
-            <div className="flex flex-col gap-0.5">
+            <div>
               <span className="text-xs text-muted">Pick Up</span>
-              <p className="text-sm font-semibold text-accent leading-tight">
-                {pickup}
-              </p>
+              <p className="text-sm font-semibold text-accent">{pickup}</p>
             </div>
 
             <Link
@@ -189,9 +196,9 @@ export default function TripDetails({ tripId }: TripDetailsProps) {
           <div className="flex items-center justify-between relative pl-6">
             <div className="absolute left-0 top-1.5 w-2.5 h-2.5 rounded bg-default-900 border-2 border-white ring-1 ring-default-900" />
 
-            <div className="flex flex-col gap-0.5">
+            <div>
               <span className="text-xs text-muted">Drop Off</span>
-              <p className="text-sm font-semibold leading-tight">{drop}</p>
+              <p className="text-sm font-semibold">{drop}</p>
             </div>
 
             <Link
@@ -221,6 +228,63 @@ export default function TripDetails({ tripId }: TripDetailsProps) {
           <Navigation size={18} />
           Open Route in Google Maps
         </Link>
+      </div>
+    </div>
+  );
+}
+
+function TripDetailsSkeleton() {
+  return (
+    <div className="flex flex-col h-full overflow-y-auto p-6 gap-4">
+      <Surface className="p-4 rounded-xl border border-divider">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-12 w-12 rounded-full" />
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-40 rounded-md" />
+              <Skeleton className="h-4 w-28 rounded-md" />
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-9 rounded-lg" />
+            <Skeleton className="h-9 w-9 rounded-lg" />
+          </div>
+        </div>
+      </Surface>
+
+      <div className="space-y-4">
+        <Skeleton className="h-5 w-36 rounded-md" />
+
+        <div className="grid grid-cols-2 gap-3">
+          {Array.from({ length: 10 }).map((_, index) => (
+            <div key={index} className="space-y-2">
+              <Skeleton className="h-3 w-20 rounded-md" />
+              <Skeleton className="h-4 w-28 rounded-md" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      <div className="space-y-4">
+        <Skeleton className="h-5 w-24 rounded-md" />
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Skeleton className="h-3 w-16 rounded-md" />
+            <Skeleton className="h-5 w-full rounded-md" />
+          </div>
+
+          <div className="space-y-2">
+            <Skeleton className="h-3 w-16 rounded-md" />
+            <Skeleton className="h-5 w-full rounded-md" />
+          </div>
+        </div>
+
+        <Skeleton className="h-10 w-full rounded-xl" />
       </div>
     </div>
   );

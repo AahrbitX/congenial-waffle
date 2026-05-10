@@ -2,17 +2,19 @@
 
 import React from "react";
 import { request } from "@/lib/api-client";
-import { ChevronLeft, Edit } from "lucide-react";
 import { DriverJoined } from "@/types/driver";
 import { Breadcrumbs, Button, Card, Surface, Tabs } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import {
+  ProfileHeader,
+  ProfileHeaderSkeleton,
+} from "@/components/user/ProfileHeader";
+import EditDriver from "./editDriver";
 
 function DriverProfilePage() {
   const params = useParams<{ id: string }>();
   const driverId = params.id;
-
-  const router = useRouter();
 
   const { data: responseData, isLoading } = useQuery<DriverJoined>({
     queryKey: [driverId],
@@ -23,34 +25,77 @@ function DriverProfilePage() {
     },
   });
 
-  if (!responseData || !responseData?.success) {
-    return <div>No data found</div>;
+  // console.log("DriverData :", responseData);
+
+  if (isLoading) {
+    return <div>Loading driver data</div>;
   }
 
-  const data = responseData.data;
-  const driverData = data.drivers;
-  const userData = data.user;
+  const data = responseData?.data;
+  const userData = data?.user;
+  const driverData = data?.drivers;
+
+  const formData = {
+    id: driverData.id,
+    name: userData.name,
+    phone: userData.phoneNumber,
+    ac: driverData.ac,
+    vehicleType: driverData.vehicleType,
+    dob: userData.dob,
+    vehicleNumber: driverData.vehicleNumber,
+    isAvailable: driverData.isAvailable,
+  };
 
   return (
-    <Surface className="h-full overflow-y-auto p-4 scrollbar-thin">
+    <Surface
+      className="h-full overflow-y-auto p-4 scrollbar-thin"
+      variant="secondary"
+    >
       <div className="flex items-center justify-between">
         <Breadcrumbs>
           <Breadcrumbs.Item href="/admin/drivers">Drivers</Breadcrumbs.Item>
-          <Breadcrumbs.Item>{userData.name}</Breadcrumbs.Item>
+          <Breadcrumbs.Item>{driverData.id}</Breadcrumbs.Item>
         </Breadcrumbs>
-        <Button size="sm">
-          <Edit />
-          Edit Driver
-        </Button>
+        <EditDriver driverData={formData} />
       </div>
       <div className="my-2">
-        <Card variant="secondary">
-          <Card.Header>
-            <h1 className="font-semibold text-2xl">{userData.name}</h1>
-          </Card.Header>
-          <Card.Content></Card.Content>
-          <Card.Footer></Card.Footer>
-        </Card>
+        {isLoading ? (
+          <ProfileHeaderSkeleton />
+        ) : (
+          <ProfileHeader
+            name={userData.name}
+            isActive={driverData.isAvailable}
+            details={[
+              {
+                label: "Phone",
+                value: userData.phoneNumber,
+              },
+              {
+                label: "Last Updated At",
+                value: new Date(driverData.updatedAt).toLocaleString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                }),
+              },
+            ]}
+            stats={[
+              {
+                label: "Member Since",
+                value: new Date(userData.createdAt).toLocaleDateString(
+                  "en-IN",
+                  {
+                    month: "short",
+                    year: "numeric",
+                  },
+                ),
+              },
+            ]}
+          />
+        )}
       </div>
       <div className="">
         <Card variant="transparent" className="px-0 py-1">
@@ -79,6 +124,9 @@ function DriverProfilePage() {
               </Tabs.Panel>
               <Tabs.Panel className="pt-4" id="reviews">
                 <p>Track your metrics and analyze performance data.</p>
+              </Tabs.Panel>
+              <Tabs.Panel className="pt-4" id="car-details">
+                <p>View your car details and specifications.</p>
               </Tabs.Panel>
             </Tabs>
           </Card.Content>

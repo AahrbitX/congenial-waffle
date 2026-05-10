@@ -43,6 +43,7 @@ export default function PasswordLoginForm() {
         </Label>
         <Input
           id="phone"
+          variant="secondary"
           onChange={(event) => setPhoneNumber(event.target.value)}
           className="mt-2 w-full"
           placeholder="+91 XXXXX XXXXX"
@@ -55,6 +56,7 @@ export default function PasswordLoginForm() {
         </Label>
         <Input
           id="password"
+          variant="secondary"
           onChange={(event) => setPassword(event.target.value)}
           className="mt-2 w-full"
           placeholder="••••••••"

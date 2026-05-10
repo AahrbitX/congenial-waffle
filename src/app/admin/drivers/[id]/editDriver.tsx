@@ -1,15 +1,15 @@
 "use client";
 
 import React from "react";
-import { Plus } from "lucide-react";
+import { Edit } from "lucide-react";
 
-import { DriverForm } from "./driverForm";
+import { DriverForm } from "../driverForm";
 import { request } from "@/lib/api-client";
 import { queryClient } from "@/lib/query-client";
 import { useMutation } from "@tanstack/react-query";
 import { Button, Modal, toast } from "@heroui/react";
 
-function AddDriver() {
+function EditDriver({ driverData }: { driverData: Record<string, any> }) {
   const [isOpen, setIsOpen] = React.useState(false);
 
   const mutation = useMutation({
@@ -21,23 +21,23 @@ function AddDriver() {
           formData.isAvailable === "on" || formData.isAvailable === "true",
       };
 
-      return request("/api/drivers/onboard", {
+      return request(`/api/drivers/update/${driverData.id}`, {
         method: "PATCH",
         body: JSON.stringify(payload),
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["drivers"] });
+      queryClient.invalidateQueries({ queryKey: [driverData.id] });
       setIsOpen(false);
-      toast.success("New Driver Created");
     },
     onError: () => {
-      toast.danger("Failed to create Driver");
+      toast.danger("Failed to update Driver");
     },
   });
 
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log("Form submitted");
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
 
@@ -47,18 +47,18 @@ function AddDriver() {
   return (
     <Modal isOpen={isOpen} onOpenChange={setIsOpen}>
       <Button onPress={() => setIsOpen(true)}>
-        <Plus size={18} />
-        Add Driver
+        <Edit size={18} />
+        Edit Driver
       </Button>
       <Modal.Backdrop isOpen={isOpen} onOpenChange={setIsOpen}>
         <Modal.Container size="lg">
           <Modal.Dialog>
             <Modal.CloseTrigger />
             <Modal.Header>
-              <Modal.Heading>Register New Driver</Modal.Heading>
+              <Modal.Heading>Edit Existing Driver</Modal.Heading>
             </Modal.Header>
             <Modal.Body className="py-2">
-              <DriverForm handleSubmit={handleSubmit} />
+              <DriverForm formData={driverData} handleSubmit={handleSubmit} />
             </Modal.Body>
             <Modal.Footer>
               <Button
@@ -71,7 +71,7 @@ function AddDriver() {
                 Cancel
               </Button>
               <Button type="submit" form="driver-form">
-                Confirm Registration
+                Update Driver
               </Button>
             </Modal.Footer>
           </Modal.Dialog>
@@ -81,4 +81,4 @@ function AddDriver() {
   );
 }
 
-export default AddDriver;
+export default EditDriver;

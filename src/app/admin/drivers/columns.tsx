@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { User } from "@/types/user";
 import { Driver } from "@/types/driver";
 import { dateParser } from "@/utils/date-parser";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
@@ -9,6 +8,19 @@ const columnHelper = createColumnHelper<Driver>();
 export const driverColumns: ColumnDef<Driver, any>[] = [
   columnHelper.accessor("id", {
     header: "Driver Id",
+    cell: (id) => {
+      const userName = id.getValue();
+      const userId = id.row.original.id;
+      return (
+        <Link
+          href={`/admin/drivers/${userId}`}
+          className="text-accent font-bold hover:underline cursor-pointer underline-offset-2"
+        >
+          {userName}
+        </Link>
+      );
+    },
+    meta: { isRowHeader: true },
   }),
   columnHelper.accessor("name", {
     header: "Driver Name",
@@ -24,16 +36,16 @@ export const driverColumns: ColumnDef<Driver, any>[] = [
   columnHelper.accessor("vehicleType", {
     header: "Vehicle Type",
   }),
-  columnHelper.display({
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => (
-      <Link
-        href={`/admin/drivers/${row.original.id}`}
-        className="text-accent hover:underline underline-offset-2 font-bold"
-      >
-        View Details
-      </Link>
-    ),
-  }),
+  // columnHelper.display({
+  //   id: "actions",
+  //   header: "Actions",
+  //   cell: ({ row }) => (
+  //     <Link
+  //       href={`/admin/drivers/${row.original.id}`}
+  //       className="text-accent hover:underline underline-offset-2 font-bold"
+  //     >
+  //       View Details
+  //     </Link>
+  //   ),
+  // }),
 ];
