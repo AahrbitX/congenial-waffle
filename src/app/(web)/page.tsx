@@ -2,33 +2,22 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Button, Card, Chip, Input } from "@heroui/react";
+import { Button, Card, Chip } from "@heroui/react";
 import {
   ArrowRight,
-  Check,
   Shield,
   Clock,
   IndianRupee,
   Phone,
   ArrowLeftRight,
-  ChevronDown,
   Calendar,
   Star,
+  MapPin,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type SearchTab = "local" | "outstation" | "airport";
-
-// ─── Data ─────────────────────────────────────────────────────────────────────
-
-const TRUST_ITEMS = [
-  "No surge pricing",
-  "24/7 support",
-  "Verified drivers",
-  "Free cancellation up to 1 hour",
-  "Fixed fares, no hidden charges",
-];
 
 const CARS = [
   {
@@ -262,220 +251,193 @@ const CAR_SVGS = [HatchbackSvg, SedanSvg, SuvSvg, LuxurySvg];
 // ─── Hero Section ─────────────────────────────────────────────────────────────
 
 function HeroSection() {
-  const [activeTab, setActiveTab] = useState<SearchTab>("local");
-  const [fromCity, setFromCity] = useState("New Delhi");
-  const [toCity, setToCity] = useState("Mumbai");
+  const [serviceTab, setServiceTab] = useState<string>("local");
+  const [tripTab, setTripTab] = useState<string>("oneway");
+  const [pickup, setPickup] = useState("");
+  const [destination, setDestination] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
 
-  const tabs: { id: SearchTab; label: string }[] = [
-    { id: "local", label: "Local" },
-    { id: "outstation", label: "Outstation" },
-    { id: "airport", label: "Airport Transfer" },
+  const serviceTabs = [
+    { id: "local", label: "Local", Icon: MapPin },
+    { id: "outstation", label: "Outstation", Icon: ArrowLeftRight },
+    { id: "airport", label: "Airport", Icon: Calendar },
   ];
 
-  const swapCities = () => {
-    setFromCity(toCity);
-    setToCity(fromCity);
-  };
+  const tripTabs = [
+    { id: "oneway", label: "One Way" },
+    { id: "roundtrip", label: "Round Trip" },
+  ];
 
   return (
     <section
-      className="relative min-h-screen flex flex-col justify-end pb-14"
-      style={{
-        backgroundImage:
-          "url('https://images.unsplash.com/photo-1587474260584-136574528ed5?w=1920&q=85')",
-        backgroundSize: "cover",
-        backgroundPosition: "center 40%",
-      }}
-    >
-      {/* Gradient overlay */}
-      <div
-        className="absolute inset-0"
-        style={{
+      className="relative min-h-screen flex flex-col justify-end pb-14 pt-20 bg-white/80 backdrop-blur-md rounded-3xl mr-2 ml-4 shadow-lg"
+          style={{
           background:
-            "linear-gradient(to bottom, rgba(24,119,242,0.3) 0%, rgba(10,50,130,0.15) 40%, rgba(0,15,60,0.82) 100%)",
+            "linear-gradient(to bottom, rgb(255, 255, 255) 0%, rgba(241, 244, 251, 0.96) 40%, rgba(236, 239, 250, 0.61) 100%)",
         }}
-      />
+    >
 
       {/* Hero content */}
-      <div className="relative z-10 px-8 sm:px-16 max-w-2xl mb-10">
-        <p className="text-xs font-semibold text-white/70 tracking-[0.12em] uppercase mb-4">
-          Trusted by 5 lakh+ riders
-        </p>
-        <h1 className="text-4xl sm:text-5xl lg:text-[3.6rem] font-extrabold leading-[1.15] text-white mb-6 tracking-tight">
-          Hey Buddy! where are you{" "}
-          <span className="font-black italic">Riding</span> to?
-        </h1>
-        <Link
-          href="/book"
-          className="inline-flex items-center gap-2 text-white font-bold text-[15px] opacity-90 hover:opacity-100 transition-opacity group"
-        >
-          Explore Now
-          <ArrowRight
-            size={17}
-            className="group-hover:translate-x-1 transition-transform"
+      <div className="flex mx-20 w-full max-w-7xl gap-12">
+        <div className="px-8 sm:px-16 max-w-2xl item-center justify-center h-full">
+          <p className="text-xs font-semibold text-black/70 tracking-[0.12em] uppercase mb-4">
+            Trusted by 5 lakh+ riders
+          </p>
+          <h1 className="text-4xl sm:text-5xl text-black lg:text-[3.6rem] font-extrabold leading-[1.15] mb-6 tracking-tight">
+            Hey Buddy! where are you{" "}
+            <span className="font-black italic text-blue-500">Riding</span> to?
+          </h1>
+
+          <div className="right-0 w-full">
+          <img className=""
+            src="/images/car.png"
+            alt="Hero background"
           />
-        </Link>
+        <div className="flex items-center gap-3 flex-wrap">
+          <Link
+            href="/book"
+            className="inline-flex items-center gap-2 text-white bg-blue-500 rounded-full px-4 py-2 font-bold text-[15px] hover:bg-blue-600 transition-colors group"
+          >
+            Book Now
+          </Link>
+
+          <a
+            href="https://wa.me/91XXXXXXXXXX"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-[#25D366] text-white rounded-full p-2 font-bold text-[15px] hover:bg-[#1ebe5d] transition-colors">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.554 4.121 1.523 5.854L.057 23.882a.5.5 0 0 0 .61.611l6.101-1.497A11.942 11.942 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.523-5.158-1.432l-.36-.217-3.742.918.95-3.655-.234-.374A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" />
+            </svg>
+          </a>
+
+          <a
+            href="tel:+91XXXXXXXXXX"
+            className="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-800 rounded-full  p-2 font-bold text-[15px] hover:bg-gray-50 transition-colors"
+          >
+            <Phone size={15} className="text-blue-500" />
+          </a>
+        </div>
+
+
+        </div>
+        </div>
+        <div className="hidden lg:block flex-1 px-8 pt-10">
+          <Card className="rounded-2xl shadow-2xl overflow-hidden p-0 gap-0">
+            {/* Service tabs */}
+            <div className="flex border-b border-gray-100">
+              {serviceTabs.map(({ id, label, Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => setServiceTab(id)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-semibold transition-colors ${
+                    serviceTab === id
+                      ? "text-blue-500 border-b-2 border-blue-500"
+                      : "text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  <Icon size={15} />
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Trip sub-tabs */}
+            <div className="flex gap-1 p-3 bg-gray-50 border-b border-gray-100">
+              {tripTabs.map(({ id, label }) => (
+                <button
+                  key={id}
+                  onClick={() => setTripTab(id)}
+                  className={`flex-1 text-xs font-semibold py-1.5 rounded-full transition-colors ${
+                    tripTab === id
+                      ? "bg-blue-500 text-white"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Form */}
+            <div className="p-5 space-y-4">
+              {/* Pickup location */}
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-1.5">
+                  Pickup Location
+                </p>
+                <div className="flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3">
+                  <MapPin size={16} className="text-blue-500 shrink-0" />
+                  <input
+                    type="text"
+                    placeholder="Enter pickup location"
+                    value={pickup}
+                    onChange={(e) => setPickup(e.target.value)}
+                    className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Date & Time */}
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-1.5">
+                  Pickup Date &amp; Time
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-3">
+                    <Calendar size={15} className="text-gray-400 shrink-0" />
+                    <input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="flex-1 text-sm text-gray-500 outline-none bg-transparent w-full"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-3">
+                    <Clock size={15} className="text-gray-400 shrink-0" />
+                    <input
+                      type="time"
+                      value={time}
+                      onChange={(e) => setTime(e.target.value)}
+                      className="flex-1 text-sm text-gray-500 outline-none bg-transparent w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Destination */}
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-1.5">
+                  Destination
+                </p>
+                <div className="flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3">
+                  <MapPin size={16} className="text-green-500 shrink-0" />
+                  <input
+                    type="text"
+                    placeholder="Enter destination"
+                    value={destination}
+                    onChange={(e) => setDestination(e.target.value)}
+                    className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* CTA */}
+              <Link href="/book" className="block">
+                <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold text-base h-12 rounded-xl">
+                  Explore Cabs
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        </div>
       </div>
-
-      {/* Search card */}
-      <Card className="relative z-10 mx-4 sm:mx-8 lg:mx-16 rounded-2xl shadow-2xl max-w-4xl border-none p-0 gap-0">
-        {/* Tabs */}
-        <div className="flex rounded-t-2xl overflow-hidden">
-          {tabs.map((tab) => (
-            <Button
-              key={tab.id}
-              variant={activeTab === tab.id ? "primary" : "ghost"}
-              onPress={() => setActiveTab(tab.id)}
-              className={`rounded-none px-7 py-4 text-sm font-bold h-auto ${
-                activeTab === tab.id
-                  ? "bg-[#1877F2] text-white"
-                  : "text-[#65676b] hover:bg-[#f0f2f5]"
-              }`}
-            >
-              {tab.label}
-            </Button>
-          ))}
-        </div>
-
-        {/* Filters row */}
-        <div className="flex flex-wrap items-center gap-0 px-5 py-3 border-b border-[#dce1e9]">
-          {["One Way", "1 Passenger", "AC Car"].map((filter, i) => (
-            <div key={filter} className="flex items-center">
-              {i > 0 && <div className="w-px h-5 bg-[#dce1e9] mx-1" />}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex items-center gap-1.5 rounded text-sm font-semibold text-[#1c1e21] h-auto px-3 py-1.5"
-              >
-                {filter}
-                <ChevronDown size={12} className="text-[#65676b]" />
-              </Button>
-            </div>
-          ))}
-        </div>
-
-        {/* Fields row */}
-        <div className="flex flex-wrap lg:flex-nowrap items-stretch px-5 pb-5 pt-2">
-          {/* From */}
-          <div className="flex-1 min-w-[140px] px-2 py-2">
-            <p className="text-[10px] font-bold text-[#65676b] tracking-[0.08em] uppercase mb-1">
-              From
-            </p>
-            <Input
-              value={fromCity}
-              onChange={(e) => setFromCity(e.target.value)}
-              className="text-[1.5rem] font-black"
-              aria-label="From city"
-            />
-            <p className="text-[11px] text-[#65676b] font-medium mt-1 px-1">
-              India &middot;{" "}
-              <span className="underline cursor-pointer">Change location</span>
-            </p>
-          </div>
-
-          {/* Swap button */}
-          <div className="flex items-center px-1">
-            <Button
-              isIconOnly
-              variant="ghost"
-              onPress={swapCities}
-              className="w-9 h-9 rounded-full border border-[#dce1e9] hover:border-[#1877F2]"
-              aria-label="Swap cities"
-            >
-              <ArrowLeftRight size={14} className="text-[#1c1e21]" />
-            </Button>
-          </div>
-
-          {/* To */}
-          <div className="flex-1 min-w-[140px] px-2 py-2">
-            <p className="text-[10px] font-bold text-[#65676b] tracking-[0.08em] uppercase mb-1">
-              To
-            </p>
-            <Input
-              value={toCity}
-              onChange={(e) => setToCity(e.target.value)}
-              className="text-[1.5rem] font-black"
-              aria-label="To city"
-            />
-            <p className="text-[11px] text-[#65676b] font-medium mt-1 px-1">
-              India &middot;{" "}
-              <span className="underline cursor-pointer">Change location</span>
-            </p>
-          </div>
-
-          {/* Divider */}
-          <div className="hidden lg:block w-px bg-[#dce1e9] my-3" />
-
-          {/* Departure */}
-          <div className="px-4 py-2 cursor-pointer">
-            <div className="flex items-center gap-2 text-[10px] font-bold text-[#65676b] tracking-[0.08em] uppercase mb-1.5">
-              Departure
-              <Calendar size={11} />
-            </div>
-            <p className="text-xl font-black text-[#1c1e21] tracking-tight leading-none">
-              Today
-            </p>
-            <div className="flex gap-3 mt-2 text-[11px] text-[#65676b] font-medium">
-              <span className="cursor-pointer hover:text-[#1c1e21]">Prev</span>
-              <span className="cursor-pointer hover:text-[#1c1e21]">Next</span>
-            </div>
-          </div>
-
-          {/* Divider */}
-          <div className="hidden lg:block w-px bg-[#dce1e9] my-3" />
-
-          {/* Return */}
-          <div className="px-4 py-2 cursor-pointer">
-            <div className="flex items-center gap-2 text-[10px] font-bold text-[#65676b] tracking-[0.08em] uppercase mb-1.5">
-              Return
-              <Calendar size={11} />
-            </div>
-            <p className="text-xl font-black text-[#1c1e21] tracking-tight leading-none">
-              —
-            </p>
-            <div className="flex gap-3 mt-2 text-[11px] text-[#65676b] font-medium">
-              <span className="cursor-pointer hover:text-[#1c1e21]">Prev</span>
-              <span className="cursor-pointer hover:text-[#1c1e21]">Next</span>
-            </div>
-          </div>
-
-          {/* Search button */}
-          <div className="flex items-center ml-3 mt-2 lg:mt-0">
-            <Link href="/book">
-              <Button
-                variant="primary"
-                className="flex items-center gap-2 px-6 h-14 rounded-xl text-sm font-extrabold bg-[#1877F2] text-white hover:bg-[#166FE5] whitespace-nowrap"
-              >
-                Search Cabs
-                <ArrowRight size={17} />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </Card>
     </section>
   );
 }
 
-// ─── Trust Strip ──────────────────────────────────────────────────────────────
-
-function TrustStrip() {
-  return (
-    <div className="flex items-center px-8 sm:px-12 py-4 overflow-x-auto bg-[#1877F2]">
-      {TRUST_ITEMS.map((item, i) => (
-        <div key={item} className="flex items-center shrink-0">
-          {i > 0 && (
-            <div className="w-1 h-1 rounded-full bg-white/40 mx-7 shrink-0" />
-          )}
-          <span className="flex items-center gap-2 text-[13px] font-bold text-white whitespace-nowrap">
-            <Check size={13} strokeWidth={3} />
-            {item}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 // ─── Cars Section ─────────────────────────────────────────────────────────────
 
@@ -745,7 +707,7 @@ export default function Home() {
   return (
     <main className="w-full">
       <HeroSection />
-      <TrustStrip />
+      {/* <TrustStrip /> */}
       <CarsSection />
       <PackagesSection />
       <WhyUsSection />
