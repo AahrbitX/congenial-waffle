@@ -34,4 +34,10 @@ export {
   Check            as IconCheck,
   ArrowLeft        as IconArrowLeft,
   ArrowRight       as IconArrowRight,
+  Plane            as IconPlane,
+  ArrowLeftRight   as IconArrowLeftRight,
+  Wind             as IconWind,
+  Users            as IconUsers,
+  Clock            as IconClock,
+  RefreshCcw       as IconRoundTrip,
 } from "lucide-react";

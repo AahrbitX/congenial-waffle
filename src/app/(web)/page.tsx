@@ -15,6 +15,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { useBooking } from "@/context/BookingContext";
+import type { ServiceTab, TripTab } from "@/types/booking.types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -434,7 +435,16 @@ function HeroSection() {
 
               {/* CTA */}
               <Button
-                onPress={() => openBooking()}
+                onPress={() =>
+                  openBooking(undefined, {
+                    serviceTab:  serviceTab  as ServiceTab,
+                    tripTab:     tripTab     as TripTab,
+                    pickup,
+                    destination,
+                    date,
+                    time,
+                  })
+                }
                 className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold text-base h-12 rounded-xl"
               >
                 Explore Cabs
