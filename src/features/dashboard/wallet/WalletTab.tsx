@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Chip } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
 import { useWalletBalance, useTransactions, usePaymentMethods } from "@/hooks/useWallet";
-import { IconPlus, IconCreditCard, IconCar, IconLoader } from "@/constants/icons";
+import { ROUTES } from "@/constants/routes";
+import { IconPlus, IconCreditCard, IconCar, IconLoader, IconChevronRight } from "@/constants/icons";
 
 function AddMoneyModal({ onClose }: { onClose: () => void }) {
   const [amount, setAmount] = useState("");
@@ -87,7 +89,7 @@ export function WalletTab() {
                   <p className="text-[11px] text-[var(--color-text-tertiary)]">{sub}</p>
                 </div>
                 {primary
-                  ? <Chip color="primary" variant="flat" size="sm" className="text-[10px] font-bold">Default</Chip>
+                  ? <Chip color="accent" variant="soft" size="sm" className="text-[10px] font-bold">Default</Chip>
                   : <div className="w-2 h-2 rounded-full bg-[var(--color-success)]" />}
               </div>
             ))}
@@ -100,9 +102,13 @@ export function WalletTab() {
         {/* Transactions */}
         <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-5 shadow-sm">
           <p className="text-[14px] font-black text-[var(--color-text-primary)] mb-4">Recent Transactions</p>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {transactions.map(({ id, type, label, amount, date }) => (
-              <div key={id} className="flex items-center gap-3">
+              <Link
+                key={id}
+                href={ROUTES.dashboard.transaction(id)}
+                className="flex items-center gap-3 p-2 rounded-xl hover:bg-[var(--color-surface-muted)] transition-colors"
+              >
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${type === "credit" ? "bg-[var(--color-success-light)]" : "bg-[var(--color-surface-muted)]"}`}>
                   {type === "credit"
                     ? <IconPlus size={15} className="text-[var(--color-success)]" />
@@ -112,10 +118,13 @@ export function WalletTab() {
                   <p className="text-[13px] font-semibold text-[var(--color-text-primary)] truncate">{label}</p>
                   <p className="text-[11px] text-[var(--color-text-tertiary)]">{date}</p>
                 </div>
-                <p className={`text-[13px] font-black shrink-0 ${type === "credit" ? "text-[var(--color-success)]" : "text-[var(--color-text-primary)]"}`}>
-                  {amount > 0 ? (type === "credit" ? `+₹${amount}` : `-₹${amount}`) : "—"}
-                </p>
-              </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <p className={`text-[13px] font-black ${type === "credit" ? "text-[var(--color-success)]" : "text-[var(--color-text-primary)]"}`}>
+                    {amount > 0 ? (type === "credit" ? `+₹${amount}` : `-₹${amount}`) : "—"}
+                  </p>
+                  <IconChevronRight size={12} className="text-[var(--color-text-tertiary)]" />
+                </div>
+              </Link>
             ))}
           </div>
         </div>

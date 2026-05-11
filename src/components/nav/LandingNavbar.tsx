@@ -129,7 +129,7 @@ function DashboardNavItem() {
   if (isPending) return <div className="w-28 h-8 rounded-full bg-gray-100 animate-pulse" />;
 
   if (data) {
-    const href = isAdmin ? "/admin" : "/profile";
+    const href = isAdmin ? "/admin" : "/dashboard/overview";
     return (
       <Link
         href={href}

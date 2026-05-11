@@ -2,11 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Avatar } from "@heroui/react";
 import { authClient } from "@/lib/auth-client";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useDashboard } from "@/context/DashboardContext";
-import { initials } from "@/lib/dashboard/helpers";
 import { ROUTES } from "@/constants/routes";
 import {
   IconDashboard, IconCar, IconWallet,

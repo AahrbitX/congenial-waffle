@@ -35,12 +35,11 @@ export function PreferencesSettings() {
             <p className="text-[14px] font-semibold text-[var(--color-text-primary)]">{label}</p>
             <p className="text-[12px] text-[var(--color-text-tertiary)] mt-0.5">{sub}</p>
           </div>
-          <Switch
-            isSelected={on}
-            onChange={() => set(!on)}
-            size="sm"
-            classNames={{ track: on ? "bg-[var(--color-primary)]" : "bg-[var(--color-border-strong)]" }}
-          />
+          <Switch isSelected={on} onChange={() => set(!on)} size="sm">
+            <Switch.Control className={on ? "bg-[var(--color-primary)]" : "bg-[var(--color-border-strong)]"}>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch>
         </div>
       ))}
     </div>

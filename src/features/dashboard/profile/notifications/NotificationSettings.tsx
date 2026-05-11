@@ -26,12 +26,11 @@ export function NotificationSettings() {
             <p className="text-[14px] font-semibold text-[var(--color-text-primary)]">{label}</p>
             <p className="text-[12px] text-[var(--color-text-tertiary)] mt-0.5">{sub}</p>
           </div>
-          <Switch
-            isSelected={prefs[key]}
-            onChange={() => setPrefs((p) => ({ ...p, [key]: !p[key] }))}
-            size="sm"
-            classNames={{ track: prefs[key] ? "bg-[var(--color-primary)]" : "bg-[var(--color-border-strong)]" }}
-          />
+          <Switch isSelected={prefs[key]} onChange={() => setPrefs((p) => ({ ...p, [key]: !p[key] }))} size="sm">
+            <Switch.Control className={prefs[key] ? "bg-[var(--color-primary)]" : "bg-[var(--color-border-strong)]"}>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch>
         </div>
       ))}
     </div>

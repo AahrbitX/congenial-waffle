@@ -32,4 +32,6 @@ export {
   Search           as IconSearch,
   Share2           as IconShare,
   Check            as IconCheck,
+  ArrowLeft        as IconArrowLeft,
+  ArrowRight       as IconArrowRight,
 } from "lucide-react";

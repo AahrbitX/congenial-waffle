@@ -13,6 +13,11 @@ export async function getTransactions(): Promise<Transaction[]> {
   return MOCK_TRANSACTIONS;
 }
 
+export async function getTransactionById(id: string): Promise<Transaction | undefined> {
+  await delay(300);
+  return MOCK_TRANSACTIONS.find((t) => t.id === id);
+}
+
 export async function getPaymentMethods(): Promise<PaymentMethod[]> {
   await delay(300);
   return MOCK_PAYMENT_METHODS;

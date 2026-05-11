@@ -11,14 +11,15 @@ interface BookRideModalProps {
   isOpen: boolean;
   onClose: () => void;
   onBooked: () => void;
+  serviceName?: string;
 }
 
-export function BookRideModal({ isOpen, onClose, onBooked }: BookRideModalProps) {
-  const [step, setStep]         = useState<1 | 2>(1);
-  const [pickup, setPickup]     = useState("");
-  const [dropoff, setDropoff]   = useState("");
-  const [vehicle, setVehicle]   = useState("Sedan");
-  const [payment, setPayment]   = useState("UPI");
+export function BookRideModal({ isOpen, onClose, onBooked, serviceName }: BookRideModalProps) {
+  const [step, setStep]           = useState<1 | 2>(1);
+  const [pickup, setPickup]       = useState("");
+  const [dropoff, setDropoff]     = useState("");
+  const [vehicle, setVehicle]     = useState("Sedan");
+  const [payment, setPayment]     = useState("UPI");
   const [confirmed, setConfirmed] = useState(false);
 
   const { data: vehicles = [] }      = useVehicles();
@@ -60,6 +61,7 @@ export function BookRideModal({ isOpen, onClose, onBooked }: BookRideModalProps)
           </div>
         ) : (
           <>
+            {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
               <div className="flex items-center gap-2">
                 {step === 2 && (
@@ -67,9 +69,16 @@ export function BookRideModal({ isOpen, onClose, onBooked }: BookRideModalProps)
                     <IconChevronLeft size={16} />
                   </button>
                 )}
-                <p className="text-[16px] font-black text-[var(--color-text-primary)]">
-                  {step === 1 ? "Where to?" : "Choose Ride"}
-                </p>
+                <div>
+                  <p className="text-[16px] font-black text-[var(--color-text-primary)]">
+                    {step === 1 ? "Where to?" : "Choose Ride"}
+                  </p>
+                  {serviceName && (
+                    <p className="text-[11px] font-semibold text-[var(--color-primary)] mt-0.5">
+                      Booking: {serviceName}
+                    </p>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex gap-1.5">
@@ -83,11 +92,21 @@ export function BookRideModal({ isOpen, onClose, onBooked }: BookRideModalProps)
               </div>
             </div>
 
+            {/* Step 1 — Location */}
             {step === 1 && (
               <div className="p-5 space-y-4">
+                {/* Service tag */}
+                {serviceName && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-[var(--color-primary-light)] rounded-xl border border-[var(--color-primary)]/20">
+                    <IconCar size={14} className="text-[var(--color-primary)]" />
+                    <p className="text-[13px] font-semibold text-[var(--color-primary)]">{serviceName}</p>
+                    <span className="ml-auto text-[11px] text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2 py-0.5 rounded-full font-bold">Selected</span>
+                  </div>
+                )}
+
                 <div className="bg-[var(--color-surface-muted)] rounded-2xl p-4 space-y-3">
                   {[
-                    { label: "Pick Up", value: pickup, set: setPickup, dot: "rounded-full bg-[var(--color-primary)]", placeholder: "Tap to set pickup…" },
+                    { label: "Pick Up",  value: pickup,  set: setPickup,  dot: "rounded-full bg-[var(--color-primary)]", placeholder: "Tap to set pickup…" },
                     { label: "Drop Off", value: dropoff, set: setDropoff, dot: "rounded bg-[var(--color-text-primary)]", placeholder: "Where are you going?" },
                   ].map(({ label, value, set, dot, placeholder }) => (
                     <div key={label}>
@@ -104,6 +123,9 @@ export function BookRideModal({ isOpen, onClose, onBooked }: BookRideModalProps)
                     </div>
                   ))}
                 </div>
+
+                {/* Map preview */}
+                {(pickup || dropoff) && <MapPlaceholder height={100} />}
 
                 <div>
                   <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-2">Recent Places</p>
@@ -122,18 +144,33 @@ export function BookRideModal({ isOpen, onClose, onBooked }: BookRideModalProps)
                   </div>
                 </div>
 
-                <Button onPress={() => { if (!pickup) setPickup("Current Location"); if (!dropoff) setDropoff("Technopark Phase 3"); setStep(2); }} className="w-full bg-[var(--color-primary)] text-white font-bold py-3.5 rounded-xl">
+                <Button
+                  onPress={() => {
+                    if (!pickup) setPickup("Current Location");
+                    if (!dropoff) setDropoff("Technopark Phase 3");
+                    setStep(2);
+                  }}
+                  className="w-full bg-[var(--color-primary)] text-white font-bold py-3.5 rounded-xl"
+                >
                   See Available Rides →
                 </Button>
               </div>
             )}
 
+            {/* Step 2 — Vehicle + payment */}
             {step === 2 && selectedV && (
               <div className="p-5 space-y-4">
                 <div className="grid grid-cols-2 divide-x divide-[var(--color-border)] bg-[var(--color-surface-muted)] rounded-xl overflow-hidden border border-[var(--color-border)]">
                   <div className="px-4 py-3"><p className="text-[10px] text-[var(--color-text-tertiary)] font-bold uppercase tracking-wider">From</p><p className="text-[13px] font-bold text-[var(--color-primary)] truncate mt-0.5">{pickup}</p></div>
                   <div className="px-4 py-3"><p className="text-[10px] text-[var(--color-text-tertiary)] font-bold uppercase tracking-wider">To</p><p className="text-[13px] font-bold text-[var(--color-text-primary)] truncate mt-0.5">{dropoff}</p></div>
                 </div>
+
+                {serviceName && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-[var(--color-primary-light)] rounded-xl">
+                    <IconCar size={13} className="text-[var(--color-primary)]" />
+                    <p className="text-[12px] font-semibold text-[var(--color-primary)]">{serviceName}</p>
+                  </div>
+                )}
 
                 <div>
                   <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-2">Choose Vehicle</p>

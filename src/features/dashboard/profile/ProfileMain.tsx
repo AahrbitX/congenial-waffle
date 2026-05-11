@@ -6,7 +6,6 @@ import { Avatar } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
 import { authClient } from "@/lib/auth-client";
 import { useUserStats } from "@/hooks/useUser";
-import { useDashboard } from "@/context/DashboardContext";
 import { initials } from "@/lib/dashboard/helpers";
 import { ROUTES } from "@/constants/routes";
 import {
@@ -26,7 +25,6 @@ export function ProfileMain() {
   const { data: session } = authClient.useSession();
   const user = session?.user;
   const { data: stats } = useUserStats();
-  const { setActiveTrip } = useDashboard();
 
   const [editing, setEditing]     = useState(false);
   const [name, setName]           = useState(user?.name ?? "");
@@ -134,7 +132,7 @@ export function ProfileMain() {
               <IconLogOut size={28} className="text-[var(--color-danger)]" />
             </div>
             <p className="text-[18px] font-black text-[var(--color-text-primary)]">Sign out?</p>
-            <p className="text-[13px] text-[var(--color-text-tertiary)] leading-relaxed">You'll need to log in again with your phone number to access your account.</p>
+            <p className="text-[13px] text-[var(--color-text-tertiary)] leading-relaxed">You&apos;ll need to log in again with your phone number to access your account.</p>
             <div className="flex gap-3 pt-2">
               <Button onPress={() => setShowSignOut(false)} className="flex-1 rounded-xl font-semibold border border-[var(--color-border-strong)] text-[var(--color-text-secondary)]">Cancel</Button>
               <Button onPress={() => { setShowSignOut(false); authClient.signOut(); }} className="flex-1 rounded-xl font-bold bg-[var(--color-danger)] text-white">

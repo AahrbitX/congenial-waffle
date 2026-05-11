@@ -14,6 +14,7 @@ import {
   Star,
   MapPin,
 } from "lucide-react";
+import { useBooking } from "@/context/BookingContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -55,66 +56,72 @@ const PACKAGES = [
     label: "OUTSTATION RIDE",
     tag: "Best Value",
     name: "One-Way Drop",
+    service: "Outstation",
     desc: "Travel to your destination without worrying about return fare. Ideal for one-time trips to any city.",
     price: "₹999",
     unit: "onwards",
     image:
       "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&q=80",
     cta: "Book Now",
-    href: "/book",
+    href: null,
   },
   {
     label: "ROUND TRIP",
     tag: "Popular",
     name: "Round Trip Package",
+    service: "Outstation",
     desc: "Go and come back at your own schedule. Driver waits for you at the destination.",
     price: "₹1,799",
     unit: "/ day",
     image:
       "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80",
     cta: "Book Now",
-    href: "/book",
+    href: null,
   },
   {
     label: "AIRPORT TRANSFER",
     tag: "Fixed Fare",
     name: "Airport Transfer",
+    service: "Airport Transfer",
     desc: "Stress-free airport pickup and drops. Fixed pricing, flight-tracking, and on-time guarantee.",
     price: "₹599",
     unit: "flat",
     image:
       "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&q=80",
     cta: "Book Now",
-    href: "/book",
+    href: null,
   },
   {
     label: "FULL DAY HIRE",
     tag: "Flexible",
-    name: "8 Hours / 80 km",
+    name: "Full Day Hire",
+    service: "City Taxi",
     desc: "A dedicated cab for the whole day. Meetings, errands, sightseeing — your driver stays with you.",
     price: "₹1,299",
     unit: "/ 8 hrs",
     image:
       "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600&q=80",
     cta: "Book Now",
-    href: "/book",
+    href: null,
   },
   {
     label: "WEEKLY PLAN",
     tag: "Save 20%",
     name: "Weekly Commute",
+    service: "City Taxi",
     desc: "Book for 5 or 7 days at a flat weekly rate. Perfect for office commuters and regular travellers.",
     price: "₹3,999",
     unit: "/ week",
     image:
       "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&q=80",
     cta: "Book Now",
-    href: "/book",
+    href: null,
   },
   {
     label: "CORPORATE",
     tag: "For Teams",
     name: "Corporate Plan",
+    service: null,
     desc: "Managed billing, GST invoices, priority support, and bulk bookings for your entire organisation.",
     price: "Custom",
     unit: "pricing",
@@ -257,6 +264,7 @@ function HeroSection() {
   const [destination, setDestination] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
+  const { openBooking } = useBooking();
 
   const serviceTabs = [
     { id: "local", label: "Local", Icon: MapPin },
@@ -295,12 +303,12 @@ function HeroSection() {
             alt="Hero background"
           />
         <div className="flex items-center gap-3 flex-wrap">
-          <Link
-            href="/book"
+          <button
+            onClick={() => openBooking()}
             className="inline-flex items-center gap-2 text-white bg-blue-500 rounded-full px-4 py-2 font-bold text-[15px] hover:bg-blue-600 transition-colors group"
           >
             Book Now
-          </Link>
+          </button>
 
           <a
             href="https://wa.me/91XXXXXXXXXX"
@@ -425,11 +433,12 @@ function HeroSection() {
               </div>
 
               {/* CTA */}
-              <Link href="/book" className="block">
-                <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold text-base h-12 rounded-xl">
-                  Explore Cabs
-                </Button>
-              </Link>
+              <Button
+                onPress={() => openBooking()}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold text-base h-12 rounded-xl"
+              >
+                Explore Cabs
+              </Button>
             </div>
           </Card>
         </div>
@@ -442,6 +451,7 @@ function HeroSection() {
 // ─── Cars Section ─────────────────────────────────────────────────────────────
 
 function CarsSection() {
+  const { openBooking } = useBooking();
   return (
     <section className="py-20 px-6 sm:px-12">
       <div className="max-w-7xl mx-auto">
@@ -460,6 +470,7 @@ function CarsSection() {
             return (
               <Card
                 key={car.name}
+                onClick={() => openBooking(car.name)}
                 className="relative border border-[#dce1e9] rounded-2xl p-5 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
               >
                 <Chip
@@ -497,6 +508,7 @@ function CarsSection() {
 // ─── Packages Section ─────────────────────────────────────────────────────────
 
 function PackagesSection() {
+  const { openBooking } = useBooking();
   return (
     <section className="py-20 px-6 sm:px-12 bg-[#f0f2f5]">
       <div className="max-w-7xl mx-auto">
@@ -548,15 +560,26 @@ function PackagesSection() {
                       {pkg.unit}
                     </span>
                   </p>
-                  <Link href={pkg.href}>
+                  {pkg.href ? (
+                    <Link href={pkg.href}>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        className="rounded-full bg-[#1877F2] text-white font-bold hover:bg-[#166FE5] text-[13px]"
+                      >
+                        {pkg.cta}
+                      </Button>
+                    </Link>
+                  ) : (
                     <Button
                       variant="primary"
                       size="sm"
+                      onPress={() => openBooking(pkg.service ?? pkg.name)}
                       className="rounded-full bg-[#1877F2] text-white font-bold hover:bg-[#166FE5] text-[13px]"
                     >
                       {pkg.cta}
                     </Button>
-                  </Link>
+                  )}
                 </div>
               </div>
             </Card>
