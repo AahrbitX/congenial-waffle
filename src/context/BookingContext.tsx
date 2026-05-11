@@ -5,7 +5,7 @@ import { BookRideModal } from "@/components/dashboard/BookRideModal";
 import type { BookingInitialData } from "@/types/booking.types";
 
 interface BookingContextValue {
-  openBooking: (serviceName?: string, initialData?: BookingInitialData) => void;
+  openBooking: (data?: BookingInitialData) => void;
   closeBooking: () => void;
 }
 
@@ -15,19 +15,16 @@ const BookingContext = createContext<BookingContextValue>({
 });
 
 export function BookingProvider({ children }: { children: ReactNode }) {
-  const [isOpen, setIsOpen]           = useState(false);
-  const [serviceName, setServiceName] = useState<string | undefined>();
+  const [isOpen,      setIsOpen]      = useState(false);
   const [initialData, setInitialData] = useState<BookingInitialData | undefined>();
 
-  const openBooking = useCallback((name?: string, data?: BookingInitialData) => {
-    setServiceName(name);
+  const openBooking = useCallback((data?: BookingInitialData) => {
     setInitialData(data);
     setIsOpen(true);
   }, []);
 
   const closeBooking = useCallback(() => {
     setIsOpen(false);
-    setServiceName(undefined);
     setInitialData(undefined);
   }, []);
 
@@ -38,7 +35,6 @@ export function BookingProvider({ children }: { children: ReactNode }) {
         isOpen={isOpen}
         onClose={closeBooking}
         onBooked={closeBooking}
-        serviceName={serviceName}
         initialData={initialData}
       />
     </BookingContext.Provider>

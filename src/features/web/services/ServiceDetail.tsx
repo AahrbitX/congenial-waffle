@@ -125,7 +125,7 @@ export function ServiceDetail({ slug }: ServiceDetailProps) {
             </div>
 
             <button
-              onClick={() => openBooking(service.name)}
+              onClick={() => openBooking({ serviceId: service.slug })}
               className="flex items-center justify-center gap-2 w-full bg-blue-500 hover:bg-blue-600 text-white font-extrabold text-[15px] py-4 rounded-2xl transition-colors group"
             >
               Book Now
