@@ -54,14 +54,14 @@ function UserDropdown() {
             </Dropdown.Trigger>
             <Dropdown.Popover placement="bottom end">
               <Dropdown.Menu>
-                <Dropdown.Item onPress={() => router.push("/profile")}>
+                <Dropdown.Item onPress={() => router.push("/dashboard/overview")}>
                   <div className="flex w-full items-center justify-between gap-2">
                     <Label>Profile</Label>
                     <User className="size-3.5" />
                   </div>
                 </Dropdown.Item>
                 <Dropdown.Item
-                  onPress={() => router.push("/profile/ride-history")}
+                  onPress={() => router.push("/dashboard/rides")}
                 >
                   <div className="flex w-full items-center justify-between gap-2">
                     <Label>Ride History</Label>

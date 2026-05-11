@@ -1,0 +1,244 @@
+"use client";
+
+import Link from "next/link";
+import { useState, useRef, useEffect } from "react";
+import { Menu, X, ChevronDown, Car, Key, Navigation, Plane, Train, Globe, Heart, Users, Briefcase, Palmtree, CalendarDays, GraduationCap, UserCircle, LayoutDashboard } from "lucide-react";
+import UserDropdown from "./userDropdown";
+import { usePathname } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
+
+// ─── Services Dropdown Data ───────────────────────────────────────────────────
+
+const BOOK_A_RIDE = [
+  { Icon: Car,          label: "City Taxi",         desc: "Quick rides within Trivandrum",  href: "/services/city-taxi" },
+  { Icon: Key,          label: "Rent a Car",         desc: "Self-drive options",             href: "/services/rent-a-car" },
+  { Icon: Navigation,   label: "Outstation",         desc: "Inter-city travel packages",     href: "/services/outstation" },
+  { Icon: Plane,        label: "Airport Transfer",   desc: "Reliable pickup & drop",         href: "/services/airport" },
+  { Icon: Train,        label: "Railway Transfer",   desc: "Station pickup & drop",          href: "/services/railway" },
+  { Icon: Globe,        label: "Nationwide Pickup",  desc: "Anywhere to Trivandrum",         href: "/services/nationwide" },
+];
+
+const SPECIAL_SERVICES = [
+  { Icon: Heart,        label: "Wedding Cars",       desc: "Luxury fleet for events",        href: "/services/wedding" },
+  { Icon: Users,        label: "Tempo Traveller",    desc: "Group travel solutions",          href: "/services/tempo" },
+  { Icon: Briefcase,    label: "Corporate",          desc: "Business transport",              href: "/services/corporate" },
+  { Icon: Palmtree,     label: "Tour Packages",      desc: "Explore Kerala",                  href: "/services/tours" },
+  { Icon: CalendarDays, label: "Events",             desc: "Logistics support",               href: "/services/events" },
+  { Icon: GraduationCap,label: "School",             desc: "Student transport",               href: "/services/school" },
+];
+
+// ─── Services Dropdown ────────────────────────────────────────────────────────
+
+function ServicesDropdown() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+          open ? "text-blue-500 bg-blue-50" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+        }`}
+      >
+        Services
+        <ChevronDown size={13} className={`opacity-60 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[580px] bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-50">
+          <div className="grid grid-cols-2 gap-x-8">
+            {/* Book A Ride */}
+            <div>
+              <p className="text-[10px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-3">Book A Ride</p>
+              <div className="space-y-1">
+                {BOOK_A_RIDE.map(({ Icon, label, desc, href }) => (
+                  <Link
+                    key={label}
+                    href={href}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors group"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 group-hover:bg-blue-50 transition-colors">
+                      <Icon size={15} className="text-gray-500 group-hover:text-blue-500 transition-colors" />
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-semibold text-gray-800 leading-none">{label}</p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">{desc}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Special Services */}
+            <div>
+              <p className="text-[10px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-3">Special Services</p>
+              <div className="space-y-1">
+                {SPECIAL_SERVICES.map(({ Icon, label, desc, href }) => (
+                  <Link
+                    key={label}
+                    href={href}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors group"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 group-hover:bg-blue-50 transition-colors">
+                      <Icon size={15} className="text-gray-500 group-hover:text-blue-500 transition-colors" />
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-semibold text-gray-800 leading-none">{label}</p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">{desc}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer link */}
+          <div className="mt-4 pt-4 border-t border-gray-100 text-center">
+            <Link
+              href="/services"
+              onClick={() => setOpen(false)}
+              className="text-[13px] font-semibold text-blue-500 hover:text-blue-600 transition-colors inline-flex items-center gap-1"
+            >
+              View all services
+              <ChevronDown size={13} className="-rotate-90" />
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Dashboard / Login Nav Item ───────────────────────────────────────────────
+
+function DashboardNavItem() {
+  const { data, isPending } = authClient.useSession();
+  const isAdmin = (data?.user as any)?.role === "admin";
+
+  if (isPending) return <div className="w-28 h-8 rounded-full bg-gray-100 animate-pulse" />;
+
+  if (data) {
+    const href = isAdmin ? "/admin" : "/dashboard/overview";
+    return (
+      <Link
+        href={href}
+        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
+      >
+        <LayoutDashboard size={14} />
+        Dashboard
+      </Link>
+    );
+  }
+
+  return (
+    <Link
+      href="/login"
+      className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+    >
+      <UserCircle size={15} className="text-gray-400" />
+      Login to Dashboard
+    </Link>
+  );
+}
+
+// ─── Nav Links ────────────────────────────────────────────────────────────────
+
+const navLinks = [
+  { name: "Home",     href: "/" },
+  { name: "About Us", href: "/about" },
+  // { name: "Tours",    href: "/tours" },
+  { name: "Fleet",    href: "/fleet" },
+  { name: "Support",  href: "/contact" },
+];
+
+// ─── Navbar ───────────────────────────────────────────────────────────────────
+
+export default function LandingNavbar() {
+  const pathName = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-7xl">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 shrink-0 pl-2 pr-4 py-2 border border-gray-200 bg-white rounded-full">
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+              <Car size={15} className="text-white" />
+            </div>
+            <span className="font-bold text-base tracking-tight text-gray-900">Mohan Cabs</span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-0.5 px-4 py-2 border border-gray-200 bg-white rounded-full">
+            {navLinks.slice(0, 2).map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  pathName === link.href ? "text-blue-500 bg-blue-50" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                }`}
+              >
+                {link.name}
+              </Link>
+            ))}
+
+            <ServicesDropdown />
+
+            {navLinks.slice(2).map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  pathName === link.href ? "text-blue-500 bg-blue-50" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                }`}
+              >
+                {link.name}
+              </Link>
+            ))}
+          </div>
+
+          <div className="hidden md:inline-block border border-gray-200 bg-white rounded-full">
+            <UserDropdown />
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              {isOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Navigation */}
+      {isOpen && (
+        <div className="md:hidden border-t border-gray-100 bg-white rounded-2xl mt-1 px-4 py-3 space-y-1 shadow-lg">
+          <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-100">Home</Link>
+          <Link href="/about" onClick={() => setIsOpen(false)} className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-100">About Us</Link>
+          <div className="px-3 pt-1 pb-0.5 text-[10px] font-bold tracking-widest text-gray-400 uppercase">Book A Ride</div>
+          {BOOK_A_RIDE.map(({ label, href }) => (
+            <Link key={label} href={href} onClick={() => setIsOpen(false)} className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-100 pl-5">
+              {label}
+            </Link>
+          ))}
+          <Link href="/contact" onClick={() => setIsOpen(false)} className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-100">Support</Link>
+        </div>
+      )}
+    </nav>
+  );
+}
