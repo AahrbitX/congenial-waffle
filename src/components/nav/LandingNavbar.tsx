@@ -6,6 +6,8 @@ import { Menu, X, ChevronDown, Car, Key, Navigation, Plane, Train, Globe, Heart,
 import UserDropdown from "./userDropdown";
 import { usePathname } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import Image from "next/image";
+import {ASSETS} from "@/constants/assets";
 
 // ─── Services Dropdown Data ───────────────────────────────────────────────────
 
@@ -45,8 +47,8 @@ function ServicesDropdown() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-          open ? "text-blue-500 bg-blue-50" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+        className={`flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium transition-colors ${
+          open ? "text-primary bg-primary-soft" : "text-text-secondary hover:text-text-primary hover:bg-border/30"
         }`}
       >
         Services
@@ -54,25 +56,25 @@ function ServicesDropdown() {
       </button>
 
       {open && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[580px] bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-50">
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[580px] bg-background rounded-2xl shadow-xl border border-border p-5 z-50">
           <div className="grid grid-cols-2 gap-x-8">
             {/* Book A Ride */}
             <div>
-              <p className="text-[10px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-3">Book A Ride</p>
+              <p className="text-[10px] font-bold tracking-[0.15em] text-text-muted uppercase mb-3">Book A Ride</p>
               <div className="space-y-1">
                 {BOOK_A_RIDE.map(({ Icon, label, desc, href }) => (
                   <Link
                     key={label}
                     href={href}
                     onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors group"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-border/30 transition-colors group"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 group-hover:bg-blue-50 transition-colors">
-                      <Icon size={15} className="text-gray-500 group-hover:text-blue-500 transition-colors" />
+                    <div className="w-8 h-8 rounded-lg bg-border/40 flex items-center justify-center shrink-0 group-hover:bg-primary-soft transition-colors">
+                      <Icon size={15} className="text-text-secondary group-hover:text-primary transition-colors" />
                     </div>
                     <div>
-                      <p className="text-[13px] font-semibold text-gray-800 leading-none">{label}</p>
-                      <p className="text-[11px] text-gray-400 mt-0.5">{desc}</p>
+                      <p className="text-[13px] font-semibold text-text-primary leading-none">{label}</p>
+                      <p className="text-[11px] text-text-muted mt-0.5">{desc}</p>
                     </div>
                   </Link>
                 ))}
@@ -81,21 +83,21 @@ function ServicesDropdown() {
 
             {/* Special Services */}
             <div>
-              <p className="text-[10px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-3">Special Services</p>
+              <p className="text-[10px] font-bold tracking-[0.15em] text-text-muted uppercase mb-3">Special Services</p>
               <div className="space-y-1">
                 {SPECIAL_SERVICES.map(({ Icon, label, desc, href }) => (
                   <Link
                     key={label}
                     href={href}
                     onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors group"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-border/30 transition-colors group"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 group-hover:bg-blue-50 transition-colors">
-                      <Icon size={15} className="text-gray-500 group-hover:text-blue-500 transition-colors" />
+                    <div className="w-8 h-8 rounded-lg bg-border/40 flex items-center justify-center shrink-0 group-hover:bg-primary-soft transition-colors">
+                      <Icon size={15} className="text-text-secondary group-hover:text-primary transition-colors" />
                     </div>
                     <div>
-                      <p className="text-[13px] font-semibold text-gray-800 leading-none">{label}</p>
-                      <p className="text-[11px] text-gray-400 mt-0.5">{desc}</p>
+                      <p className="text-[13px] font-semibold text-text-primary leading-none">{label}</p>
+                      <p className="text-[11px] text-text-muted mt-0.5">{desc}</p>
                     </div>
                   </Link>
                 ))}
@@ -104,11 +106,11 @@ function ServicesDropdown() {
           </div>
 
           {/* Footer link */}
-          <div className="mt-4 pt-4 border-t border-gray-100 text-center">
+          <div className="mt-4 pt-4 border-t border-border text-center">
             <Link
               href="/services"
               onClick={() => setOpen(false)}
-              className="text-[13px] font-semibold text-blue-500 hover:text-blue-600 transition-colors inline-flex items-center gap-1"
+              className="text-[13px] font-semibold text-primary hover:text-primary-hover transition-colors inline-flex items-center gap-1"
             >
               View all services
               <ChevronDown size={13} className="-rotate-90" />
@@ -117,38 +119,6 @@ function ServicesDropdown() {
         </div>
       )}
     </div>
-  );
-}
-
-// ─── Dashboard / Login Nav Item ───────────────────────────────────────────────
-
-function DashboardNavItem() {
-  const { data, isPending } = authClient.useSession();
-  const isAdmin = (data?.user as any)?.role === "admin";
-
-  if (isPending) return <div className="w-28 h-8 rounded-full bg-gray-100 animate-pulse" />;
-
-  if (data) {
-    const href = isAdmin ? "/admin" : "/dashboard/overview";
-    return (
-      <Link
-        href={href}
-        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
-      >
-        <LayoutDashboard size={14} />
-        Dashboard
-      </Link>
-    );
-  }
-
-  return (
-    <Link
-      href="/login"
-      className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
-    >
-      <UserCircle size={15} className="text-gray-400" />
-      Login to Dashboard
-    </Link>
   );
 }
 
@@ -173,21 +143,19 @@ export default function LandingNavbar() {
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0 pl-2 pr-4 py-2 border border-gray-200 bg-white rounded-full">
-            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-              <Car size={15} className="text-white" />
-            </div>
-            <span className="font-bold text-base tracking-tight text-gray-900">Mohan Cabs</span>
+          <Link href="/" className="flex items-center gap-2 shrink-0 pl-2 pr-4 py-2 border border-border bg-background rounded-full">
+          <Image src={ASSETS.logos.minimal.src} alt={ASSETS.logos.minimal.alt} width={24} height={24} className="rounded-full w-10 h-6" />
+          <Image src={ASSETS.logos.drakfullname.src} alt={ASSETS.logos.drakfullname.alt} width={100} height={24} className="hidden sm:inline-block h-8" />
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-0.5 px-4 py-2 border border-gray-200 bg-white rounded-full">
+          <div className="hidden md:flex items-center gap-0.5 px-4 py-2 border border-border bg-background rounded-full">
             {navLinks.slice(0, 2).map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
-                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  pathName === link.href ? "text-blue-500 bg-blue-50" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                className={`flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium transition-colors ${
+                  pathName === link.href ? "text-primary bg-primary-soft" : "text-text-secondary hover:text-text-primary hover:bg-border/30"
                 }`}
               >
                 {link.name}
@@ -200,8 +168,8 @@ export default function LandingNavbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  pathName === link.href ? "text-blue-500 bg-blue-50" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                className={`flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium transition-colors ${
+                  pathName === link.href ? "text-primary bg-primary-soft" : "text-text-secondary hover:text-text-primary hover:bg-border/30"
                 }`}
               >
                 {link.name}
@@ -209,7 +177,7 @@ export default function LandingNavbar() {
             ))}
           </div>
 
-          <div className="hidden md:inline-block border border-gray-200 bg-white rounded-full">
+          <div className="hidden md:inline-block border border-border bg-background rounded-full">
             <UserDropdown />
           </div>
 
@@ -217,7 +185,7 @@ export default function LandingNavbar() {
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 text-text-secondary hover:bg-border/30 rounded-lg transition-colors"
             >
               {isOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -227,16 +195,16 @@ export default function LandingNavbar() {
 
       {/* Mobile Navigation */}
       {isOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white rounded-2xl mt-1 px-4 py-3 space-y-1 shadow-lg">
-          <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-100">Home</Link>
-          <Link href="/about" onClick={() => setIsOpen(false)} className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-100">About Us</Link>
-          <div className="px-3 pt-1 pb-0.5 text-[10px] font-bold tracking-widest text-gray-400 uppercase">Book A Ride</div>
+        <div className="md:hidden border-t border-border bg-background rounded-2xl mt-1 px-4 py-3 space-y-1 shadow-lg">
+          <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-text-secondary hover:bg-border/30">Home</Link>
+          <Link href="/about" onClick={() => setIsOpen(false)} className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-text-secondary hover:bg-border/30">About Us</Link>
+          <div className="px-3 pt-1 pb-0.5 text-[10px] font-bold tracking-widest text-text-muted uppercase">Book A Ride</div>
           {BOOK_A_RIDE.map(({ label, href }) => (
-            <Link key={label} href={href} onClick={() => setIsOpen(false)} className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-100 pl-5">
+            <Link key={label} href={href} onClick={() => setIsOpen(false)} className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-text-secondary hover:bg-border/30 pl-5">
               {label}
             </Link>
           ))}
-          <Link href="/contact" onClick={() => setIsOpen(false)} className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-100">Support</Link>
+          <Link href="/contact" onClick={() => setIsOpen(false)} className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-text-secondary hover:bg-border/30">Support</Link>
         </div>
       )}
     </nav>

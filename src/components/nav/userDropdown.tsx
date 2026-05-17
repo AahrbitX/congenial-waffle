@@ -2,21 +2,28 @@
 
 import React from "react";
 import Link from "next/link";
-import { buttonVariants } from "@heroui/styles";
+import { motion } from "framer-motion";
 import { authClient } from "@/lib/auth-client";
 import { Avatar, Dropdown, Label, Spinner } from "@heroui/react";
 import { Car, Headphones, LogOut, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 function UserDropdown() {
-  const { data, isPending, error } = authClient.useSession();
+  const { data, isPending } = authClient.useSession();
 
   const router = useRouter();
   const isAdmin = (data?.user as any)?.role === "admin";
   const userName = data?.user?.name || "User";
 
   const handleLogout = async () => {
-    await authClient.signOut();
+    try {
+      await authClient.signOut();
+    } catch (_) {
+      // ignore network errors
+    } finally {
+      router.push("/");
+      router.refresh();
+    }
   };
 
   if (isPending) {
@@ -28,24 +35,23 @@ function UserDropdown() {
   }
 
   return (
-    <div className="flex items-center justify-center">
-      {!data && !error ? (
+    <div className="flex items-center justify-center bg-transparent">
+      {!data ? (
         <Link
           href={"/login"}
-          className={buttonVariants({ variant: "primary" })}
+          className="text-sm font-semibold bg-primary text-white rounded-full px-5 py-2 inline-flex items-center gap-1.5 shadow-sm"
         >
           Login
         </Link>
       ) : (
-        <div className="flex items-center justify-center gap-2">
-          {isAdmin && (
+        <div className="flex items-center justify-center gap-2 px-1 py-1  ">
+
             <Link
-              href="/admin"
-              className={buttonVariants({ variant: "primary" })}
+              href={isAdmin ? "/admin" : "/dashboard/overview"}
+              className="text-sm font-semibold bg-primary text-white px-5 py-2  rounded-full inline-flex items-center gap-1.5 shadow-sm"
             >
               Dashboard
             </Link>
-          )}
           <Dropdown>
             <Dropdown.Trigger>
               <Avatar>

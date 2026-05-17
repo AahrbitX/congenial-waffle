@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import { Button, Card, Chip, Surface } from "@heroui/react";
 import {
@@ -15,7 +16,13 @@ import {
   MapPin,
 } from "lucide-react";
 import { useBooking } from "@/context/BookingContext";
+import { useAuth } from "@/context/AuthContext";
 import type { ServiceTab, TripTab } from "@/types/booking.types";
+
+const LocationInput = dynamic(
+  () => import("@/components/map/LocationInput").then((m) => m.LocationInput),
+  { ssr: false }
+);
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -356,6 +363,7 @@ function HeroSection() {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const { openBooking } = useBooking();
+  const { requireAuth } = useAuth();
 
   const serviceTabs = [
     { id: "local", label: "Local", Icon: MapPin },
@@ -419,15 +427,15 @@ function HeroSection() {
         <div className="hidden lg:block flex-1 px-8 pt-10">
           <Card className="rounded-2xl shadow-2xl overflow-hidden p-0 gap-0">
             {/* Service tabs */}
-            <div className="flex border-b border-gray-100">
+            <div className="flex border-b border-border">
               {serviceTabs.map(({ id, label, Icon }) => (
                 <button
                   key={id}
                   onClick={() => setServiceTab(id)}
                   className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-semibold transition-colors ${
                     serviceTab === id
-                      ? "text-blue-500 border-b-2 border-blue-500"
-                      : "text-gray-400 hover:text-gray-600"
+                      ? "text-primary border-b-2 border-primary"
+                      : "text-text-muted hover:text-text-secondary"
                   }`}
                 >
                   <Icon size={15} />
@@ -437,15 +445,15 @@ function HeroSection() {
             </div>
 
             {/* Trip sub-tabs */}
-            <div className="flex gap-1 p-3 bg-gray-50 border-b border-gray-100">
+            <div className="flex gap-1 p-3 bg-background border-b border-border">
               {tripTabs.map(({ id, label }) => (
                 <button
                   key={id}
                   onClick={() => setTripTab(id)}
                   className={`flex-1 text-xs font-semibold py-1.5 rounded-full transition-colors ${
                     tripTab === id
-                      ? "bg-blue-500 text-white"
-                      : "text-gray-500 hover:text-gray-700"
+                      ? "bg-primary text-white"
+                      : "text-text-secondary hover:text-text-primary"
                   }`}
                 >
                   {label}
@@ -457,43 +465,39 @@ function HeroSection() {
             <div className="p-5 space-y-4">
               {/* Pickup location */}
               <div>
-                <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-1.5">
+                <p className="text-[10px] font-bold text-text-muted tracking-widest uppercase mb-1.5">
                   Pickup Location
                 </p>
-                <div className="flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3">
-                  <MapPin size={16} className="text-blue-500 shrink-0" />
-                  <input
-                    type="text"
-                    placeholder="Enter pickup location"
-                    value={pickup}
-                    onChange={(e) => setPickup(e.target.value)}
-                    className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent"
-                  />
-                </div>
+                <LocationInput
+                  value={pickup}
+                  onChange={(addr) => setPickup(addr)}
+                  placeholder="Enter pickup location"
+                  onBeforeOpen={(open) => requireAuth(open)}
+                />
               </div>
 
               {/* Date & Time */}
               <div>
-                <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-1.5">
+                <p className="text-[10px] font-bold text-text-muted tracking-widest uppercase mb-1.5">
                   Pickup Date &amp; Time
                 </p>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-3">
-                    <Calendar size={15} className="text-gray-400 shrink-0" />
+                  <div className="flex items-center gap-2 border border-border rounded-xl px-3 py-3">
+                    <Calendar size={15} className="text-text-muted shrink-0" />
                     <input
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      className="flex-1 text-sm text-gray-500 outline-none bg-transparent w-full"
+                      className="flex-1 text-sm text-text-secondary outline-none bg-transparent w-full"
                     />
                   </div>
-                  <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-3">
-                    <Clock size={15} className="text-gray-400 shrink-0" />
+                  <div className="flex items-center gap-2 border border-border rounded-xl px-3 py-3">
+                    <Clock size={15} className="text-text-muted shrink-0" />
                     <input
                       type="time"
                       value={time}
                       onChange={(e) => setTime(e.target.value)}
-                      className="flex-1 text-sm text-gray-500 outline-none bg-transparent w-full"
+                      className="flex-1 text-sm text-text-secondary outline-none bg-transparent w-full"
                     />
                   </div>
                 </div>
@@ -501,19 +505,15 @@ function HeroSection() {
 
               {/* Destination */}
               <div>
-                <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-1.5">
+                <p className="text-[10px] font-bold text-text-muted tracking-widest uppercase mb-1.5">
                   Destination
                 </p>
-                <div className="flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3">
-                  <MapPin size={16} className="text-green-500 shrink-0" />
-                  <input
-                    type="text"
-                    placeholder="Enter destination"
-                    value={destination}
-                    onChange={(e) => setDestination(e.target.value)}
-                    className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent"
-                  />
-                </div>
+                <LocationInput
+                  value={destination}
+                  onChange={(addr) => setDestination(addr)}
+                  placeholder="Enter destination"
+                  onBeforeOpen={(open) => requireAuth(open)}
+                />
               </div>
 
               {/* CTA */}
@@ -528,7 +528,7 @@ function HeroSection() {
                     time,
                   })
                 }
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold text-base h-12 rounded-xl"
+                className="w-full bg-primary hover:bg-primary/90 text-white font-bold text-base h-12 rounded-xl"
               >
                 Explore Cabs
               </Button>
