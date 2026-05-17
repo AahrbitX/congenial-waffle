@@ -6,6 +6,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { Button } from "@/components/ui/Button";
 import { IconMapPin, IconSearch, IconLoader } from "@/constants/icons";
 
+type MapMoveEvent = { viewState: { latitude: number; longitude: number; zoom: number } };
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const TOKEN        = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
@@ -162,7 +164,7 @@ export function LocationPickerMap({ initialAddress, onConfirm, onCancel }: Locat
         ) : (
           <Map
             {...viewport}
-            onMove={(e) => setViewport(e.viewState)}
+            onMove={(e: MapMoveEvent) => setViewport(e.viewState)}
             mapStyle="mapbox://styles/mapbox/streets-v12"
             mapboxAccessToken={TOKEN}
             style={{ width: "100%", height: "100%" }}
