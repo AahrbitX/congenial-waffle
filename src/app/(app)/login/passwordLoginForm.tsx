@@ -20,7 +20,7 @@ export default function PasswordLoginForm() {
     try {
       const email = `${phoneNumber}@mohan-cabs.com`;
 
-      const response = await fetch("http://localhost:4000/api/auth/sign-in/email", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/auth/sign-in/email`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
