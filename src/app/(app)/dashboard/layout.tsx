@@ -1,20 +1,36 @@
 "use client";
 
-import { DashboardProvider } from "@/context/DashboardContext";
+import { Surface } from "@heroui/react";
+
 import { Sidebar } from "@/components/dashboard/Sidebar";
+import { DashboardProvider } from "@/context/DashboardContext";
+import { RatingModal } from "@/components/dashboard/RatingModal";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { NotificationPanel } from "@/components/dashboard/NotificationPanel";
-import { RatingModal } from "@/components/dashboard/RatingModal";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <DashboardProvider>
-      <div className="min-h-screen bg-[var(--color-surface-muted)] flex">
+      <div className="h-screen overflow-hidden flex">
         <Sidebar />
-        <main className="flex-1 min-w-0 p-6 overflow-y-auto">
-          <DashboardHeader />
-          {children}
-        </main>
+
+        <Surface
+          variant="secondary"
+          className="flex-1 min-w-0 h-full flex flex-col overflow-hidden"
+        >
+          <div className="shrink-0 px-6 pt-4 border-b">
+            <DashboardHeader />
+          </div>
+
+          <main className="flex-1 min-h-0 overflow-y-auto px-6 pb-6 pt-4 scrollbar-thin">
+            {children}
+          </main>
+        </Surface>
+
         <NotificationPanel />
         <RatingModal />
       </div>

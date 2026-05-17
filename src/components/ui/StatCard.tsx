@@ -1,3 +1,4 @@
+import { Card } from "@heroui/react";
 import { ElementType } from "react";
 
 interface StatCardProps {
@@ -8,23 +9,25 @@ interface StatCardProps {
   colorClass: string;
 }
 
-export function StatCard({ label, value, sub, icon: Icon, colorClass }: StatCardProps) {
+export function StatCard({
+  label,
+  value,
+  sub,
+  icon: Icon,
+  colorClass,
+}: StatCardProps) {
   return (
-    <div className="bg-[var(--color-surface)] rounded-2xl p-5 border border-[var(--color-border)] shadow-sm flex items-start gap-4">
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${colorClass}`}>
+    <Card className="rounded-2xl flex items-start gap-4 flex-row">
+      <div
+        className={`size-11 rounded-2xl flex items-center justify-center shrink-0 ${colorClass}`}
+      >
         <Icon size={20} />
       </div>
       <div>
-        <p className="text-[11px] text-[var(--color-text-tertiary)] font-medium uppercase tracking-wider">
-          {label}
-        </p>
-        <p className="text-[22px] font-black text-[var(--color-text-primary)] leading-tight">
-          {value}
-        </p>
-        {sub && (
-          <p className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5">{sub}</p>
-        )}
+        <p className="text-xs text-muted ">{label}</p>
+        <p className="text-xl font-bold leading-tight">{value}</p>
+        {sub && <p className="text-sm text-muted mt-0.5">{sub}</p>}
       </div>
-    </div>
+    </Card>
   );
 }

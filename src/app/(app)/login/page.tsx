@@ -1,13 +1,16 @@
 "use client";
 
 import React from "react";
-import { Card, Tabs } from "@heroui/react";
+import { Card, Surface, Tabs } from "@heroui/react";
 import PhoneLoginForm from "./phoneLoginForm";
 import PasswordLoginForm from "./passwordLoginForm";
 
 export default function LoginPage() {
   return (
-    <div className="flex h-screen w-full items-center justify-center px-4">
+    <Surface
+      variant="secondary"
+      className="flex h-screen w-full items-center justify-center px-4"
+    >
       <Card className="w-full max-w-[420px] h-auto  p-2 border-none flex flex-col items-center justify-start">
         <Card.Header className="flex flex-col items-center justify-center gap-2 pb-2 pt-6">
           <div className="">Logo</div>
@@ -42,6 +45,6 @@ export default function LoginPage() {
           </Tabs>
         </div>
       </Card>
-    </div>
+    </Surface>
   );
 }

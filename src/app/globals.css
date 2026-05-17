@@ -2,48 +2,102 @@
 @import "@heroui/styles";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f6f7fb;
+  --foreground: #111827;
 
-  /* ── Brand ─────────────────────────────── */
-  --color-primary:       #3b82f6;
-  --color-primary-light: #eff6ff;
-  --color-primary-dark:  #2563eb;
+  /* ────────────────────────────────────────
+   * Brand
+   * ──────────────────────────────────────── */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-soft: #dbeafe;
 
-  /* ── Status ─────────────────────────────── */
-  --color-success:       #22c55e;
-  --color-success-light: #f0fdf4;
-  --color-danger:        #ef4444;
-  --color-danger-light:  #fef2f2;
-  --color-warning:       #f59e0b;
-  --color-warning-light: #fffbeb;
-  --color-purple:        #8b5cf6;
-  --color-purple-light:  #f5f3ff;
+  /* ────────────────────────────────────────
+   * Status
+   * ──────────────────────────────────────── */
+  --color-success: #16a34a;
+  --color-success-soft: #dcfce7;
 
-  /* ── Surface ─────────────────────────────── */
-  --color-surface:       #ffffff;
-  --color-surface-muted: #f8f9fe;
-  --color-border:        #f3f4f6;
-  --color-border-strong: #e5e7eb;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fee2e2;
 
-  /* ── Text ─────────────────────────────── */
-  --color-text-primary:   #0f0f0f;
+  --color-warning: #d97706;
+  --color-warning-soft: #fef3c7;
+
+  --color-info: #0891b2;
+  --color-info-soft: #cffafe;
+
+  --color-purple: #7c3aed;
+  --color-purple-soft: #ede9fe;
+
+  /* ────────────────────────────────────────
+   * Surfaces
+   * ──────────────────────────────────────── */
+  /* --color-surface: #ffffff;
+  --color-surface-secondary: #f8fafc;
+  --color-surface-muted: #f1f5f9;
+  --color-surface-hover: #eef2ff; */
+
+  /* ────────────────────────────────────────
+   * Borders
+   * ──────────────────────────────────────── */
+  --color-border: #e5e7eb;
+  --color-border-strong: #d1d5db;
+
+  /* ────────────────────────────────────────
+   * Text
+   * ──────────────────────────────────────── */
+  --color-text-primary: #111827;
   --color-text-secondary: #6b7280;
-  --color-text-tertiary:  #9ca3af;
+  --color-text-muted: #9ca3af;
+  --color-text-inverted: #ffffff;
 
-  /* ── Dashboard layout ─────────────────── */
-  --sidebar-width:  240px;
-  --header-height:  64px;
+  /* ────────────────────────────────────────
+   * Layout
+   * ──────────────────────────────────────── */
+  --sidebar-width: 240px;
+  --header-height: 64px;
+
+  /* ────────────────────────────────────────
+   * Charts
+   * ──────────────────────────────────────── */
+  --chart-1: #2563eb;
+  --chart-2: #f97316;
+  --chart-3: #16a34a;
+  --chart-4: #7c3aed;
+  --chart-5: #0891b2;
 }
 
 @theme inline {
-  /* --color-accent: var(--color-orange-400);
-  --color-accent-hover: var(--color-orange-500);
-  --color-accent-soft-foreground: var(--color-orange-600); */
-
   --color-background: var(--background);
-  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
+
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-soft: var(--color-primary-soft);
+
+  --color-accent: var(--color-primary);
+
+  --color-success: var(--color-success);
+  --color-success-soft: var(--color-success-soft);
+
+  --color-danger: var(--color-danger);
+  --color-danger-soft: var(--color-danger-soft);
+
+  --color-warning: var(--color-warning);
+  --color-warning-soft: var(--color-warning-soft);
+
+  /* --color-surface: var(--color-surface);
+  --color-surface-secondary: var(--color-surface-secondary);
+  --color-surface-muted: var(--color-surface-muted); */
+
+  --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -51,19 +105,27 @@
 body {
   width: 100%;
   height: 100dvh;
-  color: var(--foreground);
+
   background: var(--background);
-  font-family: "Geist";
+  color: var(--foreground);
+
+  font-family: "Geist", sans-serif;
+
+  overflow: hidden;
 }
 
+/* ────────────────────────────────────────
+ * Scrollbars
+ * ──────────────────────────────────────── */
 @layer utilities {
   .scrollbar-thin {
-    scrollbar-width: thin; /* For Firefox */
-    scrollbar-color: hsl(var(--heroui-default-300)) transparent;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-strong) transparent;
   }
 
   .scrollbar-thin::-webkit-scrollbar {
-    width: 4px; /* Very thin width for Chrome/Safari */
+    width: 5px;
+    height: 5px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-track {
@@ -71,11 +133,11 @@ body {
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--heroui-default-300));
-    border-radius: 20px;
+    background-color: var(--color-border-strong);
+    border-radius: 999px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: hsl(var(--heroui-default-400));
+    background-color: #9ca3af;
   }
 }
