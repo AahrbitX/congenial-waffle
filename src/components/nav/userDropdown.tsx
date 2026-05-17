@@ -35,11 +35,11 @@ function UserDropdown() {
   }
 
   return (
-    <div className="flex items-center justify-center">
+    <div className="flex items-center justify-center bg-transparent">
       {!data ? (
         <Link
           href={"/login"}
-          className="text-sm text-text-secondary hover:text-primary transition-colors"
+          className="text-sm font-semibold bg-primary text-white rounded-full px-5 py-2 inline-flex items-center gap-1.5 shadow-sm"
         >
           Login
         </Link>

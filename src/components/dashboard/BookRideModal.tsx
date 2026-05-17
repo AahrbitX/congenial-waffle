@@ -1,12 +1,18 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { useVehicles, useCreateBooking } from "@/hooks/useBooking";
 import { PAYMENT_OPTIONS, filterVehicles, getVehicleFare, formatFare } from "@/data/booking.mock";
 import { getServiceConfig } from "@/data/serviceConfig";
 import type { PaymentOption } from "@/data/booking.mock";
 import type { BookingInitialData, TripTab, Vehicle } from "@/types/booking.types";
+import dynamic from "next/dynamic";
+const LocationPickerMap = dynamic(
+  () => import("@/components/map/LocationPickerMap").then((m) => m.LocationPickerMap),
+  { ssr: false }
+);
 import {
   IconX, IconChevronLeft, IconMapPin, IconCar, IconCheck, IconCheckCircle,
   IconCalendar, IconClock, IconWind, IconUsers, IconRoundTrip, IconPlane,
@@ -763,6 +769,8 @@ function LocationInput({ label, dotClass, value, onChange, placeholder, highligh
   label: string; dotClass: string; value: string;
   onChange: (v: string) => void; placeholder: string; highlight: boolean;
 }) {
+  const [showMap, setShowMap] = useState(false);
+
   return (
     <div>
       <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-1.5">{label}</p>
@@ -772,7 +780,35 @@ function LocationInput({ label, dotClass, value, onChange, placeholder, highligh
         <div className={`w-2.5 h-2.5 shrink-0 ${dotClass}`} />
         <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
           className="flex-1 text-[14px] outline-none text-[var(--color-text-primary)] bg-transparent" />
+        <button
+          type="button"
+          onClick={() => setShowMap((v) => !v)}
+          title="Pin on map"
+          className={`shrink-0 p-1 rounded-lg transition-colors ${
+            showMap ? "text-[var(--color-primary)]" : "text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)]"
+          }`}
+        >
+          <IconMapPin size={15} />
+        </button>
       </div>
+
+      <AnimatePresence>
+        {showMap && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <LocationPickerMap
+              initialAddress={value}
+              onConfirm={(addr) => { onChange(addr); setShowMap(false); }}
+              onCancel={() => setShowMap(false)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
