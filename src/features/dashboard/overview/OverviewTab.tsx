@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 import { useRides } from "@/hooks/useRides";
 import { authClient } from "@/lib/auth-client";
@@ -8,7 +9,6 @@ import { useUserStats } from "@/hooks/useUser";
 import { greeting } from "@/lib/dashboard/helpers";
 import { StatCard } from "@/components/ui/StatCard";
 import { useDashboard } from "@/context/DashboardContext";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import { BookRideModal } from "@/components/dashboard/BookRideModal";
 import { ActiveTripCard } from "@/components/dashboard/ActiveTripCard";
 import {
@@ -16,12 +16,118 @@ import {
   IconCalendar,
   IconWallet,
   IconStar,
-  IconChevronRight,
   IconGift,
   IconPlus,
-  IconLoader,
+  IconArrowLeftRight,
+  IconCopy,
+  IconEye,
+  IconSearch,
 } from "@/constants/icons";
-import { Button, Card } from "@heroui/react";
+import {
+  Avatar,
+  Button,
+  Card,
+  Chip,
+  EmptyState,
+  Input,
+  Skeleton,
+  Surface,
+  Table,
+  Tabs,
+} from "@heroui/react";
+import { STATUS_COLOR } from "@/types/ride.types";
+
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+function OverviewSkeleton() {
+  return (
+    <Surface className="h-full min-h-0 space-y-6 p-4" variant="secondary">
+      {/* Welcome banner */}
+      {/* <Skeleton className="h-24 w-full rounded-2xl" /> */}
+
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i} className="flex flex-row items-start gap-4">
+            <Skeleton className="size-11 shrink-0 rounded-2xl" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-3 w-20 rounded-lg" />
+              <Skeleton className="h-6 w-14 rounded-lg" />
+              <Skeleton className="h-3 w-16 rounded-lg" />
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {/* Charts */}
+      {/* <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1fr_0.8fr]">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Card key={i}>
+            <Card.Header>
+              <Skeleton className="h-4 w-32 rounded-lg" />
+              <Skeleton className="mt-1 h-3 w-24 rounded-lg" />
+            </Card.Header>
+            <Skeleton className="mx-4 mb-4 h-48 rounded-xl" />
+          </Card>
+        ))}
+      </div> */}
+
+      {/* Table */}
+      <Card>
+        <Card.Header className="flex flex-row items-center justify-between gap-4">
+          <Skeleton className="h-5 w-24 rounded-lg" />
+          <div className="flex gap-3">
+            <Skeleton className="h-4 w-20 rounded-lg" />
+            <Skeleton className="h-4 w-20 rounded-lg" />
+            <Skeleton className="h-4 w-20 rounded-lg" />
+          </div>
+        </Card.Header>
+        <div className="flex gap-4 px-1 pb-2">
+          <Skeleton className="h-9 w-56 rounded-xl" />
+          <Skeleton className="h-9 w-72 rounded-xl" />
+        </div>
+        <div className="space-y-2 p-1">
+          {/* Header row */}
+          <div className="grid grid-cols-6 gap-4 px-3 py-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-3 rounded-lg" />
+            ))}
+          </div>
+          {/* Data rows */}
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="grid grid-cols-6 items-center gap-4 rounded-xl px-3 py-3">
+              {/* ID + copy */}
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-4 w-14 rounded-lg" />
+                <Skeleton className="size-6 rounded-lg" />
+              </div>
+              {/* Route */}
+              <Skeleton className="h-4 w-full rounded-lg" />
+              {/* Driver */}
+              <div className="flex items-center gap-2">
+                <Skeleton className="size-8 shrink-0 rounded-full" />
+                <div className="flex-1 space-y-1">
+                  <Skeleton className="h-3 w-20 rounded-lg" />
+                  <Skeleton className="h-3 w-16 rounded-lg" />
+                </div>
+              </div>
+              {/* Status */}
+              <Skeleton className="h-6 w-20 rounded-full" />
+              {/* Fare */}
+              <Skeleton className="h-4 w-12 rounded-lg" />
+              {/* Actions */}
+              <div className="flex justify-end gap-1">
+                <Skeleton className="size-8 rounded-lg" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </Surface>
+  );
+}
+
+// ─── OverviewTab ──────────────────────────────────────────────────────────────
 
 export function OverviewTab() {
   const { data: session } = authClient.useSession();
@@ -29,78 +135,79 @@ export function OverviewTab() {
 
   const [bookOpen, setBookOpen] = useState(false);
   const [booked, setBooked] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // tanstack query hooks
   const { data: rides = [], isLoading: ridesLoading } = useRides();
   const { data: stats, isLoading: statsLoading } = useUserStats();
   const { activeTrip, setActiveTrip, openRatingModal } = useDashboard();
 
-  if (statsLoading || ridesLoading) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <IconLoader size={28} className="animate-spin text-primary" />
-      </div>
+  const filteredRides = rides
+    .filter((r) => statusFilter === "all" || r.status === statusFilter)
+    .filter(
+      (r) =>
+        search === "" ||
+        r.id.toLowerCase().includes(search.toLowerCase()) ||
+        r.from.toLowerCase().includes(search.toLowerCase()) ||
+        r.to.toLowerCase().includes(search.toLowerCase()),
     );
+
+  const statusCounts = {
+    ongoing: rides.filter((r) => r.status === "ongoing").length,
+    completed: rides.filter((r) => r.status === "completed").length,
+    cancelled: rides.filter((r) => r.status === "cancelled").length,
+  };
+
+  const handleCopy = (id: string) => {
+    navigator.clipboard.writeText(id);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 1500);
+  };
+
+  if (statsLoading || ridesLoading) {
+    return <OverviewSkeleton />;
   }
 
-  const recentRides = rides.slice(0, 6);
-
   return (
-    <div className="space-y-6">
-      {/* Welcome banner */}
-      <div className="bg-primary rounded-2xl p-6 flex items-center justify-between overflow-hidden relative">
-        <div className="absolute right-0 top-0 w-48 h-full bg-white/10 rounded-bl-[60px]" />
-        <div className="relative z-10">
-          <p className="text-blue-100 text-xs font-medium">{greeting()},</p>
-          <p className="text-white text-lg font-bold ">
-            {user?.name ?? "Traveller"} 👋
-          </p>
-          <p className="text-blue-100 text-xs mt-1">
-            Ready for your next ride?
-          </p>
-        </div>
-        <Button
-          onClick={() => setBookOpen(true)}
-          className="relative z-10 bg-white/20 hover:bg-white/30 text-white border border-white/30 rounded-xl transition-colors"
-        >
-          Book a Ride →
-        </Button>
-      </div>
+    <Surface className="h-full min-h-0 space-y-6 p-4" variant="secondary">
 
-      {/* Stats */}
+      {/* ── Stat Cards ── */}
       {stats && (
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
           <StatCard
             label="Total Rides"
             value={String(stats.totalRides)}
             sub="All time"
             icon={IconCar}
-            colorClass={"bg-accent text-white"}
+            colorClass="bg-accent text-white"
           />
           <StatCard
             label="This Month"
             value={String(stats.thisMonth)}
             sub={stats.monthLabel}
             icon={IconCalendar}
-            colorClass={"bg-violet-500 text-white"}
+            colorClass="bg-violet-500 text-white"
           />
           <StatCard
             label="Wallet"
             value={`₹${stats.walletBalance}`}
             sub="Available"
             icon={IconWallet}
-            colorClass={"bg-green-500 text-white"}
+            colorClass="bg-green-500 text-white"
           />
           <StatCard
             label="Your Rating"
             value={`${stats.rating} ★`}
             sub={`${stats.ratingCount} ratings`}
             icon={IconStar}
-            colorClass={"bg-yellow-500 text-white"}
+            colorClass="bg-yellow-500 text-white"
           />
         </div>
       )}
 
-      {/* Active trip */}
+      {/* ── Active Trip ── */}
       {(activeTrip || booked) && (
         <ActiveTripCard
           onEnd={() => {
@@ -111,114 +218,222 @@ export function OverviewTab() {
         />
       )}
 
-      {/* Pending feedback nudge */}
-      {!activeTrip && !booked && rides.length > 1 && (
-        <Card
-          onClick={() => openRatingModal(rides[1])}
-          className="w-full flex items-center gap-3 flex-row cursor-pointer hover:bg-accent/10 transition-colors duration-150"
-        >
-          <div className="w-10 h-10 rounded-2xl bg-accent flex items-center justify-center shrink-0">
-            <IconStar size={18} className="text-white" />
+
+      {/* ── Rides Table ── */}
+      <Card>
+        <Card.Header className="flex flex-row items-center justify-between gap-4">
+          <Card.Title>My Rides</Card.Title>
+
+        </Card.Header>
+
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <Input
+              variant="secondary"
+              placeholder="Search rides..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-56"
+            />
+            <Tabs onSelectionChange={(key) => setStatusFilter(String(key))}>
+              <Tabs.ListContainer className="w-[400px]">
+                <Tabs.List aria-label="Filter by status">
+                  <Tabs.Tab id="all">All<Tabs.Indicator /></Tabs.Tab>
+                  <Tabs.Tab id="ongoing">On Trip<Tabs.Indicator /></Tabs.Tab>
+                  <Tabs.Tab id="completed">Completed<Tabs.Indicator /></Tabs.Tab>
+                  <Tabs.Tab id="cancelled">Cancelled<Tabs.Indicator /></Tabs.Tab>
+                </Tabs.List>
+              </Tabs.ListContainer>
+            </Tabs>
           </div>
-          <div className="flex-1">
-            <p className="font-semibold ">Rate your last ride</p>
-            <p className="text-xs ">
-              {rides[1].from} → {rides[1].to} · {rides[1].date}
-            </p>
+          <div className="flex items-center">
+            <Button onClick={() => setBookOpen(true)}>
+              <IconPlus size={16} />
+              Book Ride
+            </Button>
           </div>
-          <IconChevronRight size={18} className="text-accent" />
-        </Card>
-      )}
-
-      {/* Recent rides */}
-      <div>
-        <h2 className="text-xl font-bold mb-4">Recent Rides</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 grid-rows-3 gap-4">
-          {recentRides.map((ride) => (
-            <Card
-              key={ride.id}
-              className="flex flex-row items-center gap-4 rounded-2xl p-4 shadow-sm"
-            >
-              <div
-                className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${
-                  ride.status === "completed"
-                    ? "bg-success text-white"
-                    : ride.status === "cancelled"
-                      ? "bg-danger text-white"
-                      : "bg-accent text-white"
-                }`}
-              >
-                <IconCar size={18} />
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="truncate text-sm font-semibold">
-                        {ride.from} → {ride.to}
-                      </p>
-
-                      <StatusBadge status={ride.status} />
-                    </div>
-
-                    <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                      {ride.date}
-                    </p>
-                  </div>
-
-                  <div className="shrink-0 text-right">
-                    <p className="text-lg font-bold leading-none">
-                      {ride.fare > 0 ? `₹${ride.fare}` : "—"}
-                    </p>
-
-                    {ride.status === "completed" && ride.rating === 0 && (
-                      <button
-                        onClick={() => openRatingModal(ride)}
-                        className="mt-1 text-xs font-semibold text-[var(--color-primary)] hover:underline"
-                      >
-                        Rate Ride
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </Card>
-          ))}
         </div>
-      </div>
 
-      {/* Quick actions */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          {
-            label: "Book Ride",
-            icon: IconCar,
-            action: () => setBookOpen(true),
-          },
-          { label: "Add Money", icon: IconPlus, action: () => {} },
-          { label: "My Promotions", icon: IconGift, action: () => {} },
-        ].map(({ label, icon: Icon, action }) => (
-          <Card
-            key={label}
-            onClick={action}
-            className="flex flex-col items-center gap-2 py-4 cursor-pointer hover:bg-accent/20 transition-colors duration-300"
-          >
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center">
-              <Icon size={26} className="" />
-            </div>
-            <span className="font-semibold text-[var(--color-text-secondary)]">
-              {label}
-            </span>
-          </Card>
-        ))}
-      </div>
+        {/* Scrollable table body — 5 rows visible, scroll for the rest */}
+        <Table>
+          <div className="max-h-[350px] overflow-y-auto overflow-x-auto scrollbar-hide [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-10">
+            <Table.Content
+              aria-label="My rides"
+              className="min-w-[700px]"
+            >
+              <Table.Header>
+                <Table.Column isRowHeader id="id">Booking ID</Table.Column>
+                <Table.Column id="route">Route</Table.Column>
+                <Table.Column id="driver">Driver</Table.Column>
+                <Table.Column id="status">Status</Table.Column>
+                <Table.Column id="fare">Fare</Table.Column>
+                <Table.Column className="text-end">Actions</Table.Column>
+              </Table.Header>
+              <Table.Body
+                renderEmptyState={() =>
+                  !ridesLoading && (
+                    <EmptyState className="my-10 flex flex-col items-center gap-3 text-center">
+                      {search || statusFilter !== "all" ? (
+                        <>
+                          <IconSearch size={28} className="text-muted" />
+                          <p className="font-semibold">No rides found</p>
+                          <p className="text-sm text-muted">
+                            Try adjusting your search or filter.
+                          </p>
+
+                        </>
+                      ) : (
+                        <>
+                          <IconCar size={28} className="text-muted" />
+                          <p className="font-semibold">No rides yet</p>
+                          <p className="text-sm text-muted">
+                            Book your first ride to get started.
+                          </p>
+                          <Button size="sm" onPress={() => setBookOpen(true)}>
+                            <IconPlus size={14} />
+                            Book a Ride
+                          </Button>
+                        </>
+                      )}
+                    </EmptyState>
+                  )
+                }
+              >
+                {ridesLoading
+                  ? Array.from({ length: 5 }).map((_, i) => (
+                      <Table.Row key={`skel-${i}`} id={`skel-${i}`}>
+                        <Table.Cell>
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="h-4 w-14 rounded-lg" />
+                            <Skeleton className="size-6 rounded-lg" />
+                          </div>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Skeleton className="h-4 w-36 rounded-lg" />
+                        </Table.Cell>
+                        <Table.Cell>
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="size-8 shrink-0 rounded-full" />
+                            <div className="space-y-1">
+                              <Skeleton className="h-3 w-20 rounded-lg" />
+                              <Skeleton className="h-3 w-16 rounded-lg" />
+                            </div>
+                          </div>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Skeleton className="h-6 w-20 rounded-full" />
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Skeleton className="h-4 w-12 rounded-lg" />
+                        </Table.Cell>
+                        <Table.Cell>
+                          <div className="flex justify-end">
+                            <Skeleton className="size-8 rounded-lg" />
+                          </div>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))
+                  : filteredRides.map((ride) => (
+                  <Table.Row key={ride.id} id={ride.id}>
+                    {/* Booking ID + copy */}
+                    <Table.Cell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold">{"#" + ride.id}</span>
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="ghost"
+                          onPress={() => handleCopy(ride.id)}
+                          aria-label="Copy booking ID"
+                        >
+                          <IconCopy
+                            size={14}
+                            className={copiedId === ride.id ? "text-success" : "text-muted"}
+                          />
+                        </Button>
+                      </div>
+                    </Table.Cell>
+
+                    {/* Route */}
+                    <Table.Cell>
+                      <div className="flex items-center gap-2">
+                        <span>{ride.from}</span>
+                        <IconArrowLeftRight size={14} className="text-muted" />
+                        <span>{ride.to}</span>
+                      </div>
+                    </Table.Cell>
+
+                    {/* Driver with avatar */}
+                    <Table.Cell>
+                      {ride.driver ? (
+                        <div className="flex items-center gap-3">
+                          <Avatar size="sm">
+                            <Avatar.Fallback>
+                              {ride.driver
+                                .split(" ")
+                                .map((n: string) => n[0])
+                                .join("")}
+                            </Avatar.Fallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">{ride.driver}</span>
+                            <span className="text-xs text-muted">{ride.driverPhone}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-muted text-sm">Unassigned</span>
+                      )}
+                    </Table.Cell>
+
+                    {/* Status */}
+                    <Table.Cell>
+                      <Chip
+                        color={STATUS_COLOR[ride.status as keyof typeof STATUS_COLOR] ?? "warning"}
+                        size="sm"
+                        variant="soft"
+                      >
+                        {ride.status.charAt(0).toUpperCase() + ride.status.slice(1)}
+                      </Chip>
+                    </Table.Cell>
+
+                    {/* Fare */}
+                    <Table.Cell className="font-bold">
+                      {ride.fare > 0 ? `₹${ride.fare}` : "—"}
+                    </Table.Cell>
+
+                    {/* Actions */}
+                    <Table.Cell>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button isIconOnly size="sm" variant="tertiary" aria-label="View ride">
+                          <Link href={`/dashboard/rides/${ride.id}`}>
+                            <IconEye size={15} />
+                          </Link>
+                        </Button>
+                        {ride.status === "completed" && ride.rating === 0 && (
+                          <Button
+                            size="sm"
+                            variant="tertiary"
+                            onPress={() => openRatingModal(ride)}
+                          >
+                            <IconStar size={15} />
+                            Rate
+                          </Button>
+                        )}
+                      </div>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Content>
+          </div>
+        </Table>
+      </Card>
 
       <BookRideModal
         isOpen={bookOpen}
         onClose={() => setBookOpen(false)}
         onBooked={() => setBooked(true)}
       />
-    </div>
+    </Surface>
   );
 }

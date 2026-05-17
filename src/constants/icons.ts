@@ -40,4 +40,8 @@ export {
   Users            as IconUsers,
   Clock            as IconClock,
   RefreshCcw       as IconRoundTrip,
+  Copy             as IconCopy,
+  Eye              as IconEye,
+  Pencil           as IconPencil,
+  Trash2           as IconTrash,
 } from "lucide-react";

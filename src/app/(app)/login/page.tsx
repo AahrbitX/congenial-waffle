@@ -11,7 +11,7 @@ export default function LoginPage() {
       variant="secondary"
       className="flex h-screen w-full items-center justify-center px-4"
     >
-      <Card className="w-full max-w-[420px] h-auto  p-2 border-none flex flex-col items-center justify-start">
+      <Card className="w-full max-w-[420px] h-auto p-2 border-none flex flex-col items-center justify-start">
         <Card.Header className="flex flex-col items-center justify-center gap-2 pb-2 pt-6">
           <div className="">Logo</div>
           <div className="flex flex-col items-center mt-2">

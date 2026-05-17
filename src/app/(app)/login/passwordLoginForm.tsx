@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
 import { Input, Label } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
 
@@ -41,7 +40,7 @@ export default function PasswordLoginForm() {
       if (data.user?.role === "admin") {
         router.push("/admin");
       } else {
-        router.push("/");
+        router.push("/dashboard/overview");
       }
     } catch (err: any) {
       setError(err.message || "Login failed");
