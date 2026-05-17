@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { Car, Mail, Phone } from "lucide-react";
+import Image from "next/image";
+import { ASSETS } from "@/constants/assets";
+
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -31,37 +34,36 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="w-full border-t border-divider bg-background pt-16 pb-8">
+    <footer className="w-full border-t border-border bg-background pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8">
           {/* Brand Section */}
           <div className="lg:col-span-2 space-y-6">
             <Link href="/" className="flex items-center gap-2">
-              <Car className="text-primary w-6 h-6" />
-              <span className="font-bold text-xl tracking-tight uppercase">
-                Mohan Cabs
-              </span>
+              <Image src={ASSETS.logos.minimal.src} alt={ASSETS.logos.minimal.alt} width={24} height={24} className="rounded-full w-10 h-6" />
+              <Image src={ASSETS.logos.drakfullname.src} alt={ASSETS.logos.drakfullname.alt} width={100} height={24} className="hidden sm:inline-block h-8" />
             </Link>
-            <p className="text-default-500 text-sm max-w-xs leading-relaxed">
+            
+            <p className="text-text-secondary text-sm max-w-xs leading-relaxed">
               Premium transportation services tailored for your comfort.
               Reliable, safe, and always on time—wherever you need to go.
             </p>
             <div className="flex gap-4">
               <Link
                 href="#"
-                className="p-2 rounded-full bg-default-100 hover:text-primary transition-colors"
+                className="p-2 rounded-full bg-border/40 hover:text-primary transition-colors"
               >
                 X
               </Link>
               <Link
                 href="#"
-                className="p-2 rounded-full bg-default-100 hover:text-primary transition-colors"
+                className="p-2 rounded-full bg-border/40 hover:text-primary transition-colors"
               >
                 Facebook
               </Link>
               <Link
                 href="#"
-                className="p-2 rounded-full bg-default-100 hover:text-primary transition-colors"
+                className="p-2 rounded-full bg-border/40 hover:text-primary transition-colors"
               >
                 Instagram
               </Link>
@@ -71,7 +73,7 @@ export default function Footer() {
           {/* Link Sections */}
           {sections.map((section) => (
             <div key={section.title}>
-              <h3 className="font-bold text-sm uppercase tracking-wider mb-6">
+              <h3 className="font-bold text-sm uppercase tracking-wider mb-6 text-text-primary">
                 {section.title}
               </h3>
               <ul className="space-y-4">
@@ -79,7 +81,7 @@ export default function Footer() {
                   <li key={link.name}>
                     <Link
                       href={link.href}
-                      className="text-sm text-default-500 hover:text-primary transition-colors"
+                      className="text-sm text-text-secondary hover:text-primary transition-colors"
                     >
                       {link.name}
                     </Link>
@@ -91,11 +93,11 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-16 pt-8 border-t border-divider flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-default-400">
+        <div className="mt-16 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-xs text-text-muted">
             © {currentYear} Mohan Cabs. All rights reserved.
           </p>
-          <div className="flex items-center gap-6 text-xs text-default-400">
+          <div className="flex items-center gap-6 text-xs text-text-muted">
             <span className="flex items-center gap-1">
               <Phone size={14} className="text-primary" /> +91 98765 43210
             </span>
