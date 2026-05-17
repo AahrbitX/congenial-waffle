@@ -18,3 +18,9 @@ export interface Ride {
   payment: string;
   tip: number;
 }
+
+export const STATUS_COLOR: Record<RideStatus, "success" | "danger" | "accent"> = {
+  completed: "success",
+  cancelled: "danger",
+  ongoing:   "accent",
+};

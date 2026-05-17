@@ -107,7 +107,7 @@ export function FleetDetail({ id }: FleetDetailProps) {
                 <p className="text-[28px] font-black text-[#0f0f0f]">{car.priceFrom}</p>
               </div>
               <button
-                onClick={() => openBooking(car.name)}
+                onClick={() => openBooking({ serviceId: "city-taxi", preselectedCategory: car.category })}
                 className="flex items-center justify-center gap-2 w-full bg-blue-500 hover:bg-blue-600 text-white font-extrabold text-[15px] py-4 rounded-xl transition-colors group"
               >
                 Book this Vehicle
