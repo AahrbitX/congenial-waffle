@@ -22,7 +22,7 @@ function AddDriver() {
       };
 
       return request("/api/drivers/onboard", {
-        method: "PATCH",
+        method: "POST",
         body: JSON.stringify(payload),
       });
     },

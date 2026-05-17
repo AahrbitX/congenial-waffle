@@ -10,11 +10,3 @@ export interface Driver {
   phoneNumber: string | null;
   dob: string | null;
 }
-
-export interface DriverJoined {
-  success: boolean;
-  data: {
-    drivers: any;
-    user: any;
-  };
-}
