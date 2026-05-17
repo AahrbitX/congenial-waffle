@@ -55,7 +55,7 @@ export function ServiceDetail({ slug }: ServiceDetailProps) {
       {/* Hero */}
       <section className="pt-36 pb-20 px-8 sm:px-16 bg-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[50vw] h-full bg-[#f5f7ff] rounded-bl-[80px] -z-0" />
-        <div className="relative z-10 max-w-3xl mx-auto">
+        <div className="relative z-10 mx-20">
           <Link
             href="/services"
             className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-gray-400 hover:text-blue-500 transition-colors mb-8"
@@ -84,7 +84,7 @@ export function ServiceDetail({ slug }: ServiceDetailProps) {
 
       {/* Details grid */}
       <section className="py-20 px-8 sm:px-16 bg-[#f8f9fe]">
-        <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="mx-20 grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Features */}
           <div>
             <p className="text-[11px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-5">What&apos;s Included</p>
@@ -125,7 +125,7 @@ export function ServiceDetail({ slug }: ServiceDetailProps) {
             </div>
 
             <button
-              onClick={() => openBooking(service.name)}
+              onClick={() => openBooking({ serviceId: service.slug })}
               className="flex items-center justify-center gap-2 w-full bg-blue-500 hover:bg-blue-600 text-white font-extrabold text-[15px] py-4 rounded-2xl transition-colors group"
             >
               Book Now

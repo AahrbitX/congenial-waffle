@@ -58,6 +58,7 @@ const PACKAGES = [
     tag: "Best Value",
     name: "One-Way Drop",
     service: "Outstation",
+    serviceId: "outstation-oneway",
     desc: "Travel to your destination without worrying about return fare. Ideal for one-time trips to any city.",
     price: "₹999",
     unit: "onwards",
@@ -71,6 +72,7 @@ const PACKAGES = [
     tag: "Popular",
     name: "Round Trip Package",
     service: "Outstation",
+    serviceId: "outstation-roundtrip",
     desc: "Go and come back at your own schedule. Driver waits for you at the destination.",
     price: "₹1,799",
     unit: "/ day",
@@ -84,6 +86,7 @@ const PACKAGES = [
     tag: "Fixed Fare",
     name: "Airport Transfer",
     service: "Airport Transfer",
+    serviceId: "airport",
     desc: "Stress-free airport pickup and drops. Fixed pricing, flight-tracking, and on-time guarantee.",
     price: "₹599",
     unit: "flat",
@@ -97,6 +100,7 @@ const PACKAGES = [
     tag: "Flexible",
     name: "Full Day Hire",
     service: "City Taxi",
+    serviceId: "full-day-hire",
     desc: "A dedicated cab for the whole day. Meetings, errands, sightseeing — your driver stays with you.",
     price: "₹1,299",
     unit: "/ 8 hrs",
@@ -110,6 +114,7 @@ const PACKAGES = [
     tag: "Save 20%",
     name: "Weekly Commute",
     service: "City Taxi",
+    serviceId: "weekly-commute",
     desc: "Book for 5 or 7 days at a flat weekly rate. Perfect for office commuters and regular travellers.",
     price: "₹3,999",
     unit: "/ week",
@@ -255,6 +260,14 @@ function LuxurySvg() {
 }
 
 const CAR_SVGS = [HatchbackSvg, SedanSvg, SuvSvg, LuxurySvg];
+
+// Maps landing page car names to vehicle mock categories
+const CAR_CATEGORY_MAP: Record<string, string> = {
+  "Hatchback": "Hatchback",
+  "Sedan":     "Sedan",
+  "SUV":       "MUV",     // displayed as SUV on landing, stored as MUV in mock
+  "Luxury":    "Luxury",
+};
 
 // ─── Hero Section ─────────────────────────────────────────────────────────────
 
@@ -436,7 +449,7 @@ function HeroSection() {
               {/* CTA */}
               <Button
                 onPress={() =>
-                  openBooking(undefined, {
+                  openBooking({
                     serviceTab:  serviceTab  as ServiceTab,
                     tripTab:     tripTab     as TripTab,
                     pickup,
@@ -480,7 +493,7 @@ function CarsSection() {
             return (
               <Card
                 key={car.name}
-                onClick={() => openBooking(car.name)}
+                onClick={() => openBooking({ serviceId: "city-taxi", preselectedCategory: CAR_CATEGORY_MAP[car.name] ?? car.name })}
                 className="relative border border-[#dce1e9] rounded-2xl p-5 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
               >
                 <Chip
@@ -584,7 +597,7 @@ function PackagesSection() {
                     <Button
                       variant="primary"
                       size="sm"
-                      onPress={() => openBooking(pkg.service ?? pkg.name)}
+                      onPress={() => openBooking({ serviceId: pkg.serviceId ?? "city-taxi" })}
                       className="rounded-full bg-[#1877F2] text-white font-bold hover:bg-[#166FE5] text-[13px]"
                     >
                       {pkg.cta}
