@@ -15,9 +15,14 @@ const AuthContext = createContext<AuthContextValue>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { data: session, isPending } = authClient.useSession();
   const [isOpen, setIsOpen] = useState(false);
-  const pendingAction = useRef<(() => void) | null>(null);
+  const pendingAction  = useRef<(() => void) | null>(null);
+  const lastDismissed  = useRef(0);
 
   const requireAuth = useCallback((action: () => void) => {
+    // Ignore calls within 400ms of a dismissal — prevents focus-return loops
+    // (browser returns focus to the triggering input after modal closes)
+    if (Date.now() - lastDismissed.current < 400) return;
+
     if (isPending) {
       // Session still loading — store it and let the effect below decide
       pendingAction.current = action;
@@ -52,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const onClose = useCallback(() => {
     setIsOpen(false);
     pendingAction.current = null;
+    lastDismissed.current = Date.now(); // stamp dismissal time
   }, []);
 
   return (

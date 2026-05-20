@@ -44,4 +44,5 @@ export {
   Eye              as IconEye,
   Pencil           as IconPencil,
   Trash2           as IconTrash,
+  LocateFixed      as IconLocate,
 } from "lucide-react";

@@ -1,51 +1,193 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { LocationPickerMap, type LatLng } from "./LocationPickerMap";
-import { IconMapPin } from "@/constants/icons";
+import { IconMapPin, IconClock, IconLoader, IconLocate } from "@/constants/icons";
+import { forwardGeocode, reverseGeocode, type GeoResult } from "@/utils/geocoding";
+import { useRides } from "@/hooks/useRides";
 
 interface LocationInputProps {
   value: string;
   onChange: (address: string, coords?: LatLng) => void;
   placeholder?: string;
   className?: string;
-  /** Called instead of opening the map directly — use for auth gating */
+  /** Called instead of opening the map / dropdown directly — use for auth gating */
   onBeforeOpen?: (open: () => void) => void;
 }
 
 export function LocationInput({ value, onChange, placeholder = "Pickup location", className, onBeforeOpen }: LocationInputProps) {
-  const [showMap, setShowMap] = useState(false);
+  const [showMap,      setShowMap]      = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [suggestions,  setSuggestions]  = useState<GeoResult[]>([]);
+  const [loadingSug,   setLoadingSug]   = useState(false);
+  const [locating,     setLocating]     = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleToggle = () => {
+  // Recent places from ride history
+  const { data: rides } = useRides();
+  const recentPlaces = useMemo(() => {
+    if (!rides) return [];
+    const seen = new Set<string>();
+    const places: string[] = [];
+    for (const r of rides) {
+      if (r.from && !seen.has(r.from)) { seen.add(r.from); places.push(r.from); }
+      if (r.to   && !seen.has(r.to))   { seen.add(r.to);   places.push(r.to);   }
+    }
+    return places.slice(0, 5);
+  }, [rides]);
+
+  const openDropdown = () => setShowDropdown(true);
+
+  const handleFocus = () => {
+    if (onBeforeOpen) {
+      onBeforeOpen(openDropdown);
+    } else {
+      setShowDropdown(true);
+    }
+  };
+
+  const handleBlur = () => {
+    // Delay so onMouseDown on dropdown items fires before blur closes it
+    setTimeout(() => setShowDropdown(false), 150);
+  };
+
+  const handleChange = (val: string) => {
+    onChange(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!val.trim()) { setSuggestions([]); return; }
+    debounceRef.current = setTimeout(async () => {
+      setLoadingSug(true);
+      const results = await forwardGeocode(val);
+      setSuggestions(results);
+      setLoadingSug(false);
+    }, 350);
+  };
+
+  const handleSelectRecent = (place: string) => {
+    onChange(place);
+    setShowDropdown(false);
+  };
+
+  const handleSelectSuggestion = (result: GeoResult) => {
+    onChange(result.name, { lat: result.lat, lng: result.lng });
+    setSuggestions([]);
+    setShowDropdown(false);
+  };
+
+  const handleLocate = () => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords: pos }) => {
+        const addr = await reverseGeocode(pos.latitude, pos.longitude);
+        onChange(addr, { lat: pos.latitude, lng: pos.longitude });
+        setLocating(false);
+      },
+      () => setLocating(false),
+      { timeout: 8000 }
+    );
+  };
+
+  const handleToggleMap = () => {
     if (showMap) { setShowMap(false); return; }
     if (onBeforeOpen) { onBeforeOpen(() => setShowMap(true)); }
     else { setShowMap(true); }
   };
 
+  const showingRecent      = !value.trim() && recentPlaces.length > 0;
+  const showingSuggestions = !!value.trim() && (suggestions.length > 0 || loadingSug);
+  const dropdownVisible    = showDropdown && (showingRecent || showingSuggestions);
+
   return (
     <div className={className}>
-      {/* Text input row */}
-      <div className="flex items-center gap-2">
+      {/* Input row */}
+      <div className="relative">
         <input
           type="text"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           placeholder={placeholder}
-          className="flex-1 px-3 py-2 text-sm rounded-xl border border-border bg-background text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30"
+          className="w-full pr-16 px-3 py-2 text-sm rounded-xl border border-border bg-background text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30"
         />
+        {/* Current location button */}
         <button
           type="button"
-          onClick={handleToggle}
+          onClick={handleLocate}
+          title="Use current location"
+          disabled={locating}
+          className="absolute right-9 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-colors text-text-muted hover:text-primary disabled:opacity-50"
+        >
+          {locating
+            ? <IconLoader size={14} className="animate-spin" />
+            : <IconLocate size={14} />}
+        </button>
+        {/* Map pin button */}
+        <button
+          type="button"
+          onClick={handleToggleMap}
           title="Pin on map"
-          className={`p-2 rounded-xl border transition-colors ${
-            showMap
-              ? "bg-primary text-white border-primary"
-              : "bg-background border-border text-text-secondary hover:text-primary hover:border-primary"
+          className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-colors ${
+            showMap ? "text-primary" : "text-text-muted hover:text-primary"
           }`}
         >
-          <IconMapPin size={16} />
+          <IconMapPin size={15} />
         </button>
+
+        {/* Dropdown */}
+        {dropdownVisible && (
+          <div className="absolute z-50 top-full mt-1 w-full bg-background border border-border rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto">
+
+            {/* Recent section */}
+            {showingRecent && (
+              <>
+                <p className="px-3 pt-2.5 pb-1 text-[10px] font-bold tracking-widest text-text-muted uppercase">
+                  Recent
+                </p>
+                {recentPlaces.map((place) => (
+                  <button
+                    key={place}
+                    type="button"
+                    onMouseDown={() => handleSelectRecent(place)}
+                    className="w-full flex items-start gap-2 px-3 py-2 text-sm text-left hover:bg-border/30 transition-colors"
+                  >
+                    <IconClock size={13} className="mt-0.5 shrink-0 text-text-muted" />
+                    <span className="line-clamp-1 text-text-primary">{place}</span>
+                  </button>
+                ))}
+              </>
+            )}
+
+            {/* Suggestions section */}
+            {showingSuggestions && (
+              <>
+                <p className="px-3 pt-2.5 pb-1 text-[10px] font-bold tracking-widest text-text-muted uppercase">
+                  Suggestions
+                </p>
+                {loadingSug ? (
+                  <div className="flex items-center gap-2 px-3 py-2.5 text-sm text-text-muted">
+                    <IconLoader size={13} className="animate-spin shrink-0" />
+                    Searching…
+                  </div>
+                ) : (
+                  suggestions.map((r) => (
+                    <button
+                      key={r.name}
+                      type="button"
+                      onMouseDown={() => handleSelectSuggestion(r)}
+                      className="w-full flex items-start gap-2 px-3 py-2 text-sm text-left hover:bg-border/30 transition-colors"
+                    >
+                      <IconMapPin size={13} className="mt-0.5 shrink-0 text-primary" />
+                      <span className="line-clamp-2 text-text-primary">{r.name}</span>
+                    </button>
+                  ))
+                )}
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Inline map picker */}

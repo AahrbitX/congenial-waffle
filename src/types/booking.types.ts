@@ -8,7 +8,11 @@ export interface BookingInitialData {
   serviceTab?:         ServiceTab;
   tripTab?:            TripTab;
   pickup?:             string;
+  pickupLat?:          number;
+  pickupLng?:          number;
   destination?:        string;
+  destinationLat?:     number;
+  destinationLng?:     number;
   date?:               string;
   time?:               string;
   returnDate?:         string;
@@ -38,21 +42,29 @@ export interface Place {
 }
 
 export interface BookingRequest {
-  serviceId:    string;
-  serviceTab:   ServiceTab;
-  tripTab:      TripTab;
-  pickup:       string;
-  dropoff:      string;
-  date:         string;
-  time:         string;
-  returnDate?:  string;
-  vehicleType:  string;
-  ac:           boolean;
-  seats:        number;
-  payment:      string;
+  serviceId:       string;
+  serviceTab:      ServiceTab;
+  tripTab:         TripTab;
+  pickup:          string;
+  pickupLat?:      number;
+  pickupLng?:      number;
+  dropoff:         string;
+  dropLat?:        number;
+  dropLng?:        number;
+  date:            string;
+  time:            string;
+  returnDate?:     string;
+  vehicleType:     string;
+  ac:              boolean;
+  seats:           number;
+  payment:         string;
+  customerName:    string;
+  customerPhone:   string;
+  totalFare:       string;
 }
 
 export interface BookingResponse {
-  id:     string;
-  status: "searching" | "confirmed" | "cancelled";
+  id:        string;   // bookingRef (human-readable reference)
+  bookingId: string;   // UUID — used for payment operations
+  status:    "searching" | "confirmed" | "cancelled";
 }

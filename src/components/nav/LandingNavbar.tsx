@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
-import { Menu, X, ChevronDown, Car, Key, Navigation, Plane, Train, Globe, Heart, Users, Briefcase, Palmtree, CalendarDays, GraduationCap, UserCircle, LayoutDashboard } from "lucide-react";
+import { Menu, X, ChevronDown, Car, Key, Navigation, Plane, Train, Globe, Heart, Users, Briefcase, Palmtree, CalendarDays, GraduationCap, LogIn, LayoutDashboard, UserCircle } from "lucide-react";
 import UserDropdown from "./userDropdown";
 import { usePathname } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
 import {ASSETS} from "@/constants/assets";
 
@@ -137,15 +138,17 @@ const navLinks = [
 export default function LandingNavbar() {
   const pathName = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const { data: session } = authClient.useSession();
+  const { requireAuth } = useAuth();
 
   return (
     <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-7xl">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0 pl-2 pr-4 py-2 border border-border bg-background rounded-full">
-          <Image src={ASSETS.logos.minimal.src} alt={ASSETS.logos.minimal.alt} width={24} height={24} className="rounded-full w-10 h-6" />
-          <Image src={ASSETS.logos.drakfullname.src} alt={ASSETS.logos.drakfullname.alt} width={100} height={24} className="hidden sm:inline-block h-8" />
+          <Link href="/" className="flex items-center gap-1.5 shrink-0 pl-2 pr-3 py-1.5 border border-border bg-background rounded-full">
+            <Image src={ASSETS.logos.minimal.src} alt={ASSETS.logos.minimal.alt} width={24} height={24} className="w-10 h-6 rounded-full" />
+            <Image src={ASSETS.logos.drakfullname.src} alt={ASSETS.logos.drakfullname.alt} width={100} height={32} className="h-8" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -205,6 +208,36 @@ export default function LandingNavbar() {
             </Link>
           ))}
           <Link href="/contact" onClick={() => setIsOpen(false)} className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-text-secondary hover:bg-border/30">Support</Link>
+
+          {/* Divider */}
+          <div className="border-t border-border my-2" />
+
+          {/* Login / User section */}
+          {session?.user ? (
+            <div className="space-y-1">
+              <div className="flex items-center gap-3 px-3 py-2">
+                <div className="w-8 h-8 rounded-full bg-primary-soft flex items-center justify-center shrink-0">
+                  <UserCircle size={18} className="text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-text-primary truncate">{session.user.name}</p>
+                  <p className="text-xs text-text-muted truncate">{session.user.email}</p>
+                </div>
+              </div>
+              <Link href="/dashboard" onClick={() => setIsOpen(false)} className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg text-primary hover:bg-primary-soft transition-colors">
+                <LayoutDashboard size={16} />
+                Go to Dashboard
+              </Link>
+            </div>
+          ) : (
+            <button
+              onClick={() => { setIsOpen(false); requireAuth(() => {}); }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl bg-primary text-white hover:bg-primary-hover transition-colors"
+            >
+              <LogIn size={16} />
+              Login / Sign Up
+            </button>
+          )}
         </div>
       )}
     </nav>

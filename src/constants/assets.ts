@@ -11,4 +11,12 @@ export const ASSETS = {
     whiteBlackLogo:     { src: "/images/logos/8.svg", alt: "Mohan Cabs" },
   },
   car: "/images/car.png",
+  cars: {
+    hatchback: { src: "/images/cars/Hatchback.png",                   alt: "Hatchback" },
+    sedan:     { src: "/images/cars/Sedan-Car-PNG-Free-Download.png", alt: "Sedan" },
+    muv:       { src: "/images/cars/MUV.png",                         alt: "SUV / MUV" },
+    luxury:    { src: "/images/cars/Luxury.png",                      alt: "Luxury" },
+    luxury1:   { src: "/images/cars/Luxury-1.png",                    alt: "Luxury Premium" },
+    traveller: { src: "/images/cars/Traveller.png",                   alt: "Tempo Traveller" },
+  },
 } as const;

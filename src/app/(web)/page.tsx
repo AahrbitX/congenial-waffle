@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import dynamic from "next/dynamic";
-import { useState } from "react";
-import { Button, Card, Chip, Surface } from "@heroui/react";
+import { useRef, useState } from "react";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { ASSETS } from "@/constants/assets";
+import { Button, Card, Chip } from "@heroui/react";
 import {
   ArrowRight,
   Shield,
@@ -195,155 +198,13 @@ const TESTIMONIALS = [
   },
 ];
 
-// ─── Car SVG Illustrations ────────────────────────────────────────────────────
-
-function HatchbackSvg() {
-  return (
-    <svg
-      viewBox="0 0 120 60"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-28 h-auto"
-    >
-      <rect x="10" y="28" width="100" height="22" rx="4" fill="#E5E7EB" />
-      <path d="M25 28 Q35 10 55 10 Q75 10 85 28Z" fill="#D1D5DB" />
-      <rect
-        x="30"
-        y="14"
-        width="18"
-        height="13"
-        rx="2"
-        fill="#93C5FD"
-        opacity=".8"
-      />
-      <rect
-        x="52"
-        y="14"
-        width="20"
-        height="13"
-        rx="2"
-        fill="#93C5FD"
-        opacity=".8"
-      />
-      <circle cx="30" cy="50" r="8" fill="#374151" />
-      <circle cx="30" cy="50" r="4" fill="#9CA3AF" />
-      <circle cx="90" cy="50" r="8" fill="#374151" />
-      <circle cx="90" cy="50" r="4" fill="#9CA3AF" />
-      <rect x="8" y="32" width="12" height="6" rx="2" fill="#1877F2" />
-      <rect x="100" y="32" width="12" height="6" rx="2" fill="#F87171" />
-    </svg>
-  );
-}
-
-function SedanSvg() {
-  return (
-    <svg viewBox="0 0 120 60" fill="none" className="w-28 h-auto">
-      <rect x="5" y="30" width="110" height="20" rx="4" fill="#E5E7EB" />
-      <path d="M20 30 Q28 14 50 13 Q75 13 95 30Z" fill="#C7D2FE" />
-      <rect
-        x="28"
-        y="17"
-        width="20"
-        height="12"
-        rx="2"
-        fill="#93C5FD"
-        opacity=".8"
-      />
-      <rect
-        x="54"
-        y="17"
-        width="22"
-        height="12"
-        rx="2"
-        fill="#93C5FD"
-        opacity=".8"
-      />
-      <circle cx="28" cy="50" r="8" fill="#374151" />
-      <circle cx="28" cy="50" r="4" fill="#9CA3AF" />
-      <circle cx="92" cy="50" r="8" fill="#374151" />
-      <circle cx="92" cy="50" r="4" fill="#9CA3AF" />
-      <rect x="3" y="33" width="14" height="6" rx="2" fill="#1877F2" />
-      <rect x="103" y="33" width="14" height="6" rx="2" fill="#F87171" />
-    </svg>
-  );
-}
-
-function SuvSvg() {
-  return (
-    <svg viewBox="0 0 120 65" fill="none" className="w-28 h-auto">
-      <rect x="5" y="25" width="110" height="30" rx="5" fill="#D1D5DB" />
-      <rect x="12" y="10" width="96" height="20" rx="4" fill="#B0B8C1" />
-      <rect
-        x="18"
-        y="13"
-        width="22"
-        height="13"
-        rx="2"
-        fill="#93C5FD"
-        opacity=".8"
-      />
-      <rect
-        x="46"
-        y="13"
-        width="22"
-        height="13"
-        rx="2"
-        fill="#93C5FD"
-        opacity=".8"
-      />
-      <rect
-        x="74"
-        y="13"
-        width="20"
-        height="13"
-        rx="2"
-        fill="#93C5FD"
-        opacity=".8"
-      />
-      <circle cx="27" cy="55" r="9" fill="#374151" />
-      <circle cx="27" cy="55" r="4.5" fill="#9CA3AF" />
-      <circle cx="93" cy="55" r="9" fill="#374151" />
-      <circle cx="93" cy="55" r="4.5" fill="#9CA3AF" />
-      <rect x="2" y="29" width="14" height="7" rx="2" fill="#1877F2" />
-      <rect x="104" y="29" width="14" height="7" rx="2" fill="#F87171" />
-    </svg>
-  );
-}
-
-function LuxurySvg() {
-  return (
-    <svg viewBox="0 0 120 60" fill="none" className="w-28 h-auto">
-      <rect x="4" y="28" width="112" height="22" rx="5" fill="#1E293B" />
-      <path d="M18 28 Q26 12 52 11 Q80 11 100 28Z" fill="#334155" />
-      <rect
-        x="26"
-        y="15"
-        width="22"
-        height="12"
-        rx="2"
-        fill="#7DD3FC"
-        opacity=".9"
-      />
-      <rect
-        x="56"
-        y="15"
-        width="24"
-        height="12"
-        rx="2"
-        fill="#7DD3FC"
-        opacity=".9"
-      />
-      <circle cx="28" cy="50" r="8" fill="#0F172A" />
-      <circle cx="28" cy="50" r="4" fill="#475569" />
-      <circle cx="92" cy="50" r="8" fill="#0F172A" />
-      <circle cx="92" cy="50" r="4" fill="#475569" />
-      <rect x="2" y="31" width="14" height="6" rx="2" fill="#1877F2" />
-      <rect x="104" y="31" width="14" height="6" rx="2" fill="#F87171" />
-    </svg>
-  );
-}
-
-const CAR_SVGS = [HatchbackSvg, SedanSvg, SuvSvg, LuxurySvg];
+/** Maps landing page car name → ASSETS image entry */
+const CAR_IMAGES: Record<string, { src: string; alt: string }> = {
+  Hatchback: ASSETS.cars.hatchback,
+  Sedan:     ASSETS.cars.sedan,
+  SUV:       ASSETS.cars.muv,
+  Luxury:    ASSETS.cars.luxury,
+};
 
 // Maps landing page car names to vehicle mock categories
 const CAR_CATEGORY_MAP: Record<string, string> = {
@@ -353,107 +214,208 @@ const CAR_CATEGORY_MAP: Record<string, string> = {
   "Luxury":    "Luxury",
 };
 
+// ─── Animation variants ───────────────────────────────────────────────────────
+
+const EASE: [number, number, number, number] = [0.25, 0.1, 0.25, 1];
+
+// Every element uses the same fade-up — uniform feel
+const fadeUp = {
+  hidden: { opacity: 0, y: 22 },
+  show:   { opacity: 1, y: 0,  transition: { duration: 0.6, ease: EASE } },
+};
+
+// Tight stagger so elements feel simultaneous, not sequential
+const stagger = {
+  hidden: {},
+  show:   { transition: { staggerChildren: 0.07, delayChildren: 0.1 } },
+};
+
 // ─── Hero Section ─────────────────────────────────────────────────────────────
 
 function HeroSection() {
   const [serviceTab, setServiceTab] = useState<string>("local");
-  const [tripTab, setTripTab] = useState<string>("oneway");
-  const [pickup, setPickup] = useState("");
+  const [tripTab, setTripTab]       = useState<string>("oneway");
+  const [pickup,      setPickup]      = useState("");
   const [destination, setDestination] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const { openBooking } = useBooking();
-  const { requireAuth } = useAuth();
+  const { openBooking }  = useBooking();
+  const { requireAuth }  = useAuth();
+
+  // Scroll-based parallax
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+
+  // Scroll — subtle upward drift only, no fade
+  const contentY = useSpring(useTransform(scrollYProgress, [0, 1], [0, -60]), { stiffness: 60, damping: 20 });
+
+  // Background blobs: slow lateral drift
+  const blob1X = useTransform(scrollYProgress, [0, 1], [0,  120]);
+  const blob2X = useTransform(scrollYProgress, [0, 1], [0, -90]);
 
   const serviceTabs = [
-    { id: "local", label: "Local", Icon: MapPin },
+    { id: "local",      label: "Local",      Icon: MapPin        },
     { id: "outstation", label: "Outstation", Icon: ArrowLeftRight },
-    { id: "airport", label: "Airport", Icon: Calendar },
+    { id: "airport",    label: "Airport",    Icon: Calendar      },
   ];
 
   const tripTabs = [
-    { id: "oneway", label: "One Way" },
+    { id: "oneway",    label: "One Way"    },
     { id: "roundtrip", label: "Round Trip" },
   ];
 
   return (
-    <Surface
-      className="relative min-h-screen flex flex-col justify-end pb-14 pt-20 bg-white/80 backdrop-blur-md rounded-3xl mr-2 ml-4"
-      style={{
-        background:
-          "linear-gradient(to bottom, rgb(255, 255, 255) 0%, rgba(241, 244, 251, 0.96) 40%, rgba(236, 239, 250, 0.61) 100%)",
-      }}
+    <section
+      ref={sectionRef}
+      className="relative min-h-[100svh] sm:mx-5 rounded-xl drop-shadow-2xl overflow-hidden"
     >
-      {/* Hero content */}
-      <div className="flex mx-20 w-full max-w-7xl gap-12">
-        <div className="px-8 sm:px-16 max-w-2xl item-center justify-center h-full">
-          <p className="text-xs font-semibold text-black/70 tracking-[0.12em] uppercase mb-4">
-            Trusted by 5 lakh+ riders
-          </p>
-          <h1 className="text-4xl sm:text-5xl text-black lg:text-[3.6rem] font-extrabold leading-[1.15] mb-6 tracking-tight">
-            Hey Buddy! where are you{" "}
-            <span className="font-black italic text-blue-500">Riding</span> to?
-          </h1>
+      {/* Parallax ambient blobs */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <motion.div
+          style={{ x: blob1X }}
+          className="absolute -top-40 right-0 h-[700px] w-[700px] rounded-full bg-[var(--color-primary-soft)]/60 blur-3xl"
+        />
+        <motion.div
+          style={{ x: blob2X }}
+          className="absolute bottom-0 -left-40 h-[500px] w-[500px] rounded-full bg-[var(--color-primary-soft)]/40 blur-3xl"
+        />
+      </div>
 
-          <div className="right-0 w-full">
-            <img className="" src="/images/car.png" alt="Hero background" />
-            <div className="flex items-center gap-3 flex-wrap">
-              <Button onPress={() => openBooking()}>Book Now</Button>
-              <a
-                href="https://wa.me/91XXXXXXXXXX"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-[#25D366] text-white rounded-full p-2 font-bold text-[15px] hover:bg-[#1ebe5d] transition-colors"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-4 h-4"
+      {/* Main content — unified scroll: everything moves up + fades together */}
+      <motion.div
+        style={{ y: contentY }}
+        className="relative mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col items-center justify-center px-4 pb-16 pt-24 sm:px-6 lg:flex-row lg:items-center lg:gap-10 lg:px-10 lg:py-20 xl:gap-16 xl:px-16"
+      >
+
+        {/* ── LEFT ── */}
+        <div className="flex w-full flex-col lg:flex-1">
+          <motion.div variants={stagger} initial="hidden" animate="show">
+
+            {/* Trust badge */}
+            <motion.div variants={fadeUp} className="mb-5 inline-flex w-fit items-center gap-2 px-2 py-1.5 text-[11px] font-semibold tracking-wide">
+              {/* <span className="h-2 w-2 animate-pulse rounded-full bg-green-400" /> */}
+              Trusted by 5,00,000+ Riders across India
+            </motion.div>
+
+            {/* Headline */}
+            <motion.h1
+              variants={fadeUp}
+              className="mb-4 text-[1.6rem] font-extrabold leading-[1.1] tracking-tight text-[var(--color-text-primary)] sm:text-[2.1rem] lg:text-[2.4rem] xl:text-[2.75rem]"
+            >
+              Hey Buddy! Where are you{" "}
+              <span className="font-black italic text-[var(--color-primary)]">Riding</span> to?
+            </motion.h1>
+
+            {/* Subtitle */}
+            <motion.p
+              variants={fadeUp}
+              className="mb-7 max-w-lg text-[12px] font-medium leading-relaxed text-[var(--color-text-secondary)] sm:text-[13px]"
+            >
+              Safe, reliable cabs — city rides, outstation trips &amp; airport transfers.
+              Fixed fares, verified drivers, available 24/7.
+            </motion.p>
+
+            {/* Stats */}
+
+
+            {/* Car image — desktop only: drives in from bottom-left, scales small → full */}
+            <motion.div
+              initial={{ opacity: 0, x: -120, y: 60, scale: 0.45 }}
+              animate={{ opacity: 1, x: 0,    y: 0,  scale: 1    }}
+              transition={{ duration: 0.9, delay: 0.35, ease: EASE }}
+              className="mb-8 hidden w-full max-w-[480px] lg:block xl:max-w-[540px]"
+            >
+              <img src="/images/car.png" alt="Mohan Cabs vehicle" className="w-full drop-shadow-xl" />
+            </motion.div>
+
+            <div className="sm:flex flex flex-col sm:flex-row sm:items-center gap-5">
+              <motion.div variants={fadeUp} className=" flex flex-wrap gap-x-10 gap-y-4">
+                {[
+                  { value: "5L",  label: "Happy Riders" },
+                  { value: "4.8", label: "Avg Rating"   },
+                  { value: "24/7", label: "Support"       },
+                ].map(({ value, label }) => (
+                  <div key={label}>
+                    <p className="text-[1.2rem] font-black text-[var(--color-text-primary)] sm:text-xl">{value}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">{label}</p>
+                  </div>
+                ))}
+
+
+              </motion.div>
+
+              {/* Action buttons */}
+              <motion.div variants={fadeUp} className="flex gap-4 px-10">
+                <Button
+                  onPress={() => openBooking()}
+                  className="h-11 rounded-xl bg-[var(--color-primary)] px-7 text-[14px] font-bold text-[var(--color-text-inverted)] hover:bg-[var(--color-primary-hover)]"
                 >
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
-                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.554 4.121 1.523 5.854L.057 23.882a.5.5 0 0 0 .61.611l6.101-1.497A11.942 11.942 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.523-5.158-1.432l-.36-.217-3.742.918.95-3.655-.234-.374A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" />
-                </svg>
-              </a>
-
-              <a
-                href="tel:+91XXXXXXXXXX"
-                className="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-800 rounded-full  p-2 font-bold text-[15px] hover:bg-gray-50 transition-colors"
-              >
-                <Phone size={15} className="text-blue-500" />
-              </a>
+                  Book Now →
+                </Button>
+              </motion.div>
             </div>
-          </div>
+
+
+          </motion.div>
         </div>
-        <div className="hidden lg:block flex-1 px-8 pt-10">
-          <Card className="rounded-2xl shadow-2xl overflow-hidden p-0 gap-0">
+
+        {/* ── RIGHT: booking widget ── */}
+        <motion.div
+          variants={fadeUp}
+          className="mt-10 w-full shrink-0 lg:mt-0 lg:w-[440px] xl:w-[500px]"
+        >
+          {/* Car image — mobile & tablet only */}
+          <motion.div
+            initial={{ opacity: 0, x: -80, y: 40, scale: 0.5 }}
+            animate={{ opacity: 1, x: 0,   y: 0,  scale: 1   }}
+            transition={{ duration: 0.9, delay: 0.35, ease: EASE }}
+            className="mb-6 lg:hidden"
+          >
+            <img
+              src="/images/car.png"
+              alt="Mohan Cabs vehicle"
+              className="mx-auto w-full max-w-[260px] drop-shadow-lg sm:max-w-[360px]"
+            />
+          </motion.div>
+
+          {/* Booking widget card */}
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0,  scale: 1 }}
+            transition={{ duration: 0.65, delay: 0.25, ease: EASE }}
+            className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-2xl"
+          >
             {/* Service tabs */}
-            <div className="flex border-b border-border">
+            <div className="flex border-b border-[var(--color-border)]">
               {serviceTabs.map(({ id, label, Icon }) => (
                 <button
                   key={id}
                   onClick={() => setServiceTab(id)}
-                  className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-semibold transition-colors ${
+                  className={`flex flex-1 items-center justify-center gap-1.5 py-3.5 text-[12px] font-semibold transition-colors sm:py-4 sm:text-[13px] ${
                     serviceTab === id
-                      ? "text-primary border-b-2 border-primary"
-                      : "text-text-muted hover:text-text-secondary"
+                      ? "border-b-2 border-[var(--color-primary)] text-[var(--color-primary)]"
+                      : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
                   }`}
                 >
-                  <Icon size={15} />
+                  <Icon size={13} className="shrink-0" />
                   {label}
                 </button>
               ))}
             </div>
 
             {/* Trip sub-tabs */}
-            <div className="flex gap-1 p-3 bg-background border-b border-border">
+            <div className="flex gap-1.5 border-b border-[var(--color-border)] bg-[var(--background)] p-2.5">
               {tripTabs.map(({ id, label }) => (
                 <button
                   key={id}
                   onClick={() => setTripTab(id)}
-                  className={`flex-1 text-xs font-semibold py-1.5 rounded-full transition-colors ${
+                  className={`flex-1 rounded-full py-1.5 text-[11px] font-semibold transition-colors sm:text-xs ${
                     tripTab === id
-                      ? "bg-primary text-white"
-                      : "text-text-secondary hover:text-text-primary"
+                      ? "bg-[var(--color-primary)] text-[var(--color-text-inverted)] shadow-sm"
+                      : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   }`}
                 >
                   {label}
@@ -461,11 +423,10 @@ function HeroSection() {
               ))}
             </div>
 
-            {/* Form */}
-            <div className="p-5 space-y-4">
-              {/* Pickup location */}
+            {/* Form fields */}
+            <div className="space-y-3 p-4 sm:p-5">
               <div>
-                <p className="text-[10px] font-bold text-text-muted tracking-widest uppercase mb-1.5">
+                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-muted)]">
                   Pickup Location
                 </p>
                 <LocationInput
@@ -476,36 +437,34 @@ function HeroSection() {
                 />
               </div>
 
-              {/* Date & Time */}
               <div>
-                <p className="text-[10px] font-bold text-text-muted tracking-widest uppercase mb-1.5">
+                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-muted)]">
                   Pickup Date &amp; Time
                 </p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center gap-2 border border-border rounded-xl px-3 py-3">
-                    <Calendar size={15} className="text-text-muted shrink-0" />
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div className="flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 py-2.5">
+                    <Calendar size={13} className="shrink-0 text-[var(--color-text-muted)]" />
                     <input
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      className="flex-1 text-sm text-text-secondary outline-none bg-transparent w-full"
+                      className="w-full flex-1 bg-transparent text-[13px] text-[var(--color-text-secondary)] outline-none"
                     />
                   </div>
-                  <div className="flex items-center gap-2 border border-border rounded-xl px-3 py-3">
-                    <Clock size={15} className="text-text-muted shrink-0" />
+                  <div className="flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 py-2.5">
+                    <Clock size={13} className="shrink-0 text-[var(--color-text-muted)]" />
                     <input
                       type="time"
                       value={time}
                       onChange={(e) => setTime(e.target.value)}
-                      className="flex-1 text-sm text-text-secondary outline-none bg-transparent w-full"
+                      className="w-full flex-1 bg-transparent text-[13px] text-[var(--color-text-secondary)] outline-none"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Destination */}
               <div>
-                <p className="text-[10px] font-bold text-text-muted tracking-widest uppercase mb-1.5">
+                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-muted)]">
                   Destination
                 </p>
                 <LocationInput
@@ -516,7 +475,6 @@ function HeroSection() {
                 />
               </div>
 
-              {/* CTA */}
               <Button
                 onPress={() =>
                   openBooking({
@@ -528,15 +486,16 @@ function HeroSection() {
                     time,
                   })
                 }
-                className="w-full bg-primary hover:bg-primary/90 text-white font-bold text-base h-12 rounded-xl"
+                className="mt-1 h-12 w-full rounded-xl bg-[var(--color-primary)] text-[15px] font-bold text-[var(--color-text-inverted)] hover:bg-[var(--color-primary-hover)]"
               >
                 Explore Cabs
               </Button>
             </div>
-          </Card>
-        </div>
-      </div>
-    </Surface>
+          </motion.div>
+        </motion.div>
+
+      </motion.div>
+    </section>
   );
 }
 
@@ -557,8 +516,8 @@ function CarsSection() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {CARS.map((car, i) => {
-            const CarSvg = CAR_SVGS[i];
+          {CARS.map((car) => {
+            const img = CAR_IMAGES[car.name];
             return (
               <Card
                 key={car.name}
@@ -572,8 +531,14 @@ function CarsSection() {
                   {car.badge}
                 </Chip>
 
-                <div className="flex items-center justify-center h-24 mb-4">
-                  <CarSvg />
+                <div className="flex items-center justify-center h-36 mb-4">
+                  <Image
+                    src={img.src}
+                    alt={img.alt}
+                    width={220}
+                    height={144}
+                    className="object-contain h-full w-auto"
+                  />
                 </div>
 
                 <p className="text-base font-extrabold text-[#1c1e21]">

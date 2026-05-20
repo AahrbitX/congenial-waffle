@@ -5,6 +5,8 @@ import Map, { Marker, NavigationControl } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Button } from "@/components/ui/Button";
 import { IconMapPin, IconSearch, IconLoader } from "@/constants/icons";
+import { forwardGeocode, reverseGeocode } from "@/utils/geocoding";
+import type { GeoResult } from "@/utils/geocoding";
 
 type MapMoveEvent = { viewState: { latitude: number; longitude: number; zoom: number } };
 
@@ -24,34 +26,11 @@ interface LocationPickerMapProps {
   onCancel: () => void;
 }
 
-// ── Geocoding helpers ─────────────────────────────────────────────────────────
-
-async function reverseGeocode(lat: number, lng: number): Promise<string> {
-  const res = await fetch(
-    `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${TOKEN}&country=IN&language=en`
-  );
-  const data = await res.json();
-  return data.features?.[0]?.place_name ?? "";
-}
-
-async function forwardGeocode(query: string): Promise<Array<{ name: string; lat: number; lng: number }>> {
-  if (!query.trim()) return [];
-  const res = await fetch(
-    `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${TOKEN}&country=IN&language=en&limit=5`
-  );
-  const data = await res.json();
-  return (data.features ?? []).map((f: any) => ({
-    name: f.place_name,
-    lng: f.center[0],
-    lat: f.center[1],
-  }));
-}
-
 // ── Search box ────────────────────────────────────────────────────────────────
 
 function PlaceSearch({ onPlace }: { onPlace: (name: string, coords: LatLng) => void }) {
   const [query,    setQuery]    = useState("");
-  const [results,  setResults]  = useState<Array<{ name: string; lat: number; lng: number }>>([]);
+  const [results,  setResults]  = useState<GeoResult[]>([]);
   const [loading,  setLoading]  = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -67,7 +46,7 @@ function PlaceSearch({ onPlace }: { onPlace: (name: string, coords: LatLng) => v
     }, 350);
   };
 
-  const handleSelect = (r: { name: string; lat: number; lng: number }) => {
+  const handleSelect = (r: GeoResult) => {
     setQuery(r.name);
     setResults([]);
     onPlace(r.name, { lat: r.lat, lng: r.lng });

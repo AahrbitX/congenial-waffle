@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
-import { useVehicles, useCreateBooking } from "@/hooks/useBooking";
-import { PAYMENT_OPTIONS, filterVehicles, getVehicleFare, formatFare } from "@/data/booking.mock";
+import { useVehicles } from "@/hooks/useBooking";
+import { useRides } from "@/hooks/useRides";
+import { authClient } from "@/lib/auth-client";
+import { forwardGeocode, reverseGeocode, getRouteDistance, type GeoResult } from "@/utils/geocoding";
+import { filterVehicles, getVehicleFare, formatFare } from "@/data/booking.mock";
 import { getServiceConfig } from "@/data/serviceConfig";
-import type { PaymentOption } from "@/data/booking.mock";
 import type { BookingInitialData, TripTab, Vehicle } from "@/types/booking.types";
+import { createBooking, createPaymentOrder, verifyPayment } from "@/api/booking.api";
 import dynamic from "next/dynamic";
 const LocationPickerMap = dynamic(
   () => import("@/components/map/LocationPickerMap").then((m) => m.LocationPickerMap),
@@ -16,7 +19,7 @@ const LocationPickerMap = dynamic(
 import {
   IconX, IconChevronLeft, IconMapPin, IconCar, IconCheck, IconCheckCircle,
   IconCalendar, IconClock, IconWind, IconUsers, IconRoundTrip, IconPlane,
-  IconArrowLeftRight,
+  IconArrowLeftRight, IconLoader, IconLocate,
 } from "@/constants/icons";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -30,12 +33,16 @@ interface BookRideModalProps {
 
 interface FormState {
   // Common
-  pickup:       string;
-  destination:  string;
-  date:         string;
-  time:         string;
-  tripTab:      TripTab;
-  returnDate:   string;
+  pickup:          string;
+  pickupLat:       number | null;
+  pickupLng:       number | null;
+  destination:     string;
+  destinationLat:  number | null;
+  destinationLng:  number | null;
+  date:            string;
+  time:            string;
+  tripTab:         TripTab;
+  returnDate:      string;
   // Airport / Railway
   direction:    "to" | "from";
   refNumber:    string;   // flight no. or train no.
@@ -53,7 +60,9 @@ interface FormState {
 }
 
 const BLANK_FORM: FormState = {
-  pickup: "", destination: "", date: "", time: "",
+  pickup: "", pickupLat: null, pickupLng: null,
+  destination: "", destinationLat: null, destinationLng: null,
+  date: "", time: "",
   tripTab: "oneway", returnDate: "",
   direction: "to", refNumber: "",
   duration: "", endDate: "",
@@ -79,6 +88,7 @@ const SEAT_OPTIONS = [
 export function BookRideModal({ isOpen, onClose, onBooked, initialData }: BookRideModalProps) {
   const config    = initialData?.serviceId ? getServiceConfig(initialData.serviceId) : undefined;
   const isInquiry = config?.formType === "inquiry";
+  const { data: session } = authClient.useSession();
 
   const [step,      setStep]      = useState<1 | 2 | 3>(1);
   const [confirmed, setConfirmed] = useState(false);
@@ -89,13 +99,28 @@ export function BookRideModal({ isOpen, onClose, onBooked, initialData }: BookRi
   const update = (field: keyof FormState, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
-  // Step 2 preferences
-  const [acPref,     setAcPref]     = useState<boolean | null>(null);
-  const [seatFilter, setSeatFilter] = useState(0);
-  const [vehicle,    setVehicle]    = useState("");
+  const updateLocation = (
+    field: "pickup" | "destination",
+    value: string,
+    lat?: number | null,
+    lng?: number | null,
+  ) => setForm((prev) => ({
+    ...prev,
+    [field]:               value,
+    [`${field}Lat`]:       lat  ?? null,
+    [`${field}Lng`]:       lng  ?? null,
+  }));
+
+  // Step 2 preferences + distance fare
+  const [acPref,      setAcPref]      = useState<boolean | null>(null);
+  const [seatFilter,  setSeatFilter]  = useState(0);
+  const [vehicle,     setVehicle]     = useState("");
+  const [distanceKm,  setDistanceKm]  = useState<number | null>(null);
+  const [distLoading, setDistLoading] = useState(false);
 
   // Step 3 payment
-  const [payment, setPayment] = useState<PaymentOption>("UPI");
+  const [payProcessing, setPayProcessing] = useState(false);
+  const [payMode,       setPayMode]       = useState<"full" | "partial" | null>(null);
 
   // Re-seed when modal reopens with new data
   useEffect(() => {
@@ -105,12 +130,14 @@ export function BookRideModal({ isOpen, onClose, onBooked, initialData }: BookRi
     setAcPref(null);
     setSeatFilter(0);
     setVehicle("");
-    setPayment("UPI");
+    setDistanceKm(null);
+    setDistLoading(false);
+    setPayProcessing(false);
+    setPayMode(null);
     setConfirmed(false);
   }, [initialData]);
 
-  const { data: allVehicles = [] }  = useVehicles();
-  const { mutate: book, isPending } = useCreateBooking();
+  const { data: allVehicles = [] } = useVehicles();
 
   const filteredVehicles = useMemo(() => {
     const allowedCategories = config?.vehicleCategories?.length
@@ -136,6 +163,53 @@ export function BookRideModal({ isOpen, onClose, onBooked, initialData }: BookRi
     }
   }, [step, filteredVehicles, initialData?.preselectedCategory]);
 
+  // Distance-based fare: calculate when entering Step 2.
+  // If explicit coords are missing (user typed without selecting autocomplete),
+  // forward-geocode the text first so we still get a distance.
+  useEffect(() => {
+    if (step !== 2) return;
+    if (!form.pickup.trim() || !form.destination.trim()) return;
+
+    let cancelled = false;
+    const run = async () => {
+      setDistLoading(true);
+      setDistanceKm(null);
+
+      let pLat = form.pickupLat, pLng = form.pickupLng;
+      let dLat = form.destinationLat, dLng = form.destinationLng;
+
+      // Geocode if coords are missing
+      if (!pLat || !pLng) {
+        const r = await forwardGeocode(form.pickup);
+        if (r[0]) { pLat = r[0].lat; pLng = r[0].lng; }
+      }
+      if (!dLat || !dLng) {
+        const r = await forwardGeocode(form.destination);
+        if (r[0]) { dLat = r[0].lat; dLng = r[0].lng; }
+      }
+
+      if (cancelled || !pLat || !pLng || !dLat || !dLng) {
+        setDistLoading(false);
+        return;
+      }
+
+      const d = await getRouteDistance(pLat, pLng, dLat, dLng);
+      if (!cancelled) { setDistanceKm(d); setDistLoading(false); }
+    };
+
+    run();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, form.pickup, form.destination]);
+
+  // Load Razorpay checkout.js once on mount
+  useEffect(() => {
+    const s = document.createElement("script");
+    s.src = "https://checkout.razorpay.com/v1/checkout.js";
+    document.body.appendChild(s);
+    return () => { try { document.body.removeChild(s); } catch { /* already removed */ } };
+  }, []);
+
   // Minimum seats required based on passenger count entered in Step 1
   const minPassengerSeats = parseMinSeats(form.passengers);
 
@@ -144,7 +218,8 @@ export function BookRideModal({ isOpen, onClose, onBooked, initialData }: BookRi
   function handleClose() {
     setForm(BLANK_FORM);
     setStep(1); setError(""); setAcPref(null);
-    setSeatFilter(0); setVehicle(""); setPayment("UPI"); setConfirmed(false);
+    setSeatFilter(0); setVehicle(""); setDistanceKm(null);
+    setPayProcessing(false); setPayMode(null); setConfirmed(false);
     onClose();
   }
 
@@ -170,29 +245,100 @@ export function BookRideModal({ isOpen, onClose, onBooked, initialData }: BookRi
     setTimeout(() => { handleClose(); onBooked(); }, 2000);
   }
 
-  function handleConfirm() {
-    book(
-      {
-        serviceId:   config?.id ?? "city-taxi",
-        serviceTab:  config?.serviceTab ?? "local",
-        tripTab:     form.tripTab,
-        pickup:      form.pickup      || "Current Location",
-        dropoff:     form.destination || "Destination",
-        date:        form.date,
-        time:        form.time,
-        returnDate:  form.tripTab === "roundtrip" ? form.returnDate : undefined,
-        vehicleType: vehicle,
-        ac:          selectedV?.ac ?? true,
-        seats:       selectedV?.seats ?? 4,
-        payment,
-      },
-      {
-        onSuccess: () => {
+  // Computed fare: per-km × road distance, or static for flat/hire fares
+  const computedFare = useMemo(() => {
+    if (!selectedV) return 0;
+    const baseFare = getVehicleFare(selectedV, config?.id);
+    if (baseFare.unit === "per km" && distanceKm != null) {
+      return Math.ceil(distanceKm * baseFare.amount);
+    }
+    return baseFare.amount;
+  }, [selectedV, distanceKm, config]);
+
+  async function handleRazorpayPay(mode: "full" | "partial") {
+    if (!selectedV || computedFare === 0) return;
+    const amount = mode === "full" ? computedFare : calcAdvance(computedFare);
+
+    setPayMode(mode);
+    setPayProcessing(true);
+    setError("");
+
+    // 1. Create booking
+    let bookingResult: { bookingId: string };
+    try {
+      bookingResult = await createBooking({
+        serviceId:     config?.id ?? "city-taxi",
+        serviceTab:    config?.serviceTab ?? "local",
+        tripTab:       form.tripTab,
+        pickup:        form.pickup      || "Current Location",
+        pickupLat:     form.pickupLat   ?? undefined,
+        pickupLng:     form.pickupLng   ?? undefined,
+        dropoff:       form.destination || "Destination",
+        dropLat:       form.destinationLat ?? undefined,
+        dropLng:       form.destinationLng ?? undefined,
+        date:          form.date,
+        time:          form.time,
+        returnDate:    form.tripTab === "roundtrip" ? form.returnDate : undefined,
+        vehicleType:   vehicle,
+        ac:            selectedV.ac,
+        seats:         selectedV.seats,
+        payment:       "razorpay",
+        customerName:  session?.user?.name  ?? "Guest",
+        customerPhone: session?.user?.phoneNumber ?? "",
+        totalFare:     String(computedFare),
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create booking. Please try again.");
+      setPayProcessing(false);
+      setPayMode(null);
+      return;
+    }
+
+    // 2. Create Razorpay order
+    let orderData: { orderId: string; amount: number; currency: string; keyId: string };
+    try {
+      const orderRes = await createPaymentOrder(bookingResult.bookingId, amount, mode);
+      orderData = orderRes.data;
+    } catch {
+      setError("Failed to initiate payment. Please try again.");
+      setPayProcessing(false);
+      setPayMode(null);
+      return;
+    }
+
+    // 3. Open Razorpay checkout
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rzp = new (window as any).Razorpay({
+      key:         orderData.keyId,
+      order_id:    orderData.orderId,
+      amount:      orderData.amount,
+      currency:    orderData.currency,
+      name:        "Mohan Cabs",
+      description: mode === "full" ? "Full Payment" : "Advance Payment",
+      handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+        try {
+          await verifyPayment(
+            bookingResult.bookingId,
+            response.razorpay_order_id,
+            response.razorpay_payment_id,
+            response.razorpay_signature,
+          );
           setConfirmed(true);
           setTimeout(() => { handleClose(); onBooked(); }, 1800);
-        },
-      }
-    );
+        } catch {
+          setError("Payment verification failed. Please contact support.");
+        }
+      },
+      modal: {
+        ondismiss: () => { setPayProcessing(false); setPayMode(null); },
+      },
+      prefill: {
+        name:    session?.user?.name    ?? "",
+        contact: session?.user?.phoneNumber ?? "",
+      },
+    });
+    rzp.open();
+    setPayProcessing(false);
   }
 
   if (!isOpen) return null;
@@ -205,7 +351,7 @@ export function BookRideModal({ isOpen, onClose, onBooked, initialData }: BookRi
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-[var(--color-surface)] rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-[var(--color-surface)] rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
 
         {/* ── Confirmation ──────────────────────────────────────────── */}
         {confirmed ? (
@@ -286,6 +432,7 @@ export function BookRideModal({ isOpen, onClose, onBooked, initialData }: BookRi
                   serviceId={config?.id}
                   form={form}
                   update={update}
+                  updateLocation={updateLocation}
                   error={error}
                 />
               )}
@@ -350,7 +497,19 @@ export function BookRideModal({ isOpen, onClose, onBooked, initialData }: BookRi
 
                   {/* Vehicle list */}
                   <div>
-                    <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-2">Available Vehicles</p>
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase">Available Vehicles</p>
+                      {distLoading && (
+                        <span className="flex items-center gap-1 text-[10px] text-[var(--color-primary)] font-semibold">
+                          <IconLoader size={10} className="animate-spin" /> Calculating fare…
+                        </span>
+                      )}
+                      {!distLoading && distanceKm != null && (
+                        <span className="text-[10px] text-[var(--color-primary)] font-semibold bg-[var(--color-primary-light)] px-2 py-0.5 rounded-full">
+                          {distanceKm} km route
+                        </span>
+                      )}
+                    </div>
                     {filteredVehicles.length === 0 ? (
                       <div className="text-center py-8 text-[13px] text-[var(--color-text-tertiary)]">
                         No vehicles match these filters.
@@ -366,6 +525,7 @@ export function BookRideModal({ isOpen, onClose, onBooked, initialData }: BookRi
                             onSelect={() => setVehicle(v.type)}
                             serviceId={config?.id}
                             disabled={minPassengerSeats > 0 && v.seats < minPassengerSeats}
+                            distanceKm={distanceKm}
                           />
                         ))}
                       </div>
@@ -379,37 +539,39 @@ export function BookRideModal({ isOpen, onClose, onBooked, initialData }: BookRi
                 <>
                   <RouteSummary form={form} config={config} />
 
+                  {/* Vehicle summary */}
                   <div className="flex items-center gap-4 px-4 py-3 bg-[var(--color-primary-light)] rounded-xl border border-[var(--color-primary)]/20">
                     <IconCar size={20} className="text-[var(--color-primary)]" />
                     <div className="flex-1">
                       <p className="text-[14px] font-bold text-[var(--color-text-primary)]">{selectedV.type}</p>
                       <p className="text-[12px] text-[var(--color-text-tertiary)]">
                         {selectedV.seats} seats · {selectedV.ac ? "AC" : "Non-AC"} · {selectedV.desc}
+                        {distanceKm != null && ` · ${distanceKm} km`}
                       </p>
                     </div>
                     <p className="text-[15px] font-black text-[var(--color-primary)]">
-                      {formatFare(getVehicleFare(selectedV, config?.id))}
+                      ₹{computedFare}
                     </p>
                   </div>
 
-                  <div>
-                    <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-2">Payment Method</p>
-                    <div className="grid grid-cols-4 gap-2">
-                      {PAYMENT_OPTIONS.map((m) => (
-                        <button
-                          key={m}
-                          onClick={() => setPayment(m)}
-                          className={`py-2.5 rounded-xl text-[13px] font-bold border transition-all ${
-                            payment === m
-                              ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                              : "bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-primary)]"
-                          }`}
-                        >
-                          {m}
-                        </button>
-                      ))}
+                  {/* Fare breakdown */}
+                  <div className="rounded-xl overflow-hidden border border-[var(--color-border)]">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface-muted)]">
+                      <span className="text-[13px] text-[var(--color-text-secondary)]">Total Fare</span>
+                      <span className="text-[16px] font-black text-[var(--color-text-primary)]">₹{computedFare}</span>
+                    </div>
+                    <div className="flex items-center justify-between px-4 py-3 bg-[var(--color-surface-muted)]">
+                      <div>
+                        <span className="text-[13px] text-[var(--color-text-secondary)]">Advance (Partial Pay)</span>
+                        <p className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5">
+                          Balance ₹{computedFare - calcAdvance(computedFare)} paid to driver on arrival
+                        </p>
+                      </div>
+                      <span className="text-[15px] font-bold text-[var(--color-primary)]">₹{calcAdvance(computedFare)}</span>
                     </div>
                   </div>
+
+                  {error && <p className="text-[12px] text-red-500 font-medium">{error}</p>}
                 </>
               )}
             </div>
@@ -434,14 +596,24 @@ export function BookRideModal({ isOpen, onClose, onBooked, initialData }: BookRi
                 </Button>
               )}
               {step === 3 && (
-                <Button
-                  onPress={handleConfirm}
-                  isLoading={isPending}
-                  className="w-full bg-[var(--color-primary)] text-white font-bold py-3.5 rounded-xl"
-                >
-                  <IconCheck size={16} className="mr-1.5" />
-                  Confirm Booking{selectedV ? ` · ${formatFare(getVehicleFare(selectedV, config?.id))}` : ""}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onPress={() => handleRazorpayPay("partial")}
+                    isDisabled={payProcessing}
+                    isLoading={payProcessing && payMode === "partial"}
+                    className="flex-1 bg-[var(--color-surface-muted)] text-[var(--color-text-primary)] font-bold py-3 rounded-xl border border-[var(--color-border)] text-[13px]"
+                  >
+                    Pay ₹{computedFare > 0 ? calcAdvance(computedFare) : "…"} Advance
+                  </Button>
+                  <Button
+                    onPress={() => handleRazorpayPay("full")}
+                    isDisabled={payProcessing}
+                    isLoading={payProcessing && payMode === "full"}
+                    className="flex-1 bg-[var(--color-primary)] text-white font-bold py-3 rounded-xl text-[13px]"
+                  >
+                    Pay ₹{computedFare > 0 ? computedFare : "…"} Now
+                  </Button>
+                </div>
               )}
             </div>
           </>
@@ -453,24 +625,27 @@ export function BookRideModal({ isOpen, onClose, onBooked, initialData }: BookRi
 
 // ── Step 1: Form type renderer ────────────────────────────────────────────────
 
+type UpdateLocationFn = (field: "pickup" | "destination", value: string, lat?: number | null, lng?: number | null) => void;
+
 interface Step1Props {
   formType: string;
   serviceId?: string;
   form: FormState;
   update: (field: keyof FormState, value: string) => void;
+  updateLocation: UpdateLocationFn;
   error: string;
 }
 
-function Step1Form({ formType, serviceId, form, update, error }: Step1Props) {
+function Step1Form({ formType, serviceId, form, update, updateLocation, error }: Step1Props) {
   switch (formType) {
-    case "outstation": return <OutstationForm form={form} update={update} error={error} />;
-    case "airport":    return <AirportForm    form={form} update={update} error={error} />;
-    case "railway":    return <RailwayForm    form={form} update={update} error={error} />;
-    case "hire":       return <HireForm       form={form} update={update} error={error} serviceId={serviceId} />;
-    case "event":      return <EventForm      form={form} update={update} error={error} />;
-    case "group":      return <GroupForm      form={form} update={update} error={error} />;
-    case "inquiry":    return <InquiryForm    form={form} update={update} error={error} />;
-    default:           return <StandardForm   form={form} update={update} error={error} />;
+    case "outstation": return <OutstationForm form={form} update={update} updateLocation={updateLocation} error={error} />;
+    case "airport":    return <AirportForm    form={form} update={update} updateLocation={updateLocation} error={error} />;
+    case "railway":    return <RailwayForm    form={form} update={update} updateLocation={updateLocation} error={error} />;
+    case "hire":       return <HireForm       form={form} update={update} updateLocation={updateLocation} error={error} serviceId={serviceId} />;
+    case "event":      return <EventForm      form={form} update={update} updateLocation={updateLocation} error={error} />;
+    case "group":      return <GroupForm      form={form} update={update} updateLocation={updateLocation} error={error} />;
+    case "inquiry":    return <InquiryForm    form={form} update={update} updateLocation={updateLocation} error={error} />;
+    default:           return <StandardForm   form={form} update={update} updateLocation={updateLocation} error={error} />;
   }
 }
 
@@ -479,20 +654,21 @@ function Step1Form({ formType, serviceId, form, update, error }: Step1Props) {
 interface FormProps {
   form: FormState;
   update: (field: keyof FormState, value: string) => void;
+  updateLocation: UpdateLocationFn;
   error: string;
 }
 
 // Standard: City Taxi, Nationwide
-function StandardForm({ form, update, error }: FormProps) {
+function StandardForm({ form, update, updateLocation, error }: FormProps) {
   return (
     <>
       <TripToggle value={form.tripTab} onChange={(v) => update("tripTab", v)} />
       <LocationInput label="Pickup Location" dotClass="rounded-full bg-[var(--color-primary)]"
-        value={form.pickup} onChange={(v) => update("pickup", v)}
+        value={form.pickup} onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
         placeholder="Enter pickup location" highlight={!!error && !form.pickup.trim()} />
       <DateTimeRow date={form.date} time={form.time} onDate={(v) => update("date", v)} onTime={(v) => update("time", v)} />
       <LocationInput label="Destination" dotClass="rounded bg-[var(--color-text-primary)]"
-        value={form.destination} onChange={(v) => update("destination", v)}
+        value={form.destination} onChange={(v, lat, lng) => updateLocation("destination", v, lat, lng)}
         placeholder="Enter destination" highlight={!!error && !form.destination.trim()} />
       {form.tripTab === "roundtrip" && (
         <ReturnDateInput value={form.returnDate} onChange={(v) => update("returnDate", v)} />
@@ -503,15 +679,15 @@ function StandardForm({ form, update, error }: FormProps) {
 }
 
 // Outstation: from city → to city
-function OutstationForm({ form, update, error }: FormProps) {
+function OutstationForm({ form, update, updateLocation, error }: FormProps) {
   return (
     <>
       <TripToggle value={form.tripTab} onChange={(v) => update("tripTab", v)} />
       <LocationInput label="Departure City" dotClass="rounded-full bg-[var(--color-primary)]"
-        value={form.pickup} onChange={(v) => update("pickup", v)}
+        value={form.pickup} onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
         placeholder="E.g. Trivandrum" highlight={!!error && !form.pickup.trim()} />
       <LocationInput label="Destination City" dotClass="rounded bg-[var(--color-text-primary)]"
-        value={form.destination} onChange={(v) => update("destination", v)}
+        value={form.destination} onChange={(v, lat, lng) => updateLocation("destination", v, lat, lng)}
         placeholder="E.g. Kochi, Bangalore…" highlight={!!error && !form.destination.trim()} />
       <DateTimeRow label="Journey Date & Time"
         date={form.date} time={form.time} onDate={(v) => update("date", v)} onTime={(v) => update("time", v)} />
@@ -524,7 +700,7 @@ function OutstationForm({ form, update, error }: FormProps) {
 }
 
 // Airport Transfer
-function AirportForm({ form, update, error }: FormProps) {
+function AirportForm({ form, update, updateLocation, error }: FormProps) {
   return (
     <>
       {/* Direction */}
@@ -549,7 +725,7 @@ function AirportForm({ form, update, error }: FormProps) {
       <LocationInput
         label={form.direction === "to" ? "Your Pickup Address" : "Airport Terminal"}
         dotClass="rounded-full bg-[var(--color-primary)]"
-        value={form.pickup} onChange={(v) => update("pickup", v)}
+        value={form.pickup} onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
         placeholder={form.direction === "to" ? "Home / Office address" : "E.g. Terminal 1"}
         highlight={!!error && !form.pickup.trim()} />
       <DateTimeRow label="Flight Date & Time"
@@ -564,7 +740,7 @@ function AirportForm({ form, update, error }: FormProps) {
 }
 
 // Railway Transfer
-function RailwayForm({ form, update, error }: FormProps) {
+function RailwayForm({ form, update, updateLocation, error }: FormProps) {
   return (
     <>
       <div>
@@ -586,7 +762,7 @@ function RailwayForm({ form, update, error }: FormProps) {
       <LocationInput
         label={form.direction === "to" ? "Your Pickup Address" : "Station Name"}
         dotClass="rounded-full bg-[var(--color-primary)]"
-        value={form.pickup} onChange={(v) => update("pickup", v)}
+        value={form.pickup} onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
         placeholder={form.direction === "to" ? "Home / Office address" : "E.g. Trivandrum Central"}
         highlight={!!error && !form.pickup.trim()} />
       <DateTimeRow label="Train Date & Time"
@@ -601,14 +777,14 @@ function RailwayForm({ form, update, error }: FormProps) {
 }
 
 // Hire: Full Day, Weekly Commute, Rent a Car
-function HireForm({ form, update, error, serviceId }: FormProps & { serviceId?: string }) {
+function HireForm({ form, update, updateLocation, error, serviceId }: FormProps & { serviceId?: string }) {
   const isWeekly  = serviceId === "weekly-commute";
   const isRentCar = serviceId === "rent-a-car";
 
   return (
     <>
       <LocationInput label="Pickup Location" dotClass="rounded-full bg-[var(--color-primary)]"
-        value={form.pickup} onChange={(v) => update("pickup", v)}
+        value={form.pickup} onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
         placeholder="Your pickup address" highlight={!!error && !form.pickup.trim()} />
       <DateTimeRow label="Start Date & Time"
         date={form.date} time={form.time} onDate={(v) => update("date", v)} onTime={(v) => update("time", v)} />
@@ -639,7 +815,7 @@ function HireForm({ form, update, error, serviceId }: FormProps & { serviceId?: 
       )}
       {isWeekly && (
         <LocationInput label="Daily Destination (Office / Workplace)" dotClass="rounded bg-[var(--color-text-primary)]"
-          value={form.destination} onChange={(v) => update("destination", v)}
+          value={form.destination} onChange={(v, lat, lng) => updateLocation("destination", v, lat, lng)}
           placeholder="Daily drop location" highlight={false} />
       )}
       {error && <p className="text-[12px] text-red-500 font-medium">{error}</p>}
@@ -648,13 +824,13 @@ function HireForm({ form, update, error, serviceId }: FormProps & { serviceId?: 
 }
 
 // Event: Wedding, Tours, Events
-function EventForm({ form, update, error }: FormProps) {
+function EventForm({ form, update, updateLocation, error }: FormProps) {
   return (
     <>
       <DateTimeRow label="Event / Tour Date"
         date={form.date} time={form.time} onDate={(v) => update("date", v)} onTime={(v) => update("time", v)} />
       <LocationInput label="Pickup / Venue" dotClass="rounded-full bg-[var(--color-primary)]"
-        value={form.pickup} onChange={(v) => update("pickup", v)}
+        value={form.pickup} onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
         placeholder="Venue or pickup address" highlight={!!error && !form.pickup.trim()} />
       <div>
         <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-2">Duration</p>
@@ -685,15 +861,15 @@ function EventForm({ form, update, error }: FormProps) {
 }
 
 // Group: Tempo Traveller
-function GroupForm({ form, update, error }: FormProps) {
+function GroupForm({ form, update, updateLocation, error }: FormProps) {
   return (
     <>
       <TripToggle value={form.tripTab} onChange={(v) => update("tripTab", v)} />
       <LocationInput label="Pickup Location" dotClass="rounded-full bg-[var(--color-primary)]"
-        value={form.pickup} onChange={(v) => update("pickup", v)}
+        value={form.pickup} onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
         placeholder="Enter pickup location" highlight={!!error && !form.pickup.trim()} />
       <LocationInput label="Destination" dotClass="rounded bg-[var(--color-text-primary)]"
-        value={form.destination} onChange={(v) => update("destination", v)}
+        value={form.destination} onChange={(v, lat, lng) => updateLocation("destination", v, lat, lng)}
         placeholder="Enter destination" highlight={!!error && !form.destination.trim()} />
       <DateTimeRow date={form.date} time={form.time} onDate={(v) => update("date", v)} onTime={(v) => update("time", v)} />
       <div>
@@ -712,7 +888,7 @@ function GroupForm({ form, update, error }: FormProps) {
 }
 
 // Inquiry: Corporate, School
-function InquiryForm({ form, update, error }: FormProps) {
+function InquiryForm({ form, update, updateLocation, error }: FormProps) {
   return (
     <>
       <div className="grid grid-cols-2 gap-3">
@@ -767,29 +943,149 @@ function TripToggle({ value, onChange }: { value: TripTab; onChange: (v: string)
 
 function LocationInput({ label, dotClass, value, onChange, placeholder, highlight }: {
   label: string; dotClass: string; value: string;
-  onChange: (v: string) => void; placeholder: string; highlight: boolean;
+  onChange: (v: string, lat?: number | null, lng?: number | null) => void;
+  placeholder: string; highlight: boolean;
 }) {
-  const [showMap, setShowMap] = useState(false);
+  const [showMap,      setShowMap]      = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [suggestions,  setSuggestions]  = useState<GeoResult[]>([]);
+  const [loadingSug,   setLoadingSug]   = useState(false);
+  const [locating,     setLocating]     = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Recent places from ride history
+  const { data: rides } = useRides();
+  const recentPlaces = useMemo(() => {
+    if (!rides) return [];
+    const seen = new Set<string>();
+    const places: string[] = [];
+    for (const r of rides) {
+      if (r.from && !seen.has(r.from)) { seen.add(r.from); places.push(r.from); }
+      if (r.to   && !seen.has(r.to))   { seen.add(r.to);   places.push(r.to);   }
+    }
+    return places.slice(0, 5);
+  }, [rides]);
+
+  const handleChange = (val: string) => {
+    onChange(val, null, null);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!val.trim()) { setSuggestions([]); return; }
+    debounceRef.current = setTimeout(async () => {
+      setLoadingSug(true);
+      const results = await forwardGeocode(val);
+      setSuggestions(results);
+      setLoadingSug(false);
+    }, 350);
+  };
+
+  const handleLocate = () => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords: pos }) => {
+        const addr = await reverseGeocode(pos.latitude, pos.longitude);
+        onChange(addr, pos.latitude, pos.longitude);
+        setLocating(false);
+      },
+      () => setLocating(false),
+      { timeout: 8000 }
+    );
+  };
+
+  const showingRecent      = !value.trim() && recentPlaces.length > 0;
+  const showingSuggestions = !!value.trim() && (suggestions.length > 0 || loadingSug);
+  const dropdownVisible    = showDropdown && (showingRecent || showingSuggestions);
 
   return (
     <div>
       <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-1.5">{label}</p>
-      <div className={`flex items-center gap-2 rounded-xl px-3 py-2.5 border transition-colors ${
+
+      <div className={`relative rounded-xl border transition-colors ${
         highlight ? "border-red-400" : "border-[var(--color-border)] focus-within:border-[var(--color-primary)]"
       }`}>
-        <div className={`w-2.5 h-2.5 shrink-0 ${dotClass}`} />
-        <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-          className="flex-1 text-[14px] outline-none text-[var(--color-text-primary)] bg-transparent" />
-        <button
-          type="button"
-          onClick={() => setShowMap((v) => !v)}
-          title="Pin on map"
-          className={`shrink-0 p-1 rounded-lg transition-colors ${
-            showMap ? "text-[var(--color-primary)]" : "text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)]"
-          }`}
-        >
-          <IconMapPin size={15} />
-        </button>
+        <div className="flex items-center gap-2 px-3 py-2.5 pr-16">
+          <div className={`w-2.5 h-2.5 shrink-0 ${dotClass}`} />
+          <input
+            value={value}
+            onChange={(e) => handleChange(e.target.value)}
+            onFocus={() => setShowDropdown(true)}
+            onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
+            placeholder={placeholder}
+            className="flex-1 text-[14px] outline-none text-[var(--color-text-primary)] bg-transparent"
+          />
+          {/* Current location button */}
+          <button
+            type="button"
+            onClick={handleLocate}
+            title="Use current location"
+            disabled={locating}
+            className="absolute right-9 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-colors text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)] disabled:opacity-50"
+          >
+            {locating
+              ? <IconLoader size={14} className="animate-spin" />
+              : <IconLocate size={14} />}
+          </button>
+          {/* Map pin button */}
+          <button
+            type="button"
+            onClick={() => setShowMap((v) => !v)}
+            title="Pin on map"
+            className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-colors ${
+              showMap ? "text-[var(--color-primary)]" : "text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)]"
+            }`}
+          >
+            <IconMapPin size={15} />
+          </button>
+        </div>
+
+        {/* Dropdown */}
+        {dropdownVisible && (
+          <div className="absolute z-50 top-full mt-1 w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto">
+            {showingRecent && (
+              <>
+                <p className="px-3 pt-2.5 pb-1 text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase">
+                  Recent
+                </p>
+                {recentPlaces.map((place) => (
+                  <button
+                    key={place}
+                    type="button"
+                    onMouseDown={() => { onChange(place, null, null); setShowDropdown(false); }}
+                    className="w-full flex items-start gap-2 px-3 py-2 text-sm text-left hover:bg-[var(--color-border)]/30 transition-colors"
+                  >
+                    <IconClock size={13} className="mt-0.5 shrink-0 text-[var(--color-text-tertiary)]" />
+                    <span className="line-clamp-1 text-[var(--color-text-primary)]">{place}</span>
+                  </button>
+                ))}
+              </>
+            )}
+            {showingSuggestions && (
+              <>
+                <p className="px-3 pt-2.5 pb-1 text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase">
+                  Suggestions
+                </p>
+                {loadingSug ? (
+                  <div className="flex items-center gap-2 px-3 py-2.5 text-sm text-[var(--color-text-tertiary)]">
+                    <IconLoader size={13} className="animate-spin shrink-0" />
+                    Searching…
+                  </div>
+                ) : (
+                  suggestions.map((r) => (
+                    <button
+                      key={r.name}
+                      type="button"
+                      onMouseDown={() => { onChange(r.name, r.lat, r.lng); setSuggestions([]); setShowDropdown(false); }}
+                      className="w-full flex items-start gap-2 px-3 py-2 text-sm text-left hover:bg-[var(--color-border)]/30 transition-colors"
+                    >
+                      <IconMapPin size={13} className="mt-0.5 shrink-0 text-[var(--color-primary)]" />
+                      <span className="line-clamp-2 text-[var(--color-text-primary)]">{r.name}</span>
+                    </button>
+                  ))
+                )}
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       <AnimatePresence>
@@ -803,7 +1099,7 @@ function LocationInput({ label, dotClass, value, onChange, placeholder, highligh
           >
             <LocationPickerMap
               initialAddress={value}
-              onConfirm={(addr) => { onChange(addr); setShowMap(false); }}
+              onConfirm={(addr, coords) => { onChange(addr, coords?.lat, coords?.lng); setShowMap(false); }}
               onCancel={() => setShowMap(false)}
             />
           </motion.div>
@@ -904,10 +1200,15 @@ function RouteSummary({ form, config }: { form: FormState; config?: { label: str
   );
 }
 
-function VehicleCard({ vehicle, selected, onSelect, serviceId, disabled }: {
+function VehicleCard({ vehicle, selected, onSelect, serviceId, disabled, distanceKm }: {
   vehicle: Vehicle; selected: boolean; onSelect: () => void; serviceId?: string; disabled?: boolean;
+  distanceKm?: number | null;
 }) {
   const fare = getVehicleFare(vehicle, serviceId);
+  const computedAmount = fare.unit === "per km" && distanceKm != null
+    ? Math.ceil(distanceKm * fare.amount)
+    : null;
+
   return (
     <button
       onClick={disabled ? undefined : onSelect}
@@ -929,7 +1230,12 @@ function VehicleCard({ vehicle, selected, onSelect, serviceId, disabled }: {
         </p>
       </div>
       <div className="text-right shrink-0">
-        <p className={`text-[15px] font-black ${disabled ? "text-[var(--color-text-tertiary)]" : "text-[var(--color-primary)]"}`}>{formatFare(fare)}</p>
+        <p className={`text-[15px] font-black ${disabled ? "text-[var(--color-text-tertiary)]" : "text-[var(--color-primary)]"}`}>
+          {computedAmount != null ? `₹${computedAmount}` : formatFare(fare)}
+        </p>
+        {computedAmount != null && (
+          <p className="text-[10px] text-[var(--color-text-tertiary)]">{formatFare(fare)}</p>
+        )}
       </div>
       {selected && !disabled && (
         <div className="w-5 h-5 rounded-full bg-[var(--color-primary)] flex items-center justify-center shrink-0">
@@ -941,6 +1247,12 @@ function VehicleCard({ vehicle, selected, onSelect, serviceId, disabled }: {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** Advance amount for partial payment: ≤₹700 → 50%, >₹700 → fixed ₹500. */
+function calcAdvance(fare: number): number {
+  if (fare > 700) return 500;
+  return Math.round(fare * 0.5);
+}
 
 /** Parse a passenger string like "8", "7–10", "15+" into a minimum seat count. */
 function parseMinSeats(passengers: string): number {
@@ -955,12 +1267,16 @@ function seedForm(initialData?: BookingInitialData): FormState {
   const config = initialData?.serviceId ? getServiceConfig(initialData.serviceId) : undefined;
   return {
     ...BLANK_FORM,
-    pickup:      initialData?.pickup      ?? "",
-    destination: initialData?.destination ?? "",
-    date:        initialData?.date        ?? "",
-    time:        initialData?.time        ?? "",
-    returnDate:  initialData?.returnDate  ?? "",
-    tripTab:     initialData?.tripTab ?? config?.defaultTripTab ?? "oneway",
+    pickup:          initialData?.pickup          ?? "",
+    pickupLat:       initialData?.pickupLat       ?? null,
+    pickupLng:       initialData?.pickupLng       ?? null,
+    destination:     initialData?.destination     ?? "",
+    destinationLat:  initialData?.destinationLat  ?? null,
+    destinationLng:  initialData?.destinationLng  ?? null,
+    date:            initialData?.date            ?? "",
+    time:            initialData?.time            ?? "",
+    returnDate:      initialData?.returnDate      ?? "",
+    tripTab:         initialData?.tripTab ?? config?.defaultTripTab ?? "oneway",
   };
 }
 
@@ -969,16 +1285,24 @@ function validateStep1(form: FormState, formType?: string): string {
     case "airport":
     case "railway":
       if (!form.pickup.trim()) return "Please enter your address.";
+      if (!form.date) return "Please select a date.";
+      if (!form.time) return "Please select a time.";
       return "";
     case "hire":
       if (!form.pickup.trim()) return "Please enter a pickup location.";
+      if (!form.date) return "Please select a date.";
+      if (!form.time) return "Please select a time.";
       return "";
     case "event":
       if (!form.pickup.trim()) return "Please enter the venue or pickup address.";
+      if (!form.date) return "Please select a date.";
+      if (!form.time) return "Please select a time.";
       return "";
     case "group":
       if (!form.pickup.trim() || !form.destination.trim()) return "Please enter pickup and destination.";
       if (!form.passengers) return "Please select the number of passengers.";
+      if (!form.date) return "Please select a date.";
+      if (!form.time) return "Please select a time.";
       return "";
     case "inquiry":
       if (!form.inqName.trim() || !form.inqPhone.trim()) return "Please enter your name and phone number.";
@@ -987,6 +1311,8 @@ function validateStep1(form: FormState, formType?: string): string {
       return "";
     default:
       if (!form.pickup.trim() || !form.destination.trim()) return "Please enter pickup and destination.";
+      if (!form.date) return "Please select a date.";
+      if (!form.time) return "Please select a time.";
       return "";
   }
 }
