@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { ASSETS } from "@/constants/assets";
 import { Button, Card, Chip } from "@heroui/react";
@@ -502,7 +503,7 @@ function HeroSection() {
 // ─── Cars Section ─────────────────────────────────────────────────────────────
 
 function CarsSection() {
-  const { openBooking } = useBooking();
+  const router = useRouter();
   return (
     <section className="py-20 px-6 sm:px-12">
       <div className="max-w-7xl mx-auto">
@@ -521,7 +522,7 @@ function CarsSection() {
             return (
               <Card
                 key={car.name}
-                onClick={() => openBooking({ serviceId: "city-taxi", preselectedCategory: CAR_CATEGORY_MAP[car.name] ?? car.name })}
+                onClick={() => router.push(`/fleet?category=${CAR_CATEGORY_MAP[car.name] ?? car.name}`)}
                 className="relative border border-[#dce1e9] rounded-2xl p-5 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
               >
                 <Chip

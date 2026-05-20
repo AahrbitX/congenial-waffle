@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { ArrowRight } from "lucide-react";
 import { FleetList } from "@/features/web/fleet/FleetList";
 
@@ -21,7 +22,9 @@ export default function FleetPage() {
         </div>
       </section>
 
-      <FleetList />
+      <Suspense fallback={<div className="py-16 px-8 bg-[#f8f9fe]"><div className="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-5">{Array.from({length:8}).map((_,i)=><div key={i} className="h-64 bg-white rounded-2xl animate-pulse"/>)}</div></div>}>
+        <FleetList />
+      </Suspense>
 
       {/* CTA */}
       <section className="py-20 px-8 sm:px-16 bg-blue-500">
