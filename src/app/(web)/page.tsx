@@ -270,7 +270,7 @@ function HeroSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-[100svh] sm:mx-5 rounded-xl drop-shadow-2xl overflow-hidden"
+      className="relative min-h-[100svh] sm:mx-5 p-5 sm:p-0 rounded-xl drop-shadow-2xl overflow-hidden"
     >
       {/* Parallax ambient blobs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -351,7 +351,7 @@ function HeroSection() {
               <motion.div variants={fadeUp} className="flex gap-4 px-10">
                 <Button
                   onPress={() => openBooking()}
-                  className="h-11 rounded-xl bg-[var(--color-primary)] px-7 text-[14px] font-bold text-[var(--color-text-inverted)] hover:bg-[var(--color-primary-hover)]"
+                  className="h-11 rounded-xl bg-[var(--color-primary)] sm:px-7 text-[14px] font-bold text-[var(--color-text-inverted)] hover:bg-[var(--color-primary-hover)]"
                 >
                   Book Now →
                 </Button>
