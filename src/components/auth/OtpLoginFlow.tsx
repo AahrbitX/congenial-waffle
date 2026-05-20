@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Avatar, Input, InputOTP, Label } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
 import { IconCamera, IconUser } from "@/constants/icons";
 import { AnimatePresence, motion } from "framer-motion";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+import { authClient } from "@/lib/auth-client";
 
 const slideVariants = {
   enterFromRight: { opacity: 0, x: 40 },
@@ -32,13 +31,21 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
   const [obLoading, setObLoading] = useState(false);
   const [obError, setObError] = useState("");
 
-  const goToOnboarding = () => setShowOnboarding(true);
-  const goBackToOtp    = () => { setShowOnboarding(false); setOtp(""); setOtpSent(false); };
-
-  const handleSendOtp = () => {
+  const handleSendOtp = async () => {
     if (!phone.trim()) { setOtpError("Please enter your phone number."); return; }
     setOtpError("");
+    setOtpLoading(true);
+
+    const { error } = await authClient.phoneNumber.sendOtp({ phoneNumber: phone.trim() });
+
+    if (error) {
+      setOtpError(error.message || "Failed to send OTP.");
+      setOtpLoading(false);
+      return;
+    }
+
     setOtpSent(true);
+    setOtpLoading(false);
   };
 
   const handleVerifyOtp = async () => {
@@ -46,61 +53,47 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
     setOtpError("");
     setOtpLoading(true);
 
-    try {
-      const res = await fetch(`${API}/api/auth/otp-verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ phone: phone.trim(), otp }),
-      });
+    const { data, error } = await authClient.phoneNumber.verify({
+      phoneNumber: phone.trim(),
+      code: otp,
+    });
 
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        setOtpError(data.message || "Verification failed.");
-        setOtpLoading(false);
-        return;
-      }
-
-      if (data.isNewUser) {
-        goToOnboarding();
-        setOtpLoading(false);
-      } else {
-        onSuccess();
-      }
-    } catch (err: any) {
-      setOtpError(err.message || "Something went wrong.");
+    if (error) {
+      setOtpError(error.message || "Verification failed.");
       setOtpLoading(false);
+      return;
+    }
+
+    // New user: name was set to the phone number as a placeholder
+    const isNewUser = data?.user?.name === phone.trim();
+
+    if (isNewUser) {
+      setShowOnboarding(true);
+      setOtpLoading(false);
+    } else {
+      // Session already created and atom updated by better-auth automatically
+      onSuccess();
     }
   };
 
-  const handleOnboardingSubmit = async (e: React.FormEvent) => {
+  const handleOnboardingSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name.trim()) { setObError("Full name is required."); return; }
     setObError("");
     setObLoading(true);
 
-    try {
-      const res = await fetch(`${API}/api/auth/otp-complete`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ phone: phone.trim(), name: name.trim(), dob: dob || null }),
-      });
+    const { error } = await authClient.updateUser({
+      name: name.trim(),
+      ...(dob ? { dob } : {}),
+    } as any);
 
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        setObError(data.message || "Failed to create account.");
-        setObLoading(false);
-        return;
-      }
-
-      onSuccess();
-    } catch (err: any) {
-      setObError(err.message || "Something went wrong.");
+    if (error) {
+      setObError(error.message || "Failed to save profile.");
       setObLoading(false);
+      return;
     }
+
+    onSuccess();
   };
 
   return (
@@ -158,7 +151,7 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
             {otpError && <p className="text-center text-sm text-danger">{otpError}</p>}
 
             {!otpSent ? (
-              <Button className="mt-4 w-full" size="lg" onPress={handleSendOtp}>
+              <Button className="mt-4 w-full" size="lg" onPress={handleSendOtp} isLoading={otpLoading} disabled={otpLoading}>
                 Send OTP
               </Button>
             ) : (
@@ -258,7 +251,7 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
               <button
                 type="button"
                 className="text-center text-xs text-muted hover:underline"
-                onClick={goBackToOtp}
+                onClick={() => { setShowOnboarding(false); setOtp(""); setOtpSent(false); }}
               >
                 ← Back
               </button>
