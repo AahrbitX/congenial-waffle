@@ -331,7 +331,7 @@ function HeroSection() {
               <img src="/images/car.png" alt="Mohan Cabs vehicle" className="w-full drop-shadow-xl" />
             </motion.div>
 
-            <div className="sm:flex flex flex-col sm:flex-row sm:items-center gap-5">
+            <div className="sm:flex flex flex-col sm:flex-row sm:items-center sm:gap-5">
               <motion.div variants={fadeUp} className=" flex flex-wrap gap-x-10 gap-y-4">
                 {[
                   { value: "5L",  label: "Happy Riders" },
@@ -348,7 +348,7 @@ function HeroSection() {
               </motion.div>
 
               {/* Action buttons */}
-              <motion.div variants={fadeUp} className="flex gap-4 px-10">
+              <motion.div variants={fadeUp} className="mt-6 flex sm:gap-4 sm:mt-0">
                 <Button
                   onPress={() => openBooking()}
                   className="h-11 rounded-xl bg-[var(--color-primary)] sm:px-7 text-[14px] font-bold text-[var(--color-text-inverted)] hover:bg-[var(--color-primary-hover)]"
