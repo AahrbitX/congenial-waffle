@@ -3,7 +3,6 @@ import { Car, Mail, Phone } from "lucide-react";
 import Image from "next/image";
 import { ASSETS } from "@/constants/assets";
 
-
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -40,10 +39,22 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="lg:col-span-2 space-y-6">
             <Link href="/" className="flex items-center gap-2">
-              <Image src={ASSETS.logos.minimal.src} alt={ASSETS.logos.minimal.alt} width={24} height={24} className="rounded-full w-10 h-6" />
-              <Image src={ASSETS.logos.drakfullname.src} alt={ASSETS.logos.drakfullname.alt} width={100} height={24} className="hidden sm:inline-block h-8" />
+              <Image
+                src={ASSETS.logos.minimal.src}
+                alt={ASSETS.logos.minimal.alt}
+                width={24}
+                height={24}
+                className="rounded-full w-10 h-6"
+              />
+              <Image
+                src={ASSETS.logos.darkFullName.src}
+                alt={ASSETS.logos.darkFullName.alt}
+                width={100}
+                height={24}
+                className="hidden sm:inline-block h-8"
+              />
             </Link>
-            
+
             <p className="text-text-secondary text-sm max-w-xs leading-relaxed">
               Premium transportation services tailored for your comfort.
               Reliable, safe, and always on time—wherever you need to go.
