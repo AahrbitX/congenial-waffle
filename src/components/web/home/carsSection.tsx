@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation";
+"use client";
 
 import { ASSETS } from "@/constants/assets";
 import { Card, Chip, Link } from "@heroui/react";
@@ -55,19 +55,19 @@ function CarsSection() {
   return (
     <section className="px-4 pb-4">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
+        <div className="mb-4">
           <TextAnimate
             as="h2"
-            className="text-[1.75rem] font-extrabold text-[#1c1e21] tracking-tight"
+            className="text-center sm:text-left text-[1.75rem] font-extrabold tracking-tight"
           >
             Select Your Car
           </TextAnimate>
-          <p className="text-sm text-[#65676b] font-medium mt-1">
+          <p className="text-sm text-muted font-medium mt-1 text-center sm:text-left">
             Choose the perfect ride for every occasion
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 streac">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {CARS.map((car) => {
             const img = CAR_IMAGES[car.name];
             return (
@@ -86,7 +86,7 @@ function CarsSection() {
                     {car.badge}
                   </Chip>
 
-                  <div className="h-40 rounded-xl bg-gray-100 flex items-center justify-center">
+                  <div className="h-40 rounded-3xl bg-gray-100 flex items-center justify-center">
                     <Image
                       src={img.src}
                       alt={img.alt}

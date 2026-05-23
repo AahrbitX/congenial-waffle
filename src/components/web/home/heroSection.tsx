@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
 import { ArrowLeftRight, Calendar, MapPin, Clock } from "lucide-react";
-import { motion, useTransform, useSpring } from "motion/react";
+import { motion } from "motion/react";
 
 import { Button } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";

@@ -44,14 +44,13 @@ function UserDropdown() {
           Login
         </Link>
       ) : (
-        <div className="flex items-center justify-center gap-2 px-1 py-1  ">
-
-            <Link
-              href={isAdmin ? "/admin" : "/dashboard/overview"}
-              className="text-sm font-semibold bg-primary text-white px-5 py-2  rounded-full inline-flex items-center gap-1.5 shadow-sm"
-            >
-              Dashboard
-            </Link>
+        <div className="flex items-center justify-center gap-2 pr-1 pl-1.5 py-1">
+          <Link
+            href={isAdmin ? "/admin" : "/dashboard/overview"}
+            className="text-sm font-semibold bg-primary text-white px-5 py-2  rounded-full inline-flex items-center gap-1.5 shadow-sm"
+          >
+            Dashboard
+          </Link>
           <Dropdown>
             <Dropdown.Trigger>
               <Avatar>
@@ -60,15 +59,15 @@ function UserDropdown() {
             </Dropdown.Trigger>
             <Dropdown.Popover placement="bottom end">
               <Dropdown.Menu>
-                <Dropdown.Item onPress={() => router.push("/dashboard/overview")}>
+                <Dropdown.Item
+                  onPress={() => router.push("/dashboard/overview")}
+                >
                   <div className="flex w-full items-center justify-between gap-2">
                     <Label>Profile</Label>
                     <User className="size-3.5" />
                   </div>
                 </Dropdown.Item>
-                <Dropdown.Item
-                  onPress={() => router.push("/dashboard/rides")}
-                >
+                <Dropdown.Item onPress={() => router.push("/dashboard/rides")}>
                   <div className="flex w-full items-center justify-between gap-2">
                     <Label>Ride History</Label>
                     <Car className="size-3.5" />
