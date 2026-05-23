@@ -25,11 +25,14 @@ export function MapPlaceholder({ height = 140 }: MapPlaceholderProps) {
         />
       </svg>
       <div className="absolute left-[9%] top-[72%] w-3 h-3 rounded-full bg-[var(--color-primary)] border-2 border-white shadow" />
-      <div className="absolute left-[86%] top-[12%] w-3 h-3 rounded bg-[var(--color-text-primary)] border-2 border-white shadow" />
+      <div className="absolute left-[86%] top-[12%] w-3 h-3 rounded bg-primary border-2 border-white shadow" />
       <div className="absolute left-[48%] top-[32%] w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center">
         <IconCar size={14} className="text-[var(--color-primary)]" />
       </div>
-      <IconNavigation size={18} className="text-[var(--color-primary)] opacity-30" />
+      <IconNavigation
+        size={18}
+        className="text-[var(--color-primary)] opacity-30"
+      />
     </div>
   );
 }

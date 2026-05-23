@@ -47,7 +47,7 @@ function AddMoneyModal({ onClose }: { onClose: () => void }) {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0"
-              className="flex-1 text-[22px] font-black text-[var(--color-text-primary)] focus:outline-none bg-transparent"
+              className="flex-1 text-[22px] font-black text-primary focus:outline-none bg-transparent"
             />
           </div>
         </div>
@@ -97,13 +97,13 @@ export function WalletTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Balance card */}
-      <Card className="bg-accent p-6 relative overflow-hidden">
+      <Card className="bg-accent relative overflow-hidden">
         <div className="absolute right-0 top-0 w-36 h-full bg-white/10 rounded-bl-[50px]" />
         <div className="relative z-10">
           <p className="text-blue-100 text-lg">Wallet Balance</p>
-          <p className="text-white text-4xl font-bold">
+          <p className="text-white text-5xl font-bold">
             ₹{balance?.amount ?? 0}
           </p>
           <p className="text-blue-100 text-sm mt-1">
@@ -118,16 +118,16 @@ export function WalletTab() {
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Payment Methods */}
-        <Card className="rounded-3xl border border-border bg-surface shadow-sm">
-          <Card.Header className="flex flex-row items-center justify-between border-b border-border">
+        <Card className="">
+          <Card.Header className="flex flex-row items-center justify-between ">
             <div>
               <Card.Title className="text-base font-semibold">
                 Payment Methods
               </Card.Title>
 
-              <p className="text-sm text-text-secondary">
+              <p className="text-xs text-muted">
                 Saved cards and payment options
               </p>
             </div>
@@ -171,11 +171,7 @@ export function WalletTab() {
               </div>
             ))}
 
-            <Button
-              variant="outline"
-              fullWidth
-              className="mt-2 rounded-2xl border-dashed"
-            >
+            <Button variant="secondary" fullWidth>
               <IconPlus size={14} />
               Add Payment Method
             </Button>
@@ -183,20 +179,20 @@ export function WalletTab() {
         </Card>
 
         {/* Transactions */}
-        <Card className="rounded-3xl border border-border bg-surface shadow-sm">
-          <Card.Header className="flex flex-row items-center justify-between border-b border-border px-5 py-4">
+        <Card>
+          <Card.Header className="flex flex-row items-center justify-between">
             <div>
               <Card.Title className="text-base font-semibold">
                 Recent Transactions
               </Card.Title>
 
-              <p className="text-sm text-text-secondary">
+              <p className="text-xs text-muted">
                 Latest wallet activities and ride payments
               </p>
             </div>
           </Card.Header>
 
-          <Card.Content className="flex flex-col gap-3 p-5">
+          <Card.Content className="flex flex-col gap-3">
             {transactions.map(({ id, type, label, amount, date }) => (
               <Link
                 key={id}
@@ -204,7 +200,7 @@ export function WalletTab() {
                 className="flex items-center gap-4 rounded-2xl border border-border bg-surface-muted p-4 transition-all hover:border-primary hover:bg-surface"
               >
                 <div
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${
+                  className={`flex size-4 shrink-0 items-center justify-center rounded-2xl ${
                     type === "credit"
                       ? "bg-success-light text-success"
                       : "bg-surface text-text-secondary"
@@ -239,7 +235,7 @@ export function WalletTab() {
                         : "—"}
                     </p>
 
-                    <p className="text-[11px] text-text-tertiary">
+                    <p className="text-xs text-text-tertiary">
                       {type === "credit" ? "Wallet Topup" : "Ride Payment"}
                     </p>
                   </div>

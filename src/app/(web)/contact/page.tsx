@@ -2,8 +2,17 @@
 
 import { useState } from "react";
 import {
-  Phone, Mail, MapPin, Clock, MessageSquare, ChevronDown,
-  CheckCircle, AlertCircle, Loader2, ArrowRight, HeadphonesIcon,
+  Phone,
+  Mail,
+  MapPin,
+  Clock,
+  MessageSquare,
+  ChevronDown,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  ArrowRight,
+  HeadphonesIcon,
 } from "lucide-react";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -19,9 +28,9 @@ const CONTACT_INFO = [
   {
     Icon: Mail,
     label: "Email Us",
-    value: "support@mohanscabs.com",
+    value: "support@mohancabs.com",
     sub: "Reply within 24 hours",
-    href: "mailto:support@mohanscabs.com",
+    href: "mailto:support@mohancabs.com",
   },
   {
     Icon: MapPin,
@@ -103,13 +112,23 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 
 function TicketForm() {
   const [form, setForm] = useState({
-    name: "", email: "", phone: "", category: "", subject: "", message: "",
+    name: "",
+    email: "",
+    phone: "",
+    category: "",
+    subject: "",
+    message: "",
   });
   const [status, setStatus] = useState<TicketStatus>("idle");
 
-  const set = (k: keyof typeof form) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const set =
+    (k: keyof typeof form) =>
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >,
+    ) =>
+      setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,12 +144,25 @@ function TicketForm() {
         <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
           <CheckCircle size={32} className="text-green-500" />
         </div>
-        <h3 className="text-lg font-extrabold text-[#0f0f0f]">Ticket Submitted!</h3>
+        <h3 className="text-lg font-extrabold text-[#0f0f0f]">
+          Ticket Submitted!
+        </h3>
         <p className="text-[13px] text-gray-500 max-w-xs">
-          We&apos;ve received your request and will get back to you within 24 hours at <strong>{form.email}</strong>.
+          We&apos;ve received your request and will get back to you within 24
+          hours at <strong>{form.email}</strong>.
         </p>
         <button
-          onClick={() => { setStatus("idle"); setForm({ name: "", email: "", phone: "", category: "", subject: "", message: "" }); }}
+          onClick={() => {
+            setStatus("idle");
+            setForm({
+              name: "",
+              email: "",
+              phone: "",
+              category: "",
+              subject: "",
+              message: "",
+            });
+          }}
           className="mt-2 text-[13px] font-semibold text-blue-500 hover:text-blue-600 transition-colors"
         >
           Submit another ticket
@@ -144,7 +176,9 @@ function TicketForm() {
       {/* Name + Email */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-1.5">Full Name *</label>
+          <label className="block text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-1.5">
+            Full Name *
+          </label>
           <input
             required
             value={form.name}
@@ -154,7 +188,9 @@ function TicketForm() {
           />
         </div>
         <div>
-          <label className="block text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-1.5">Email *</label>
+          <label className="block text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-1.5">
+            Email *
+          </label>
           <input
             required
             type="email"
@@ -169,7 +205,9 @@ function TicketForm() {
       {/* Phone + Category */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-1.5">Phone</label>
+          <label className="block text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-1.5">
+            Phone
+          </label>
           <input
             type="tel"
             value={form.phone}
@@ -179,22 +217,32 @@ function TicketForm() {
           />
         </div>
         <div>
-          <label className="block text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-1.5">Category *</label>
+          <label className="block text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-1.5">
+            Category *
+          </label>
           <select
             required
             value={form.category}
             onChange={set("category")}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 transition bg-white appearance-none"
           >
-            <option value="" disabled>Select a category</option>
-            {TICKET_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            <option value="" disabled>
+              Select a category
+            </option>
+            {TICKET_CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
           </select>
         </div>
       </div>
 
       {/* Subject */}
       <div>
-        <label className="block text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-1.5">Subject *</label>
+        <label className="block text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-1.5">
+          Subject *
+        </label>
         <input
           required
           value={form.subject}
@@ -206,7 +254,9 @@ function TicketForm() {
 
       {/* Message */}
       <div>
-        <label className="block text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-1.5">Message *</label>
+        <label className="block text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-1.5">
+          Message *
+        </label>
         <textarea
           required
           rows={5}
@@ -229,9 +279,17 @@ function TicketForm() {
         className="w-full bg-blue-500 hover:bg-blue-600 disabled:opacity-60 text-white font-bold text-[14px] py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors group"
       >
         {status === "submitting" ? (
-          <><Loader2 size={16} className="animate-spin" /> Submitting…</>
+          <>
+            <Loader2 size={16} className="animate-spin" /> Submitting…
+          </>
         ) : (
-          <>Submit Ticket <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" /></>
+          <>
+            Submit Ticket{" "}
+            <ArrowRight
+              size={15}
+              className="group-hover:translate-x-0.5 transition-transform"
+            />
+          </>
         )}
       </button>
     </form>
@@ -243,18 +301,21 @@ function TicketForm() {
 export default function ContactPage() {
   return (
     <main className="w-full">
-
       {/* Hero */}
       <section className="pt-36 pb-16 px-8 sm:px-16 bg-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[50vw] h-full bg-[#f5f7ff] rounded-bl-[80px] -z-0" />
         <div className="relative z-10 max-w-7xl mx-auto">
-          <span className="text-[11px] font-bold tracking-[0.2em] text-blue-500 uppercase">Contact & Support</span>
+          <span className="text-[11px] font-bold tracking-[0.2em] text-blue-500 uppercase">
+            Contact & Support
+          </span>
           <h1 className="text-[clamp(2.5rem,6vw,5rem)] font-black leading-[1.05] tracking-tight text-[#0f0f0f] mt-4 max-w-2xl">
-            We&apos;re here<br />
+            We&apos;re here
+            <br />
             <span className="text-blue-500 italic">to help.</span>
           </h1>
           <p className="text-gray-400 text-[15px] mt-4 max-w-lg leading-relaxed">
-            Reach us by phone, email, or WhatsApp — or raise a support ticket below and we&apos;ll get back to you within 24 hours.
+            Reach us by phone, email, or WhatsApp — or raise a support ticket
+            below and we&apos;ll get back to you within 24 hours.
           </p>
         </div>
       </section>
@@ -269,10 +330,17 @@ export default function ContactPage() {
               className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 group"
             >
               <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mb-4 group-hover:bg-blue-500 transition-colors">
-                <Icon size={18} className="text-blue-500 group-hover:text-white transition-colors" />
+                <Icon
+                  size={18}
+                  className="text-blue-500 group-hover:text-white transition-colors"
+                />
               </div>
-              <p className="text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-1">{label}</p>
-              <p className="text-[14px] font-extrabold text-[#0f0f0f]">{value}</p>
+              <p className="text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-1">
+                {label}
+              </p>
+              <p className="text-[14px] font-extrabold text-[#0f0f0f]">
+                {value}
+              </p>
               <p className="text-[12px] text-gray-400 mt-0.5">{sub}</p>
             </a>
           ))}
@@ -282,7 +350,6 @@ export default function ContactPage() {
       {/* Ticket form + FAQ */}
       <section className="py-20 px-8 sm:px-16 bg-white">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16">
-
           {/* Support ticket */}
           <div>
             <div className="flex items-center gap-3 mb-8">
@@ -290,8 +357,12 @@ export default function ContactPage() {
                 <MessageSquare size={18} className="text-blue-500" />
               </div>
               <div>
-                <p className="text-[11px] font-bold tracking-widest text-gray-400 uppercase">Support Ticket</p>
-                <h2 className="text-[1.4rem] font-black text-[#0f0f0f] tracking-tight">Raise a Request</h2>
+                <p className="text-[11px] font-bold tracking-widest text-gray-400 uppercase">
+                  Support Ticket
+                </p>
+                <h2 className="text-[1.4rem] font-black text-[#0f0f0f] tracking-tight">
+                  Raise a Request
+                </h2>
               </div>
             </div>
             <TicketForm />
@@ -304,12 +375,18 @@ export default function ContactPage() {
                 <HeadphonesIcon size={18} className="text-blue-500" />
               </div>
               <div>
-                <p className="text-[11px] font-bold tracking-widest text-gray-400 uppercase">FAQ</p>
-                <h2 className="text-[1.4rem] font-black text-[#0f0f0f] tracking-tight">Common Questions</h2>
+                <p className="text-[11px] font-bold tracking-widest text-gray-400 uppercase">
+                  FAQ
+                </p>
+                <h2 className="text-[1.4rem] font-black text-[#0f0f0f] tracking-tight">
+                  Common Questions
+                </h2>
               </div>
             </div>
             <div className="space-y-3">
-              {FAQS.map((f) => <FaqItem key={f.q} {...f} />)}
+              {FAQS.map((f) => (
+                <FaqItem key={f.q} {...f} />
+              ))}
             </div>
 
             {/* WhatsApp quick link */}
@@ -325,10 +402,17 @@ export default function ContactPage() {
                 </svg>
               </div>
               <div className="flex-1">
-                <p className="text-[13px] font-bold text-gray-800">Chat with us on WhatsApp</p>
-                <p className="text-[12px] text-gray-400">Usually replies within minutes</p>
+                <p className="text-[13px] font-bold text-gray-800">
+                  Chat with us on WhatsApp
+                </p>
+                <p className="text-[12px] text-gray-400">
+                  Usually replies within minutes
+                </p>
               </div>
-              <ArrowRight size={15} className="text-gray-400 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight
+                size={15}
+                className="text-gray-400 group-hover:translate-x-1 transition-transform"
+              />
             </a>
           </div>
         </div>
@@ -340,13 +424,16 @@ export default function ContactPage() {
           <div className="rounded-3xl overflow-hidden border border-gray-100 shadow-sm h-72 bg-[#e8edf5] flex items-center justify-center">
             <div className="text-center">
               <MapPin size={32} className="text-blue-400 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-gray-500">MG Road, Trivandrum, Kerala</p>
-              <p className="text-[12px] text-gray-400">Embed your Google Maps iframe here</p>
+              <p className="text-sm font-semibold text-gray-500">
+                MG Road, Trivandrum, Kerala
+              </p>
+              <p className="text-[12px] text-gray-400">
+                Embed your Google Maps iframe here
+              </p>
             </div>
           </div>
         </div>
       </section>
-
     </main>
   );
 }

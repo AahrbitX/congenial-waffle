@@ -83,7 +83,7 @@ function HeroSection() {
               once
               as="h1"
               animation="slideLeft"
-              className="text-center sm:text-left mb-3 text-4xl font-black leading-[1.05] tracking-[-0.04em] text-[var(--color-text-primary)] sm:text-5xl md:text-[3.4rem] lg:text-[3.6rem] md:mr-10"
+              className="text-center sm:text-left mb-3 text-4xl font-black leading-[1.05] tracking-[-0.04em] text-primary sm:text-5xl md:text-[3.4rem] lg:text-[3.6rem] md:mr-10"
             >
               Hey Buddy! Where are you Riding to?
             </TextAnimate>
@@ -183,7 +183,7 @@ function HeroSection() {
                   className={`flex flex-1 items-center justify-center gap-1.5 py-3.5 text-[12px] font-semibold transition-colors sm:py-4 sm:text-[13px] ${
                     serviceTab === id
                       ? "border-b-2 border-[var(--color-primary)] text-[var(--color-primary)]"
-                      : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
+                      : "text-muted hover:text-[var(--color-text-secondary)]"
                   }`}
                 >
                   <Icon size={13} className="shrink-0" />
@@ -201,7 +201,7 @@ function HeroSection() {
                   className={`flex-1 rounded-full py-1.5 text-[11px] font-semibold transition-colors sm:text-xs ${
                     tripTab === id
                       ? "bg-[var(--color-primary)] text-[var(--color-text-inverted)] shadow-sm"
-                      : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                      : "text-[var(--color-text-secondary)] hover:text-primary"
                   }`}
                 >
                   {label}
@@ -229,10 +229,7 @@ function HeroSection() {
                 </p>
                 <div className="grid grid-cols-2 gap-2.5">
                   <div className="flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 py-2.5">
-                    <Calendar
-                      size={13}
-                      className="shrink-0 text-[var(--color-text-muted)]"
-                    />
+                    <Calendar size={13} className="shrink-0 text-muted" />
                     <input
                       type="date"
                       value={date}
@@ -241,10 +238,7 @@ function HeroSection() {
                     />
                   </div>
                   <div className="flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 py-2.5">
-                    <Clock
-                      size={13}
-                      className="shrink-0 text-[var(--color-text-muted)]"
-                    />
+                    <Clock size={13} className="shrink-0 text-muted" />
                     <input
                       type="time"
                       value={time}
@@ -256,7 +250,7 @@ function HeroSection() {
               </div>
 
               <div>
-                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-muted)]">
+                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-muted">
                   Destination
                 </p>
                 <LocationInput

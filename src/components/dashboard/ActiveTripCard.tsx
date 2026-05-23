@@ -11,14 +11,14 @@ interface ActiveTripCardProps {
 }
 
 const ACTIVE_DRIVER = {
-  name:   "Ravi Kumar",
+  name: "Ravi Kumar",
   initials: "RK",
   vehicle: "Sedan · KL-01-AB-1234",
-  phone:   "+919876543210",
+  phone: "+919876543210",
   stats: [
-    { v: "2 km",   l: "Driver Away" },
+    { v: "2 km", l: "Driver Away" },
     { v: "~18 min", l: "To Dropoff" },
-    { v: "₹340",   l: "Fare"        },
+    { v: "₹340", l: "Fare" },
   ],
 };
 
@@ -39,34 +39,53 @@ export function ActiveTripCard({ onEnd }: ActiveTripCardProps) {
           <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
           <span className="text-[14px] font-bold">Ride In Progress</span>
         </div>
-        <span className="text-white text-[15px] font-black tabular-nums">{mins}:{secs}</span>
+        <span className="text-white text-[15px] font-black tabular-nums">
+          {mins}:{secs}
+        </span>
       </div>
       <MapPlaceholder height={140} />
       <div className="p-4 space-y-3">
         <div className="flex items-center gap-3 bg-[var(--color-surface-muted)] rounded-xl p-3">
           <Avatar size="md">
-              <Avatar.Fallback className="bg-[var(--color-primary)] text-white font-bold">
-                {ACTIVE_DRIVER.initials}
-              </Avatar.Fallback>
-            </Avatar>
+            <Avatar.Fallback className="bg-[var(--color-primary)] text-white font-bold">
+              {ACTIVE_DRIVER.initials}
+            </Avatar.Fallback>
+          </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-[14px] font-bold text-[var(--color-text-primary)]">{ACTIVE_DRIVER.name}</p>
-            <p className="text-[12px] text-[var(--color-text-tertiary)]">{ACTIVE_DRIVER.vehicle}</p>
+            <p className="text-[14px] font-bold text-primary">
+              {ACTIVE_DRIVER.name}
+            </p>
+            <p className="text-[12px] text-[var(--color-text-tertiary)]">
+              {ACTIVE_DRIVER.vehicle}
+            </p>
           </div>
           <div className="flex gap-2">
-            <a href={`tel:${ACTIVE_DRIVER.phone}`} className="w-9 h-9 rounded-full bg-[var(--color-primary)] flex items-center justify-center shadow-md hover:bg-[var(--color-primary-dark)] transition-colors">
+            <a
+              href={`tel:${ACTIVE_DRIVER.phone}`}
+              className="w-9 h-9 rounded-full bg-[var(--color-primary)] flex items-center justify-center shadow-md hover:bg-[var(--color-primary-dark)] transition-colors"
+            >
               <IconPhone size={14} className="text-white" />
             </a>
-            <a href={`https://wa.me/${ACTIVE_DRIVER.phone}`} target="_blank" rel="noreferrer" className="w-9 h-9 rounded-full bg-[#25D366] flex items-center justify-center shadow-md hover:opacity-90 transition-opacity">
+            <a
+              href={`https://wa.me/${ACTIVE_DRIVER.phone}`}
+              target="_blank"
+              rel="noreferrer"
+              className="w-9 h-9 rounded-full bg-[#25D366] flex items-center justify-center shadow-md hover:opacity-90 transition-opacity"
+            >
               <IconMessageCircle size={14} className="text-white" />
             </a>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {ACTIVE_DRIVER.stats.map((s) => (
-            <div key={s.l} className="bg-[var(--color-surface-muted)] rounded-xl p-2.5 text-center">
-              <p className="text-[14px] font-black text-[var(--color-text-primary)]">{s.v}</p>
-              <p className="text-[10px] text-[var(--color-text-tertiary)] mt-0.5">{s.l}</p>
+            <div
+              key={s.l}
+              className="bg-[var(--color-surface-muted)] rounded-xl p-2.5 text-center"
+            >
+              <p className="text-[14px] font-black text-primary">{s.v}</p>
+              <p className="text-[10px] text-[var(--color-text-tertiary)] mt-0.5">
+                {s.l}
+              </p>
             </div>
           ))}
         </div>

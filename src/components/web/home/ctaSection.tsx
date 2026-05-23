@@ -11,7 +11,7 @@ function CtaSection() {
         <div className="bg-accent rounded-3xl px-10 sm:px-16 py-16 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8">
           <h2 className="text-[2.2rem] sm:text-[2.6rem] font-black text-white leading-[1.15] tracking-tight max-w-md">
             Ready to ride with{" "}
-            <span className="text-white/80">Mohans Cabs?</span>
+            <span className="text-white/80">mohan Cabs?</span>
           </h2>
           <div className="flex flex-col items-start sm:items-end gap-3 shrink-0">
             <p className="text-white/70 text-sm font-medium">

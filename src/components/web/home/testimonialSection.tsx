@@ -14,7 +14,7 @@ const TESTIMONIALS = [
   },
   {
     rating: 5,
-    text: "The airport package saved me so much stress. Flight was delayed and the driver waited without charging extra. Will always use Mohans Cabs!",
+    text: "The airport package saved me so much stress. Flight was delayed and the driver waited without charging extra. Will always use mohan Cabs!",
     name: "Priya S.",
     location: "Mumbai, Frequent Traveller",
     initial: "P",

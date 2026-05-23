@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { COLORS } from "@/constants/colors";
 import { ROUTES } from "@/constants/routes";
 import { IconCar, IconLoader, IconChevronRight } from "@/constants/icons";
+import { ArrowRight } from "lucide-react";
 
 type RideFilter = "all" | "completed" | "cancelled";
 
@@ -34,8 +35,8 @@ export function RidesTab() {
     <div className="space-y-2">
       <Tabs defaultSelectedKey="all">
         <Tabs.ListContainer>
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">My Rides</h2>
+          <div className="flex items-center justify-between flex-wrap">
+            <p></p>
             <Tabs.List
               aria-label="Ride filters"
               className="p-1 rounded-2xl max-w-sm"
@@ -63,7 +64,7 @@ export function RidesTab() {
                   <Card
                     key={ride.id}
                     onClick={() => router.push(ROUTES.dashboard.ride(ride.id))}
-                    className="p-0"
+                    className="p-0 cursor-pointer"
                   >
                     <Card.Content className="flex h-full flex-col gap-4 p-5">
                       <div className="flex items-start justify-between gap-3">
@@ -73,7 +74,7 @@ export function RidesTab() {
                               ? COLORS.success
                               : ride.status === "cancelled"
                                 ? COLORS.danger
-                                : "bg-[var(--color-accent)] text-white"
+                                : "bg-primary text-white"
                           }`}
                         >
                           <IconCar size={20} />
@@ -83,35 +84,34 @@ export function RidesTab() {
                       </div>
 
                       <div className="space-y-1">
-                        <h3 className="line-clamp-1 text-base font-bold text-[var(--color-text-primary)]">
+                        <h3 className="line-clamp-1 text-base font-bold ">
                           {ride.from}
                         </h3>
 
-                        <div className="flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
-                          <span>→</span>
+                        <div className="flex items-center gap-2 text-sm text-muted">
+                          <span>
+                            <ArrowRight />
+                          </span>
                           <span className="line-clamp-1">{ride.to}</span>
                         </div>
                       </div>
 
-                      <div className="rounded-2xl bg-[var(--color-surface-secondary)] p-3">
+                      <div className="rounded-2xl bg-secondary py-3">
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <p className="text-[11px] font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
+                            <p className="text-xs font-medium text-muted">
                               Vehicle
                             </p>
-
                             <p className="mt-1 text-sm font-semibold">
                               {ride.vehicle !== "—"
                                 ? ride.vehicle
                                 : "Not Assigned"}
                             </p>
                           </div>
-
                           <div>
-                            <p className="text-[11px] font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
+                            <p className="text-xs font-medium text-muted">
                               Plate
                             </p>
-
                             <p className="mt-1 text-sm font-semibold">
                               {ride.plate || "—"}
                             </p>
@@ -119,27 +119,24 @@ export function RidesTab() {
                         </div>
                       </div>
 
-                      <div className="mt-auto flex items-end justify-between pt-2">
+                      <div className="mt-auto flex items-end justify-between">
                         <div>
                           <p className="text-xs mb-1 text-muted">Ride Date</p>
-
-                          <p className="text-sm font-medium text-[var(--color-text-primary)]">
-                            {ride.date}
-                          </p>
+                          <p className="text-sm font-medium">{ride.date}</p>
                         </div>
 
                         <div className="text-right">
                           <p className="text-xs text-muted">Fare</p>
 
-                          <p className="text-2xl font-black text-[var(--color-text-primary)]">
+                          <p className="text-2xl font-bold">
                             {ride.fare > 0 ? `₹${ride.fare}` : "—"}
                           </p>
                         </div>
                       </div>
 
                       {ride.rating > 0 && (
-                        <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-3">
-                          <span className="text-xs font-medium text-[var(--color-text-muted)]">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium text-muted">
                             Your Rating
                           </span>
 
@@ -154,7 +151,7 @@ export function RidesTab() {
               </div>
 
               {filtered.length === 0 && (
-                <div className="py-16 text-center text-[var(--color-text-muted)]">
+                <div className="py-16 text-center text-muted">
                   <IconCar size={32} className="mx-auto mb-3 opacity-30" />
 
                   <p className="text-[14px] font-semibold">No rides found</p>

@@ -32,7 +32,7 @@ function WhyUsSection() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h2 className="text-center sm:text-left text-[1.75rem] font-extrabold text-[#1c1e21] tracking-tight">
-            Why Choose Mohans Cabs?
+            Why Choose mohan Cabs?
           </h2>
           <p className="text-center sm:text-left text-sm text-[#65676b] font-medium mt-1">
             Everything you would want in a cab service — and more
