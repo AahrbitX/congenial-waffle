@@ -24,7 +24,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
       color={color}
       variant="soft"
       size="sm"
-      className="text-sm font-medium px-2 py-0.5"
+      className="text-xs font-medium px-2 py-0.5"
     >
       {label}
     </Chip>

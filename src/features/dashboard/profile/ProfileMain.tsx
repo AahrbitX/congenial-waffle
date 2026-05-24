@@ -68,46 +68,37 @@ export function ProfileMain() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
       {/* Profile card */}
       <div className="lg:col-span-1 space-y-4">
-        <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 shadow-sm flex flex-col items-center text-center gap-3">
+        <Card className=" flex flex-col items-center text-center gap-3">
           <div className="relative">
             <Avatar size="lg">
-              <Avatar.Fallback className="bg-[var(--color-primary)] text-white text-[24px] font-black">
+              <Avatar.Fallback className="bg-primary text-white text-[24px] font-black">
                 {initials(user?.name)}
               </Avatar.Fallback>
             </Avatar>
-            <button className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[var(--color-surface)] shadow-md flex items-center justify-center border border-[var(--color-border)] hover:bg-[var(--color-surface-muted)]">
-              <IconCamera
-                size={12}
-                className="text-[var(--color-text-secondary)]"
-              />
-            </button>
           </div>
           <div>
-            <p className="text-[16px] font-black text-primary">
+            <p className="text-xl font-bold text-primary">
               {user?.name ?? "User"}
             </p>
-            <p className="text-[12px] text-[var(--color-text-tertiary)]">
-              {user?.email ?? ""}
-            </p>
+            {/* <p className="text-base text-muted">{user?.email ?? ""}</p> */}
           </div>
-          <div className="flex gap-4 w-full pt-2 border-t border-[var(--color-border)]">
+          <div className="flex gap-4 w-full pt-2 border-t border-border">
             {[
               { v: String(stats?.totalRides ?? "—"), l: "Rides" },
               { v: String(stats?.rating ?? "—"), l: "Rating" },
               { v: `₹${stats?.walletBalance ?? 0}`, l: "Wallet" },
             ].map(({ v, l }) => (
               <div key={l} className="flex-1 text-center">
-                <p className="text-[18px] font-black text-primary">{v}</p>
-                <p className="text-[11px] text-[var(--color-text-tertiary)]">
-                  {l}
-                </p>
+                <p className="text-xl font-semibold text-primary">{v}</p>
+                <p className="text-sm text-muted">{l}</p>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
         <Button
           onPress={() => setShowSignOut(true)}
-          className="w-full rounded-2xl font-semibold py-3 border border-[var(--color-danger-light)] text-[var(--color-danger)] bg-[var(--color-danger-light)]"
+          variant="danger-soft"
+          fullWidth
         >
           <IconLogOut size={15} className="mr-2" /> Sign Out
         </Button>
@@ -117,7 +108,7 @@ export function ProfileMain() {
       <div className="lg:col-span-2 space-y-4">
         <Card className="">
           <Card.Header className="flex-row items-center justify-between mb-2">
-            <Card.Title>Personal Information</Card.Title>
+            <Card.Title className="text-lg">Personal Information</Card.Title>
             <div className="space-x-2">
               {editing && (
                 <Button size="sm" onPress={() => setEditing((v) => !v)}>
@@ -161,14 +152,14 @@ export function ProfileMain() {
 
         <Card>
           <Card.Header className="">
-            <Card.Title>Account Settings</Card.Title>
+            <Card.Title className="text-lg">Account Settings</Card.Title>
           </Card.Header>
           <Card.Content>
             {MENU_ITEMS.map(({ icon: Icon, label, sub, href }) => (
               <Link
                 key={href}
                 href={href}
-                className="w-full flex items-center py-2 hover:bg-[var(--color-surface-muted)] transition-colors text-left border-t border-[var(--color-border)] first:border-0 group"
+                className="w-full flex items-center py-2  transition-colors text-left border-t border-[var(--color-border)] first:border-0 group"
               >
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center group-hover:bg-primary-light transition-colors shrink-0 mr-2">
                   <Icon
@@ -198,7 +189,7 @@ export function ProfileMain() {
               <IconLogOut size={28} className="text-[var(--color-danger)]" />
             </div>
             <p className="text-[18px] font-black text-primary">Sign out?</p>
-            <p className="text-[13px] text-[var(--color-text-tertiary)] leading-relaxed">
+            <p className="text-[13px] text-muted leading-relaxed">
               You&apos;ll need to log in again with your phone number to access
               your account.
             </p>

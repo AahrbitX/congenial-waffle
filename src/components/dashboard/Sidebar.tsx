@@ -133,7 +133,6 @@ export function Sidebar() {
       </aside>
 
       {/* Mobile Bottom Navigation */}
-      {/* Mobile Bottom Navigation */}
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/80 lg:hidden">
         <div className="relative flex h-16 items-center justify-between px-2">
           {NAV_ITEMS.map(({ label, href, icon: Icon }, index) => {
@@ -159,7 +158,7 @@ export function Sidebar() {
                 >
                   <Icon size={20} />
 
-                  <span className="text-[10px] font-medium">{label}</span>
+                  <span className="text-xs font-medium">{label}</span>
                 </Link>
               </div>
             );

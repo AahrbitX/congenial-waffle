@@ -58,91 +58,105 @@ export function RidesTab() {
               : rides.filter((ride) => ride.status === filter);
 
           return (
-            <Tabs.Panel key={filter} id={filter} className="pt-2 space-y-3">
+            <Tabs.Panel
+              key={filter}
+              id={filter}
+              className="pt-2 space-y-3 px-0"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {filtered.map((ride) => (
                   <Card
                     key={ride.id}
                     onClick={() => router.push(ROUTES.dashboard.ride(ride.id))}
-                    className="p-0 cursor-pointer"
+                    className="group cursor-pointer p-0 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
                   >
-                    <Card.Content className="flex h-full flex-col gap-4 p-5">
+                    <Card.Content className="flex h-full flex-col gap-4 p-4">
+                      {/* Top */}
                       <div className="flex items-start justify-between gap-3">
-                        <div
-                          className={`flex size-12 items-center justify-center rounded-2xl ${
-                            ride.status === "completed"
-                              ? COLORS.success
-                              : ride.status === "cancelled"
-                                ? COLORS.danger
-                                : "bg-primary text-white"
-                          }`}
-                        >
-                          <IconCar size={20} />
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div
+                            className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${
+                              ride.status === "completed"
+                                ? COLORS.success
+                                : ride.status === "cancelled"
+                                  ? COLORS.danger
+                                  : "bg-primary text-white"
+                            }`}
+                          >
+                            <IconCar size={18} />
+                          </div>
+
+                          <div className="min-w-0">
+                            <h3 className="truncate text-sm font-bold text-foreground">
+                              {ride.from}
+                            </h3>
+
+                            <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted">
+                              <ArrowRight size={12} />
+                              <span className="truncate">{ride.to}</span>
+                            </div>
+                          </div>
                         </div>
 
                         <StatusBadge status={ride.status} />
                       </div>
 
-                      <div className="space-y-1">
-                        <h3 className="line-clamp-1 text-base font-bold ">
-                          {ride.from}
-                        </h3>
+                      {/* Meta */}
+                      <div className="grid grid-cols-2 gap-3 ">
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-medium uppercase tracking-wide text-muted">
+                            Vehicle
+                          </p>
 
-                        <div className="flex items-center gap-2 text-sm text-muted">
-                          <span>
-                            <ArrowRight />
-                          </span>
-                          <span className="line-clamp-1">{ride.to}</span>
+                          <p className="mt-1 truncate text-sm font-semibold text-foreground">
+                            {ride.vehicle !== "—" ? ride.vehicle : "Unassigned"}
+                          </p>
+                        </div>
+
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-medium uppercase tracking-wide text-muted">
+                            Plate
+                          </p>
+
+                          <p className="mt-1 truncate text-sm font-semibold text-foreground">
+                            {ride.plate || "—"}
+                          </p>
                         </div>
                       </div>
 
-                      <div className="rounded-2xl bg-secondary py-3">
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <p className="text-xs font-medium text-muted">
-                              Vehicle
-                            </p>
-                            <p className="mt-1 text-sm font-semibold">
-                              {ride.vehicle !== "—"
-                                ? ride.vehicle
-                                : "Not Assigned"}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-medium text-muted">
-                              Plate
-                            </p>
-                            <p className="mt-1 text-sm font-semibold">
-                              {ride.plate || "—"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                      {/* Bottom */}
+                      <div className="mt-auto flex items-end justify-between gap-4">
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-medium uppercase tracking-wide text-muted">
+                            Ride Date
+                          </p>
 
-                      <div className="mt-auto flex items-end justify-between">
-                        <div>
-                          <p className="text-xs mb-1 text-muted">Ride Date</p>
-                          <p className="text-sm font-medium">{ride.date}</p>
+                          <p className="mt-1 text-sm font-medium text-foreground">
+                            {ride.date}
+                          </p>
                         </div>
 
                         <div className="text-right">
-                          <p className="text-xs text-muted">Fare</p>
+                          <p className="text-[11px] font-medium uppercase tracking-wide text-muted">
+                            Fare
+                          </p>
 
-                          <p className="text-2xl font-bold">
+                          <p className="mt-1 text-3xl font-bold text-foreground">
                             {ride.fare > 0 ? `₹${ride.fare}` : "—"}
                           </p>
                         </div>
                       </div>
 
+                      {/* Rating */}
                       {ride.rating > 0 && (
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between border-t border-border pt-3">
                           <span className="text-xs font-medium text-muted">
                             Your Rating
                           </span>
 
-                          <span className="text-sm text-yellow-500">
+                          <div className="flex items-center gap-0.5 text-sm text-yellow-500">
                             {"★".repeat(ride.rating)}
-                          </span>
+                          </div>
                         </div>
                       )}
                     </Card.Content>

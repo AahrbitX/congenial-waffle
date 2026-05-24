@@ -10,6 +10,7 @@ import {
   IconChevronRight,
   IconCheckCircle,
 } from "@/constants/icons";
+import { TextArea } from "@heroui/react";
 
 const TAG_OPTIONS = [
   "Great Driver",
@@ -32,7 +33,7 @@ const ratingColor = (r: number) =>
       ? "text-[var(--color-warning)]"
       : r > 0
         ? "text-[var(--color-danger)]"
-        : "text-[var(--color-text-tertiary)]";
+        : "text-muted";
 
 function StarPicker({
   value,
@@ -84,7 +85,7 @@ export function RatingModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-[var(--color-surface)] rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="bg-background rounded-3xl shadow-2xl w-full max-w-md max-h-[90svh] overflow-y-auto">
         {submitted ? (
           <div className="flex flex-col items-center justify-center py-14 px-8 gap-3">
             <div className="w-16 h-16 rounded-full bg-[var(--color-success-light)] flex items-center justify-center">
@@ -96,7 +97,7 @@ export function RatingModal() {
             <p className="text-[18px] font-black text-primary">
               Thanks for the feedback!
             </p>
-            <p className="text-[13px] text-[var(--color-text-tertiary)] text-center">
+            <p className="text-[13px] text-muted text-center">
               Your rating helps us improve the service.
             </p>
             {driverStars >= 4 && (
@@ -109,13 +110,11 @@ export function RatingModal() {
           <>
             <div className="bg-[var(--color-surface-muted)] px-6 py-5 flex items-start justify-between">
               <div>
-                <p className="text-[12px] text-[var(--color-text-tertiary)]">
-                  Rate your ride
-                </p>
-                <p className="text-[15px] font-black text-primary mt-0.5">
+                <p className="text-xs text-muted">Rate your ride</p>
+                <p className="text-base font-bold text-primary my-0.5">
                   {ratingRide.from} → {ratingRide.to}
                 </p>
-                <p className="text-[12px] text-[var(--color-text-tertiary)] mt-0.5">
+                <p className="text-xs text-muted mt-0.5">
                   {ratingRide.driver !== "—" ? ratingRide.driver : "—"} ·{" "}
                   {ratingRide.date}
                 </p>
@@ -128,12 +127,12 @@ export function RatingModal() {
               </button>
             </div>
 
-            <div className="px-6 py-5 space-y-5">
+            <div className="pt-0 p-4 space-y-5">
               <div>
-                <p className="text-[13px] font-bold text-center text-primary mb-1">
+                <p className="text-sm font-semibold text-center text-primary mb-1">
                   How was your driver?
                 </p>
-                <p className="text-[11px] text-[var(--color-text-tertiary)] text-center mb-3">
+                <p className="text-xs text-muted text-center mb-3">
                   Tap a star to rate
                 </p>
                 <StarPicker
@@ -145,15 +144,15 @@ export function RatingModal() {
                 />
                 {(hoverDriver || driverStars) > 0 && (
                   <p
-                    className={`text-center text-[14px] font-bold mt-2 ${ratingColor(hoverDriver || driverStars)}`}
+                    className={`text-center text-xs font-semibold mt-1 ${ratingColor(hoverDriver || driverStars)}`}
                   >
                     {ratingLabel(hoverDriver || driverStars)}
                   </p>
                 )}
               </div>
 
-              <div className="bg-[var(--color-surface-muted)] rounded-xl p-4">
-                <p className="text-[13px] font-bold text-center text-primary mb-3">
+              <div className="">
+                <p className="text-sm font-semibold text-center text-primary mb-3">
                   How was the overall ride?
                 </p>
                 <StarPicker
@@ -162,16 +161,15 @@ export function RatingModal() {
                   onHover={setHoverRide}
                   onLeave={() => setHoverRide(0)}
                   onPick={setRideStars}
-                  size={30}
                 />
               </div>
 
               {driverStars > 0 && (
                 <div>
-                  <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-2">
+                  <p className="text-sm font-semibold text-center text-primary mb-2">
                     What stood out?
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 items-center justify-center">
                     {TAG_OPTIONS.map((t) => (
                       <button
                         key={t}
@@ -182,9 +180,8 @@ export function RatingModal() {
                               : [...prev, t],
                           )
                         }
-                        className={`text-[12px] font-semibold px-3 py-1.5 rounded-full border transition-all ${tags.includes(t) ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]" : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border-[var(--color-border-strong)] hover:border-[var(--color-primary)]"}`}
+                        className={`text-[12px] font-semibold px-3 py-1.5 rounded-full border transition-all ${tags.includes(t) ? "bg-primary text-white border-[var(--color-primary)]" : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border-[var(--color-border-strong)] hover:border-[var(--color-primary)]"}`}
                       >
-                        {tags.includes(t) && "✓ "}
                         {t}
                       </button>
                     ))}
@@ -192,24 +189,27 @@ export function RatingModal() {
                 </div>
               )}
 
-              <textarea
+              <TextArea
+                rows={2}
+                variant="secondary"
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="Add a comment (optional)…"
-                rows={2}
-                className="w-full text-[13px] border border-[var(--color-border-strong)] rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] placeholder:text-[var(--color-text-tertiary)]"
+                placeholder="Add a comment (optional)..."
+                className="w-full text-sm rounded-xl px-4 py-3 resize-none mb-2"
               />
 
               <div className="bg-[var(--color-primary-light)] rounded-xl p-4 border border-[var(--color-primary-light)]">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 rounded-lg bg-[var(--color-primary)] flex items-center justify-center shrink-0">
-                    <span className="text-white text-[12px] font-bold">₹</span>
+                  <div className="size-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
+                    <span className="text-white text-sm font-semibold">
+                      &#x20b9;
+                    </span>
                   </div>
                   <div>
-                    <p className="text-[13px] font-bold text-primary">
+                    <p className="text-sm font-bold text-primary">
                       Tip your driver
                     </p>
-                    <p className="text-[11px] text-[var(--color-text-tertiary)]">
+                    <p className="text-xs text-muted">
                       100% goes to{" "}
                       {ratingRide.driver !== "—"
                         ? ratingRide.driver
@@ -224,12 +224,12 @@ export function RatingModal() {
                       onClick={() => setTip(tip === t ? null : t)}
                       className={`flex-1 py-2.5 rounded-xl text-[13px] font-bold border transition-all ${tip === t ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]" : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border-[var(--color-border-strong)] hover:border-[var(--color-primary)]"}`}
                     >
-                      ₹{t}
+                      &#x20b9;{t}
                     </button>
                   ))}
                   <button
                     onClick={() => setTip(0)}
-                    className={`flex-1 py-2.5 rounded-xl text-[13px] font-semibold border transition-all ${tip === 0 ? "bg-[var(--color-border)] text-[var(--color-text-secondary)] border-[var(--color-border-strong)]" : "bg-[var(--color-surface)] text-[var(--color-text-tertiary)] border-[var(--color-border-strong)]"}`}
+                    className={`flex-1 py-2.5 rounded-xl text-[13px] font-semibold border transition-all ${tip === 0 ? "bg-[var(--color-border)] text-[var(--color-text-secondary)] border-[var(--color-border-strong)]" : "bg-[var(--color-surface)] text-muted border-[var(--color-border-strong)]"}`}
                   >
                     Skip
                   </button>
@@ -238,37 +238,36 @@ export function RatingModal() {
 
               <button className="w-full flex items-center gap-3 px-4 py-3 bg-[var(--color-surface-muted)] rounded-xl border border-[var(--color-border)] hover:bg-[var(--color-warning-light)] hover:border-[var(--color-warning)] transition-colors group text-left">
                 <IconAlert
-                  size={16}
-                  className="text-[var(--color-text-tertiary)] group-hover:text-[var(--color-warning)] transition-colors shrink-0"
+                  size={18}
+                  className=" text-warning transition-colors shrink-0"
                 />
                 <div className="flex-1">
-                  <p className="text-[13px] font-semibold text-[var(--color-text-secondary)] group-hover:text-[var(--color-warning)]">
+                  <p className="text-sm font-semibold text-warning group-hover:text-warning">
                     Report a safety issue
                   </p>
-                  <p className="text-[11px] text-[var(--color-text-tertiary)]">
+                  <p className="text-xs text-muted">
                     Something feel unsafe? Let us know.
                   </p>
                 </div>
-                <IconChevronRight
-                  size={14}
-                  className="text-[var(--color-text-tertiary)]"
-                />
+                <IconChevronRight size={14} className="text-muted" />
               </button>
 
               <div className="flex gap-3 pb-2">
                 <Button
+                  variant="secondary"
+                  fullWidth
                   onPress={closeRatingModal}
-                  className="flex-1 border border-[var(--color-border-strong)] text-[var(--color-text-secondary)] rounded-xl"
                 >
                   Skip for now
                 </Button>
                 <Button
+                  fullWidth
+                  variant="primary"
                   onPress={() => {
                     setSubmitted(true);
                     setTimeout(closeRatingModal, 2000);
                   }}
                   disabled={driverStars === 0}
-                  className="flex-1 bg-[var(--color-primary)] text-white font-bold rounded-xl"
                 >
                   {driverStars === 0 ? "Rate driver first" : "Submit Rating"}
                 </Button>

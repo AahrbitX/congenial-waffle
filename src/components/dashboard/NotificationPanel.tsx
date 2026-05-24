@@ -1,7 +1,10 @@
 "use client";
 
+import { Drawer, Button } from "@heroui/react";
+
 import { useDashboard } from "@/context/DashboardContext";
 import { useNotifications, useMarkAllRead } from "@/hooks/useNotifications";
+
 import {
   IconX,
   IconBell,
@@ -10,29 +13,30 @@ import {
   IconGift,
   IconShield,
 } from "@/constants/icons";
+
 import type { NotificationType } from "@/types/notification.types";
-import { ElementType } from "react";
+import type { ElementType } from "react";
 
 const ICON_MAP: Record<NotificationType, { icon: ElementType; cls: string }> = {
   ride: {
     icon: IconCar,
-    cls: "bg-[var(--color-primary-light)] text-[var(--color-primary)]",
+    cls: "bg-blue-50 text-blue-600",
   },
   payment: {
     icon: IconWallet,
-    cls: "bg-[var(--color-success-light)] text-[var(--color-success)]",
+    cls: "bg-green-50 text-green-600",
   },
   promo: {
     icon: IconGift,
-    cls: "bg-[var(--color-purple-light)] text-[var(--color-purple)]",
+    cls: "bg-violet-50 text-violet-600",
   },
   safety: {
     icon: IconShield,
-    cls: "bg-[var(--color-danger-light)] text-[var(--color-danger)]",
+    cls: "bg-red-50 text-red-600",
   },
   info: {
     icon: IconBell,
-    cls: "bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)]",
+    cls: "bg-zinc-100 text-zinc-600",
   },
 };
 
@@ -40,106 +44,141 @@ export function NotificationPanel() {
   const { notifOpen, closeNotifPanel } = useDashboard();
   const { data: notifications = [] } = useNotifications();
   const { mutate: markAll } = useMarkAllRead();
-
-  if (!notifOpen) return null;
-
   const today = notifications.filter((n) => n.group === "today");
   const earlier = notifications.filter((n) => n.group === "earlier");
   const unread = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex">
-      <div
-        className="flex-1 bg-black/30 backdrop-blur-sm"
-        onClick={closeNotifPanel}
-      />
-      <div className="w-[390px] bg-[var(--color-surface)] h-full shadow-2xl flex flex-col">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-[var(--color-border)]">
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-[16px] font-black text-primary">
-                Notifications
-              </h2>
-              {unread > 0 && (
-                <span className="bg-[var(--color-primary)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                  {unread} new
-                </span>
-              )}
-            </div>
-            <p className="text-[12px] text-[var(--color-text-tertiary)] mt-0.5">
-              Stay up to date
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            {unread > 0 && (
-              <button
-                onClick={() => markAll()}
-                className="text-[12px] font-semibold text-[var(--color-primary)] hover:opacity-80"
-              >
-                Mark all read
-              </button>
-            )}
-            <button
-              onClick={closeNotifPanel}
-              className="p-1.5 rounded-lg hover:bg-[var(--color-surface-muted)]"
-            >
-              <IconX size={16} />
-            </button>
-          </div>
-        </div>
+    <Drawer isOpen={notifOpen} onOpenChange={closeNotifPanel}>
+      <Drawer.Backdrop>
+        <Drawer.Content placement="right" className="w-full">
+          <Drawer.Dialog className="flex h-full flex-col p-4">
+            {/* Header */}
+            <Drawer.Header className="border-b border-zinc-200 pb-2">
+              <div className="flex w-full items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Drawer.Heading className="text-base font-semibold">
+                      Notifications
+                    </Drawer.Heading>
+                  </div>
+                </div>
 
-        <div className="flex-1 overflow-y-auto py-3">
-          {[
-            { label: "Today", items: today },
-            { label: "Earlier", items: earlier },
-          ].map(({ label, items }) =>
-            items.length === 0 ? null : (
-              <div key={label}>
-                <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase px-5 py-2">
-                  {label}
-                </p>
-                {items.map((n) => {
-                  const { icon: Icon, cls } = ICON_MAP[n.type] ?? ICON_MAP.info;
-                  return (
-                    <div
-                      key={n.id}
-                      className={`flex gap-3 px-5 py-3.5 border-b border-[var(--color-border)] ${!n.read ? "bg-[var(--color-primary-light)]/40" : "hover:bg-[var(--color-surface-muted)]"}`}
+                <div className="flex items-center gap-2">
+                  {unread > 0 && (
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      onPress={() => markAll()}
+                      className=""
                     >
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 relative ${cls}`}
-                      >
-                        <Icon size={18} />
-                        {!n.read && (
-                          <div className="absolute top-0.5 right-0.5 w-2.5 h-2.5 rounded-full bg-[var(--color-primary)] border-2 border-white" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p
-                          className={`text-[13px] text-primary ${!n.read ? "font-bold" : "font-semibold"}`}
-                        >
-                          {n.title}
-                        </p>
-                        <p className="text-[12px] text-[var(--color-text-secondary)] leading-snug mt-0.5">
-                          {n.body}
-                        </p>
-                        <p className="text-[11px] text-[var(--color-text-tertiary)] mt-1">
-                          {n.time}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
+                      Mark all read
+                    </Button>
+                  )}
+
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="outline"
+                    slot="close"
+                    className="rounded-xl"
+                  >
+                    <IconX size={16} />
+                  </Button>
+                </div>
               </div>
-            ),
-          )}
-          {notifications.length === 0 && (
-            <div className="text-center py-16 text-[var(--color-text-tertiary)]">
-              <IconBell size={32} className="mx-auto mb-3 opacity-30" />
-              <p className="text-[14px] font-semibold">No notifications yet</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+            </Drawer.Header>
+
+            {/* Body */}
+            <Drawer.Body className="flex-1 overflow-y-auto">
+              {[
+                {
+                  label: "Today",
+                  items: today,
+                },
+                {
+                  label: "Earlier",
+                  items: earlier,
+                },
+              ].map(({ label, items }) =>
+                items.length === 0 ? null : (
+                  <div key={label}>
+                    <div className=" py-2">
+                      <p className="text-sm font-semibold text-muted">
+                        {label}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      {items.map((n) => {
+                        const { icon: Icon, cls } =
+                          ICON_MAP[n.type] ?? ICON_MAP.info;
+
+                        return (
+                          <div
+                            key={n.id}
+                            className={`flex cursor-pointer gap-3 rounded-2xl px-3 py-3 transition-colors ${
+                              !n.read
+                                ? "bg-primary/20 text-primary-foreground"
+                                : "bg-muted/20 text-foreground"
+                            }`}
+                          >
+                            <div
+                              className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${cls}`}
+                            >
+                              <Icon size={18} />
+
+                              {!n.read && (
+                                <div className="absolute right-0.5 top-0.5 h-2.5 w-2.5 rounded-full bg-primary" />
+                              )}
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-start justify-between gap-2">
+                                <p
+                                  className={`line-clamp-1 text-sm text-black ${
+                                    !n.read ? "font-bold" : "font-semibold"
+                                  }`}
+                                >
+                                  {n.title}
+                                </p>
+
+                                <p className="shrink-0 text-xs text-zinc-400">
+                                  {n.time}
+                                </p>
+                              </div>
+
+                              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted">
+                                {n.body}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ),
+              )}
+
+              {notifications.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-24 text-center">
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 text-zinc-400">
+                    <IconBell size={26} />
+                  </div>
+
+                  <p className="text-sm font-semibold text-zinc-900">
+                    No notifications yet
+                  </p>
+
+                  <p className="mt-1 text-xs text-zinc-500">
+                    We&apos;ll notify you about rides, payments and updates.
+                  </p>
+                </div>
+              )}
+            </Drawer.Body>
+          </Drawer.Dialog>
+        </Drawer.Content>
+      </Drawer.Backdrop>
+    </Drawer>
   );
 }

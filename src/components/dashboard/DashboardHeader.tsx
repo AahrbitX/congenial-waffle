@@ -7,6 +7,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { greeting } from "@/lib/dashboard/helpers";
 import { ROUTES } from "@/constants/routes";
 import { IconBell } from "@/constants/icons";
+import { Button } from "@heroui/react";
 
 const PAGE_META: Record<
   string,
@@ -53,15 +54,12 @@ export function DashboardHeader() {
           <p className="text-sm text-muted">{meta.subFn(firstName)}</p>
         )}
       </div>
-      <button
-        onClick={openNotifPanel}
-        className="relative p-2.5 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-sm hover:shadow-md transition-all"
-      >
-        <IconBell size={18} className="text-[var(--color-text-secondary)]" />
+      <Button isIconOnly variant="ghost" onClick={openNotifPanel}>
+        <IconBell size={14} className="text-muted" />
         {unread > 0 && (
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--color-primary)]" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary" />
         )}
-      </button>
+      </Button>
     </div>
   );
 }

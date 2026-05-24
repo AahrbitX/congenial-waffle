@@ -26,7 +26,7 @@ export default function DashboardLayout({
             <DashboardHeader />
           </div>
 
-          <main className="flex-1 min-h-0 overflow-y-auto px-4 pb-26 pt-4 scrollbar-thin">
+          <main className="flex-1 overflow-y-auto px-4 pb-26 pt-4 scrollbar-thin">
             {children}
           </main>
         </Surface>
