@@ -9,7 +9,7 @@ import { ROUTES } from "@/constants/routes";
 import {
   IconDashboard,
   IconCar,
-  IconWallet,
+  IconReceipt,
   IconUser,
   IconBell,
 } from "@/constants/icons";
@@ -18,7 +18,7 @@ import { Button, buttonVariants } from "@heroui/react";
 const NAV_ITEMS = [
   { label: "Overview", href: ROUTES.dashboard.overview, icon: IconDashboard },
   { label: "My Rides", href: ROUTES.dashboard.rides, icon: IconCar },
-  { label: "Wallet", href: ROUTES.dashboard.wallet, icon: IconWallet },
+  { label: "Transactions", href: ROUTES.dashboard.transactions, icon: IconReceipt },
   { label: "Profile", href: ROUTES.dashboard.profile.root, icon: IconUser },
 ];
 

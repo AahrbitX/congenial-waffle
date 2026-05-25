@@ -45,4 +45,6 @@ export {
   Pencil           as IconPencil,
   Trash2           as IconTrash,
   LocateFixed      as IconLocate,
+  Receipt          as IconReceipt,
+  ClockAlert       as IconClockAlert,
 } from "lucide-react";

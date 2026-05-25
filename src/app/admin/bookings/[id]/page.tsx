@@ -58,7 +58,7 @@ function BookingDetailsPage() {
         <div className="space-y-4">
           <RiderDetails rider={bookingDetails.rider} />
           <DriverDetails driver={bookingDetails.driver} />
-          <PaymentDetails />
+          <PaymentDetails payment={bookingDetails.payment} />
         </div>
         <div className="space-y-4">
           <RideInformation info={bookingDetails.info} />
