@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useState } from "react";
 
 import { useRides } from "@/hooks/useRides";
 import { authClient } from "@/lib/auth-client";
 import { useUserStats } from "@/hooks/useUser";
-import { greeting } from "@/lib/dashboard/helpers";
 import { StatCard } from "@/components/ui/StatCard";
 import { useDashboard } from "@/context/DashboardContext";
 import { BookRideModal } from "@/components/dashboard/BookRideModal";
@@ -16,7 +15,6 @@ import {
   IconCalendar,
   IconWallet,
   IconStar,
-  IconGift,
   IconPlus,
   IconArrowLeftRight,
   IconCopy,
@@ -36,96 +34,7 @@ import {
   Tabs,
 } from "@heroui/react";
 import { STATUS_COLOR } from "@/types/ride.types";
-
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
-
-function OverviewSkeleton() {
-  return (
-    <Surface className="h-full min-h-0 space-y-6 p-4" variant="secondary">
-      {/* Welcome banner */}
-      {/* <Skeleton className="h-24 w-full rounded-2xl" /> */}
-
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="flex flex-row items-start gap-4">
-            <Skeleton className="size-11 shrink-0 rounded-2xl" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-3 w-20 rounded-lg" />
-              <Skeleton className="h-6 w-14 rounded-lg" />
-              <Skeleton className="h-3 w-16 rounded-lg" />
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      {/* Charts */}
-      {/* <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1fr_0.8fr]">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Card key={i}>
-            <Card.Header>
-              <Skeleton className="h-4 w-32 rounded-lg" />
-              <Skeleton className="mt-1 h-3 w-24 rounded-lg" />
-            </Card.Header>
-            <Skeleton className="mx-4 mb-4 h-48 rounded-xl" />
-          </Card>
-        ))}
-      </div> */}
-
-      {/* Table */}
-      <Card>
-        <Card.Header className="flex flex-row items-center justify-between gap-4">
-          <Skeleton className="h-5 w-24 rounded-lg" />
-          <div className="flex gap-3">
-            <Skeleton className="h-4 w-20 rounded-lg" />
-            <Skeleton className="h-4 w-20 rounded-lg" />
-            <Skeleton className="h-4 w-20 rounded-lg" />
-          </div>
-        </Card.Header>
-        <div className="flex gap-4 px-1 pb-2">
-          <Skeleton className="h-9 w-56 rounded-xl" />
-          <Skeleton className="h-9 w-72 rounded-xl" />
-        </div>
-        <div className="space-y-2 p-1">
-          {/* Header row */}
-          <div className="grid grid-cols-6 gap-4 px-3 py-2">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-3 rounded-lg" />
-            ))}
-          </div>
-          {/* Data rows */}
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="grid grid-cols-6 items-center gap-4 rounded-xl px-3 py-3">
-              {/* ID + copy */}
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-4 w-14 rounded-lg" />
-                <Skeleton className="size-6 rounded-lg" />
-              </div>
-              {/* Route */}
-              <Skeleton className="h-4 w-full rounded-lg" />
-              {/* Driver */}
-              <div className="flex items-center gap-2">
-                <Skeleton className="size-8 shrink-0 rounded-full" />
-                <div className="flex-1 space-y-1">
-                  <Skeleton className="h-3 w-20 rounded-lg" />
-                  <Skeleton className="h-3 w-16 rounded-lg" />
-                </div>
-              </div>
-              {/* Status */}
-              <Skeleton className="h-6 w-20 rounded-full" />
-              {/* Fare */}
-              <Skeleton className="h-4 w-12 rounded-lg" />
-              {/* Actions */}
-              <div className="flex justify-end gap-1">
-                <Skeleton className="size-8 rounded-lg" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-    </Surface>
-  );
-}
+import { OverviewSkeleton } from "./OverviewTabSkeleton";
 
 // ─── OverviewTab ──────────────────────────────────────────────────────────────
 
@@ -154,12 +63,6 @@ export function OverviewTab() {
         r.to.toLowerCase().includes(search.toLowerCase()),
     );
 
-  const statusCounts = {
-    ongoing: rides.filter((r) => r.status === "ongoing").length,
-    completed: rides.filter((r) => r.status === "completed").length,
-    cancelled: rides.filter((r) => r.status === "cancelled").length,
-  };
-
   const handleCopy = (id: string) => {
     navigator.clipboard.writeText(id);
     setCopiedId(id);
@@ -171,11 +74,10 @@ export function OverviewTab() {
   }
 
   return (
-    <Surface className="h-full min-h-0 space-y-6 p-4" variant="secondary">
-
+    <Surface className="h-auto space-y-6" variant="secondary">
       {/* ── Stat Cards ── */}
       {stats && (
-        <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:grid-cols-4">
           <StatCard
             label="Total Rides"
             value={String(stats.totalRides)}
@@ -218,14 +120,8 @@ export function OverviewTab() {
         />
       )}
 
-
       {/* ── Rides Table ── */}
-      <Card>
-        <Card.Header className="flex flex-row items-center justify-between gap-4">
-          <Card.Title>My Rides</Card.Title>
-
-        </Card.Header>
-
+      <Card className="mb-2">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4">
             <Input
@@ -236,33 +132,38 @@ export function OverviewTab() {
               className="w-56"
             />
             <Tabs onSelectionChange={(key) => setStatusFilter(String(key))}>
-              <Tabs.ListContainer className="w-[400px]">
+              <Tabs.ListContainer className="w-full max-w-[440px] text-sm overflow-x-scroll">
                 <Tabs.List aria-label="Filter by status">
-                  <Tabs.Tab id="all">All<Tabs.Indicator /></Tabs.Tab>
-                  <Tabs.Tab id="ongoing">On Trip<Tabs.Indicator /></Tabs.Tab>
-                  <Tabs.Tab id="completed">Completed<Tabs.Indicator /></Tabs.Tab>
-                  <Tabs.Tab id="cancelled">Cancelled<Tabs.Indicator /></Tabs.Tab>
+                  <Tabs.Tab id="all">
+                    All
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                  <Tabs.Tab id="ongoing">
+                    On Trip
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                  <Tabs.Tab id="completed">
+                    Completed
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                  <Tabs.Tab id="cancelled">
+                    Cancelled
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
                 </Tabs.List>
               </Tabs.ListContainer>
             </Tabs>
-          </div>
-          <div className="flex items-center">
-            <Button onClick={() => setBookOpen(true)}>
-              <IconPlus size={16} />
-              Book Ride
-            </Button>
           </div>
         </div>
 
         {/* Scrollable table body — 5 rows visible, scroll for the rest */}
         <Table>
           <div className="max-h-[350px] overflow-y-auto overflow-x-auto scrollbar-hide [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-10">
-            <Table.Content
-              aria-label="My rides"
-              className="min-w-[700px]"
-            >
+            <Table.Content aria-label="My rides" className="min-w-[700px]">
               <Table.Header>
-                <Table.Column isRowHeader id="id">Booking ID</Table.Column>
+                <Table.Column isRowHeader id="id">
+                  Booking ID
+                </Table.Column>
                 <Table.Column id="route">Route</Table.Column>
                 <Table.Column id="driver">Driver</Table.Column>
                 <Table.Column id="status">Status</Table.Column>
@@ -280,7 +181,6 @@ export function OverviewTab() {
                           <p className="text-sm text-muted">
                             Try adjusting your search or filter.
                           </p>
-
                         </>
                       ) : (
                         <>
@@ -334,95 +234,119 @@ export function OverviewTab() {
                       </Table.Row>
                     ))
                   : filteredRides.map((ride) => (
-                  <Table.Row key={ride.id} id={ride.id}>
-                    {/* Booking ID + copy */}
-                    <Table.Cell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold">{"#" + ride.id}</span>
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          variant="ghost"
-                          onPress={() => handleCopy(ride.id)}
-                          aria-label="Copy booking ID"
-                        >
-                          <IconCopy
-                            size={14}
-                            className={copiedId === ride.id ? "text-success" : "text-muted"}
-                          />
-                        </Button>
-                      </div>
-                    </Table.Cell>
-
-                    {/* Route */}
-                    <Table.Cell>
-                      <div className="flex items-center gap-2">
-                        <span>{ride.from}</span>
-                        <IconArrowLeftRight size={14} className="text-muted" />
-                        <span>{ride.to}</span>
-                      </div>
-                    </Table.Cell>
-
-                    {/* Driver with avatar */}
-                    <Table.Cell>
-                      {ride.driver ? (
-                        <div className="flex items-center gap-3">
-                          <Avatar size="sm">
-                            <Avatar.Fallback>
-                              {ride.driver
-                                .split(" ")
-                                .map((n: string) => n[0])
-                                .join("")}
-                            </Avatar.Fallback>
-                          </Avatar>
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium">{ride.driver}</span>
-                            <span className="text-xs text-muted">{ride.driverPhone}</span>
+                      <Table.Row key={ride.id} id={ride.id}>
+                        {/* Booking ID + copy */}
+                        <Table.Cell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold">{"#" + ride.id}</span>
+                            <Button
+                              isIconOnly
+                              size="sm"
+                              variant="ghost"
+                              onPress={() => handleCopy(ride.id)}
+                              aria-label="Copy booking ID"
+                            >
+                              <IconCopy
+                                size={14}
+                                className={
+                                  copiedId === ride.id
+                                    ? "text-success"
+                                    : "text-muted"
+                                }
+                              />
+                            </Button>
                           </div>
-                        </div>
-                      ) : (
-                        <span className="text-muted text-sm">Unassigned</span>
-                      )}
-                    </Table.Cell>
+                        </Table.Cell>
 
-                    {/* Status */}
-                    <Table.Cell>
-                      <Chip
-                        color={STATUS_COLOR[ride.status as keyof typeof STATUS_COLOR] ?? "warning"}
-                        size="sm"
-                        variant="soft"
-                      >
-                        {ride.status.charAt(0).toUpperCase() + ride.status.slice(1)}
-                      </Chip>
-                    </Table.Cell>
+                        {/* Route */}
+                        <Table.Cell>
+                          <div className="flex items-center gap-2">
+                            <span>{ride.from}</span>
+                            <IconArrowLeftRight
+                              size={14}
+                              className="text-muted"
+                            />
+                            <span>{ride.to}</span>
+                          </div>
+                        </Table.Cell>
 
-                    {/* Fare */}
-                    <Table.Cell className="font-bold">
-                      {ride.fare > 0 ? `₹${ride.fare}` : "—"}
-                    </Table.Cell>
+                        {/* Driver with avatar */}
+                        <Table.Cell>
+                          {ride.driver ? (
+                            <div className="flex items-center gap-3">
+                              <Avatar size="sm">
+                                <Avatar.Fallback>
+                                  {ride.driver
+                                    .split(" ")
+                                    .map((n: string) => n[0])
+                                    .join("")}
+                                </Avatar.Fallback>
+                              </Avatar>
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium">
+                                  {ride.driver}
+                                </span>
+                                <span className="text-xs text-muted">
+                                  {ride.driverPhone}
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-muted text-sm">
+                              Unassigned
+                            </span>
+                          )}
+                        </Table.Cell>
 
-                    {/* Actions */}
-                    <Table.Cell>
-                      <div className="flex items-center justify-end gap-1">
-                        <Button isIconOnly size="sm" variant="tertiary" aria-label="View ride">
-                          <Link href={`/dashboard/rides/${ride.id}`}>
-                            <IconEye size={15} />
-                          </Link>
-                        </Button>
-                        {ride.status === "completed" && ride.rating === 0 && (
-                          <Button
+                        {/* Status */}
+                        <Table.Cell>
+                          <Chip
+                            color={
+                              STATUS_COLOR[
+                                ride.status as keyof typeof STATUS_COLOR
+                              ] ?? "warning"
+                            }
                             size="sm"
-                            variant="tertiary"
-                            onPress={() => openRatingModal(ride)}
+                            variant="soft"
                           >
-                            <IconStar size={15} />
-                            Rate
-                          </Button>
-                        )}
-                      </div>
-                    </Table.Cell>
-                  </Table.Row>
-                ))}
+                            {ride.status.charAt(0).toUpperCase() +
+                              ride.status.slice(1)}
+                          </Chip>
+                        </Table.Cell>
+
+                        {/* Fare */}
+                        <Table.Cell className="font-bold">
+                          {ride.fare > 0 ? `₹${ride.fare}` : "—"}
+                        </Table.Cell>
+
+                        {/* Actions */}
+                        <Table.Cell>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              isIconOnly
+                              size="sm"
+                              variant="tertiary"
+                              aria-label="View ride"
+                            >
+                              <Link href={`/dashboard/rides/${ride.id}`}>
+                                <IconEye size={15} />
+                              </Link>
+                            </Button>
+                            {ride.status === "completed" &&
+                              ride.rating === 0 && (
+                                <Button
+                                  size="sm"
+                                  variant="tertiary"
+                                  onPress={() => openRatingModal(ride)}
+                                >
+                                  <IconStar size={15} />
+                                  Rate
+                                </Button>
+                              )}
+                          </div>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
               </Table.Body>
             </Table.Content>
           </div>

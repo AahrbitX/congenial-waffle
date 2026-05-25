@@ -17,7 +17,7 @@ export function StatCard({
   colorClass,
 }: StatCardProps) {
   return (
-    <Card className="rounded-2xl flex items-start gap-4 flex-row">
+    <Card className="flex items-start gap-4 flex-row">
       <div
         className={`size-11 rounded-2xl flex items-center justify-center shrink-0 ${colorClass}`}
       >

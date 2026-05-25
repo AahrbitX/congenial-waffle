@@ -3,8 +3,17 @@
 import { useState, useRef, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { LocationPickerMap, type LatLng } from "./LocationPickerMap";
-import { IconMapPin, IconClock, IconLoader, IconLocate } from "@/constants/icons";
-import { forwardGeocode, reverseGeocode, type GeoResult } from "@/utils/geocoding";
+import {
+  IconMapPin,
+  IconClock,
+  IconLoader,
+  IconLocate,
+} from "@/constants/icons";
+import {
+  forwardGeocode,
+  reverseGeocode,
+  type GeoResult,
+} from "@/utils/geocoding";
 import { useRides } from "@/hooks/useRides";
 
 interface LocationInputProps {
@@ -16,12 +25,18 @@ interface LocationInputProps {
   onBeforeOpen?: (open: () => void) => void;
 }
 
-export function LocationInput({ value, onChange, placeholder = "Pickup location", className, onBeforeOpen }: LocationInputProps) {
-  const [showMap,      setShowMap]      = useState(false);
+export function LocationInput({
+  value,
+  onChange,
+  placeholder = "Pickup location",
+  className,
+  onBeforeOpen,
+}: LocationInputProps) {
+  const [showMap, setShowMap] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [suggestions,  setSuggestions]  = useState<GeoResult[]>([]);
-  const [loadingSug,   setLoadingSug]   = useState(false);
-  const [locating,     setLocating]     = useState(false);
+  const [suggestions, setSuggestions] = useState<GeoResult[]>([]);
+  const [loadingSug, setLoadingSug] = useState(false);
+  const [locating, setLocating] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Recent places from ride history
@@ -31,8 +46,14 @@ export function LocationInput({ value, onChange, placeholder = "Pickup location"
     const seen = new Set<string>();
     const places: string[] = [];
     for (const r of rides) {
-      if (r.from && !seen.has(r.from)) { seen.add(r.from); places.push(r.from); }
-      if (r.to   && !seen.has(r.to))   { seen.add(r.to);   places.push(r.to);   }
+      if (r.from && !seen.has(r.from)) {
+        seen.add(r.from);
+        places.push(r.from);
+      }
+      if (r.to && !seen.has(r.to)) {
+        seen.add(r.to);
+        places.push(r.to);
+      }
     }
     return places.slice(0, 5);
   }, [rides]);
@@ -55,7 +76,10 @@ export function LocationInput({ value, onChange, placeholder = "Pickup location"
   const handleChange = (val: string) => {
     onChange(val);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!val.trim()) { setSuggestions([]); return; }
+    if (!val.trim()) {
+      setSuggestions([]);
+      return;
+    }
     debounceRef.current = setTimeout(async () => {
       setLoadingSug(true);
       const results = await forwardGeocode(val);
@@ -85,19 +109,26 @@ export function LocationInput({ value, onChange, placeholder = "Pickup location"
         setLocating(false);
       },
       () => setLocating(false),
-      { timeout: 8000 }
+      { timeout: 8000 },
     );
   };
 
   const handleToggleMap = () => {
-    if (showMap) { setShowMap(false); return; }
-    if (onBeforeOpen) { onBeforeOpen(() => setShowMap(true)); }
-    else { setShowMap(true); }
+    if (showMap) {
+      setShowMap(false);
+      return;
+    }
+    if (onBeforeOpen) {
+      onBeforeOpen(() => setShowMap(true));
+    } else {
+      setShowMap(true);
+    }
   };
 
-  const showingRecent      = !value.trim() && recentPlaces.length > 0;
-  const showingSuggestions = !!value.trim() && (suggestions.length > 0 || loadingSug);
-  const dropdownVisible    = showDropdown && (showingRecent || showingSuggestions);
+  const showingRecent = !value.trim() && recentPlaces.length > 0;
+  const showingSuggestions =
+    !!value.trim() && (suggestions.length > 0 || loadingSug);
+  const dropdownVisible = showDropdown && (showingRecent || showingSuggestions);
 
   return (
     <div className={className}>
@@ -120,9 +151,11 @@ export function LocationInput({ value, onChange, placeholder = "Pickup location"
           disabled={locating}
           className="absolute right-9 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-colors text-text-muted hover:text-primary disabled:opacity-50"
         >
-          {locating
-            ? <IconLoader size={14} className="animate-spin" />
-            : <IconLocate size={14} />}
+          {locating ? (
+            <IconLoader size={14} className="animate-spin" />
+          ) : (
+            <IconLocate size={14} />
+          )}
         </button>
         {/* Map pin button */}
         <button
@@ -139,7 +172,6 @@ export function LocationInput({ value, onChange, placeholder = "Pickup location"
         {/* Dropdown */}
         {dropdownVisible && (
           <div className="absolute z-50 top-full mt-1 w-full bg-background border border-border rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto">
-
             {/* Recent section */}
             {showingRecent && (
               <>
@@ -153,8 +185,13 @@ export function LocationInput({ value, onChange, placeholder = "Pickup location"
                     onMouseDown={() => handleSelectRecent(place)}
                     className="w-full flex items-start gap-2 px-3 py-2 text-sm text-left hover:bg-border/30 transition-colors"
                   >
-                    <IconClock size={13} className="mt-0.5 shrink-0 text-text-muted" />
-                    <span className="line-clamp-1 text-text-primary">{place}</span>
+                    <IconClock
+                      size={13}
+                      className="mt-0.5 shrink-0 text-text-muted"
+                    />
+                    <span className="line-clamp-1 text-text-primary">
+                      {place}
+                    </span>
                   </button>
                 ))}
               </>
@@ -179,8 +216,13 @@ export function LocationInput({ value, onChange, placeholder = "Pickup location"
                       onMouseDown={() => handleSelectSuggestion(r)}
                       className="w-full flex items-start gap-2 px-3 py-2 text-sm text-left hover:bg-border/30 transition-colors"
                     >
-                      <IconMapPin size={13} className="mt-0.5 shrink-0 text-primary" />
-                      <span className="line-clamp-2 text-text-primary">{r.name}</span>
+                      <IconMapPin
+                        size={13}
+                        className="mt-0.5 shrink-0 text-primary"
+                      />
+                      <span className="line-clamp-2 text-text-primary">
+                        {r.name}
+                      </span>
                     </button>
                   ))
                 )}

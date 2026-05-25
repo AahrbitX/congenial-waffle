@@ -9,13 +9,17 @@ export default function ServicesPage() {
       <section className="pt-36 pb-20 px-8 sm:px-16 bg-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[50vw] h-full bg-[#f5f7ff] rounded-bl-[80px] -z-0" />
         <div className="relative z-10 max-w-7xl mx-auto">
-          <span className="text-[11px] font-bold tracking-[0.2em] text-blue-500 uppercase">Our Services</span>
+          <span className="text-[11px] font-bold tracking-[0.2em] text-blue-500 uppercase">
+            Our Services
+          </span>
           <h1 className="text-[clamp(2.5rem,6vw,5rem)] font-black leading-[1.05] tracking-tight text-[#0f0f0f] mt-4 max-w-2xl">
-            Every ride,<br />
+            Every ride,
+            <br />
             <span className="text-blue-500 italic">covered.</span>
           </h1>
           <p className="text-gray-400 text-[15px] mt-5 max-w-lg leading-relaxed">
-            From a quick city trip to a full Kerala tour — Mohans Cabs has a service for every need, at a fare that never surprises.
+            From a quick city trip to a full Kerala tour — mohan Cabs has a
+            service for every need, at a fare that never surprises.
           </p>
         </div>
       </section>
@@ -34,7 +38,10 @@ export default function ServicesPage() {
               className="inline-flex items-center gap-2 bg-white text-blue-500 font-extrabold text-[15px] px-8 py-4 rounded-full hover:bg-blue-50 transition-colors group"
             >
               Book a Ride
-              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              <ArrowRight
+                size={16}
+                className="group-hover:translate-x-1 transition-transform"
+              />
             </Link>
             <a
               href="https://wa.me/91XXXXXXXXXX"

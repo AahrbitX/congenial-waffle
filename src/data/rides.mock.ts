@@ -2,7 +2,7 @@ import type { Ride } from "@/types/ride.types";
 
 export const MOCK_RIDES: Ride[] = [
   {
-    id: "TRP-1001",
+    id: "TRP1001",
     status: "completed",
     date: "Today, 9:14 AM",
     from: "Kowdiar Junction",
@@ -10,7 +10,7 @@ export const MOCK_RIDES: Ride[] = [
     driver: "Rajesh Kumar",
     driverPhone: "+91 98765 43210",
     vehicle: "Maruti Dzire",
-    plate: "KL-01-AB-1234",
+    plate: "KL01AB1234",
     fare: 180,
     distance: "8.2 km",
     duration: "24 min",
@@ -19,7 +19,7 @@ export const MOCK_RIDES: Ride[] = [
     tip: 20,
   },
   {
-    id: "TRP-0999",
+    id: "TRP0999",
     status: "completed",
     date: "Yesterday, 6:40 PM",
     from: "Technopark Phase 3",
@@ -27,7 +27,7 @@ export const MOCK_RIDES: Ride[] = [
     driver: "Suresh Nair",
     driverPhone: "+91 87654 32109",
     vehicle: "Toyota Etios",
-    plate: "KL-05-CD-5678",
+    plate: "KL05CD5678",
     fare: 240,
     distance: "11.4 km",
     duration: "35 min",
@@ -36,7 +36,7 @@ export const MOCK_RIDES: Ride[] = [
     tip: 0,
   },
   {
-    id: "TRP-0994",
+    id: "TRP0994",
     status: "cancelled",
     date: "2 May, 2:10 PM",
     from: "Kazhakootam",
@@ -53,7 +53,7 @@ export const MOCK_RIDES: Ride[] = [
     tip: 0,
   },
   {
-    id: "TRP-0981",
+    id: "TRP0981",
     status: "completed",
     date: "1 May, 8:00 AM",
     from: "Palayam",
@@ -61,7 +61,7 @@ export const MOCK_RIDES: Ride[] = [
     driver: "Mohan Das",
     driverPhone: "+91 76543 21098",
     vehicle: "Innova Crysta",
-    plate: "KL-09-EF-9101",
+    plate: "KL09EF9101",
     fare: 520,
     distance: "17 km",
     duration: "40 min",
@@ -70,7 +70,7 @@ export const MOCK_RIDES: Ride[] = [
     tip: 50,
   },
   {
-    id: "TRP-0982",
+    id: "TRP0982",
     status: "completed",
     date: "1 May, 8:00 AM",
     from: "Palayam",
@@ -78,7 +78,7 @@ export const MOCK_RIDES: Ride[] = [
     driver: "Mohan Das",
     driverPhone: "+91 76543 21098",
     vehicle: "Innova Crysta",
-    plate: "KL-09-EF-9101",
+    plate: "KL09EF9101",
     fare: 520,
     distance: "17 km",
     duration: "40 min",
@@ -87,7 +87,7 @@ export const MOCK_RIDES: Ride[] = [
     tip: 50,
   },
   {
-    id: "TRP-0984",
+    id: "TRP0984",
     status: "completed",
     date: "1 May, 8:00 AM",
     from: "Palayam",
@@ -95,7 +95,7 @@ export const MOCK_RIDES: Ride[] = [
     driver: "Mohan Das",
     driverPhone: "+91 76543 21098",
     vehicle: "Innova Crysta",
-    plate: "KL-09-EF-9101",
+    plate: "KL09EF9101",
     fare: 520,
     distance: "17 km",
     duration: "40 min",
@@ -103,8 +103,8 @@ export const MOCK_RIDES: Ride[] = [
     payment: "Card",
     tip: 50,
   },
-    {
-    id: "TRP-0985",
+  {
+    id: "TRP0985",
     status: "completed",
     date: "1 May, 8:00 AM",
     from: "Palayam",
@@ -112,7 +112,7 @@ export const MOCK_RIDES: Ride[] = [
     driver: "Mohan Das",
     driverPhone: "+91 76543 21098",
     vehicle: "Innova Crysta",
-    plate: "KL-09-EF-9101",
+    plate: "KL09EF9101",
     fare: 520,
     distance: "17 km",
     duration: "40 min",
@@ -120,8 +120,8 @@ export const MOCK_RIDES: Ride[] = [
     payment: "Card",
     tip: 50,
   },
-    {
-    id: "TRP-0986",
+  {
+    id: "TRP0986",
     status: "completed",
     date: "1 May, 8:00 AM",
     from: "Palayam",
@@ -129,7 +129,7 @@ export const MOCK_RIDES: Ride[] = [
     driver: "Mohan Das",
     driverPhone: "+91 76543 21098",
     vehicle: "Innova Crysta",
-    plate: "KL-09-EF-9101",
+    plate: "KL09EF9101",
     fare: 520,
     distance: "17 km",
     duration: "40 min",
