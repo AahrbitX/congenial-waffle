@@ -27,11 +27,11 @@ interface Payment {
   adminVerifiedAt: string | null;
 }
 
-const STATUS_CONFIG: Record<string, { label: string; color: "success" | "warning" | "danger" | "default" | "primary"; icon: React.ReactNode }> = {
+const STATUS_CONFIG: Record<string, { label: string; color: "success" | "warning" | "danger" | "default" | "accent"; icon: React.ReactNode }> = {
   paid:           { label: "Paid",           color: "success",  icon: <IconCheckCircle    size={13} /> },
   created:        { label: "Pending",        color: "warning",  icon: <IconClockAlert     size={13} /> },
   cash_pending:   { label: "Awaiting Code",  color: "warning",  icon: <IconClockAlert     size={13} /> },
-  cash_collected: { label: "Cash Confirmed", color: "primary",  icon: <IconCheckCircle    size={13} /> },
+  cash_collected: { label: "Cash Confirmed", color: "accent",   icon: <IconCheckCircle    size={13} /> },
   failed:         { label: "Failed",         color: "danger",   icon: <IconXCircle        size={13} /> },
   refunded:       { label: "Refunded",       color: "default",  icon: <IconArrowLeftRight size={13} /> },
 };
@@ -72,7 +72,7 @@ export default function PaymentDetails({ payment }: PaymentDetailsProps) {
       <Card.Header className="flex flex-row items-center justify-between">
         <Card.Title>Payment &amp; Balance</Card.Title>
         {payment.status && (
-          <Chip color={cfg.color} variant="flat" size="sm" className="text-[11px] font-semibold">
+          <Chip color={cfg.color} variant="soft" size="sm" className="text-[11px] font-semibold">
             <span className="flex items-center gap-1">{cfg.icon}{cfg.label}</span>
           </Chip>
         )}
@@ -135,7 +135,7 @@ export default function PaymentDetails({ payment }: PaymentDetailsProps) {
           {needsAdminVerify && (
             <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 space-y-2">
               <p className="text-xs font-semibold text-text-primary">
-                Passenger has entered the driver's code. Confirm cash was collected?
+                Passenger has entered the driver&apos;s code. Confirm cash was collected?
               </p>
               <div className="flex gap-2">
                 <Button

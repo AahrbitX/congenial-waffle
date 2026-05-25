@@ -39,12 +39,12 @@ function formatTime(t: string) {
 
 const STATUS_CONFIG: Record<
   PaymentStatus,
-  { label: string; color: "success" | "warning" | "danger" | "default" | "primary"; icon: React.ReactNode }
+  { label: string; color: "success" | "warning" | "danger" | "default" | "accent"; icon: React.ReactNode }
 > = {
   paid:           { label: "Paid",            color: "success",  icon: <IconCheckCircle    size={13} /> },
   created:        { label: "Pending",         color: "warning",  icon: <IconClockAlert     size={13} /> },
   cash_pending:   { label: "Awaiting Code",   color: "warning",  icon: <IconClockAlert     size={13} /> },
-  cash_collected: { label: "Cash Confirmed",  color: "primary",  icon: <IconCheckCircle    size={13} /> },
+  cash_collected: { label: "Cash Confirmed",  color: "accent",   icon: <IconCheckCircle    size={13} /> },
   failed:         { label: "Failed",          color: "danger",   icon: <IconXCircle        size={13} /> },
   refunded:       { label: "Refunded",        color: "default",  icon: <IconArrowLeftRight size={13} /> },
 };
@@ -86,7 +86,7 @@ function HistoryRow({ tx }: { tx: UserTransaction }) {
         <p className="text-sm font-bold text-text-primary">
           ₹{parseFloat(tx.amount).toLocaleString("en-IN")}
         </p>
-        <Chip color={color} variant="flat" size="sm" className="text-[10px] font-semibold">
+        <Chip color={color} variant="soft" size="sm" className="text-[10px] font-semibold">
           <span className="flex items-center gap-1">{icon}{label}</span>
         </Chip>
       </div>
@@ -130,7 +130,7 @@ function PendingRow({
           <p className="text-sm font-bold text-text-primary">
             ₹{amountDue.toLocaleString("en-IN")}
           </p>
-          <Chip color={statusCfg.color} variant="flat" size="sm" className="text-[10px] font-semibold">
+          <Chip color={statusCfg.color} variant="soft" size="sm" className="text-[10px] font-semibold">
             <span className="flex items-center gap-1">{statusCfg.icon}{isBalance ? "Balance Due" : statusCfg.label}</span>
           </Chip>
         </div>
@@ -141,8 +141,8 @@ function PendingRow({
         <div className="flex gap-2">
           <Button
             size="sm"
-            variant="solid"
-            className="flex-1 rounded-xl bg-primary text-white font-semibold text-xs"
+            variant="primary"
+            className="flex-1 rounded-xl font-semibold text-xs"
           >
             <IconCreditCard size={13} />
             Pay Now
@@ -272,7 +272,7 @@ export function TransactionsTab() {
                         <span className="text-xs font-bold text-text-primary">
                           ₹{parseFloat(tx.amount).toLocaleString("en-IN")}
                         </span>
-                        <Chip color="success" variant="flat" size="sm" className="text-[10px]">Paid</Chip>
+                        <Chip color="success" variant="soft" size="sm" className="text-[10px]">Paid</Chip>
                       </div>
                     </div>
                     {/* Balance due row */}

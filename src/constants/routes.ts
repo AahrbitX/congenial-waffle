@@ -6,6 +6,7 @@ export const ROUTES = {
     ride:        (id: string) => `/dashboard/rides/${id}`,
     transactions: "/dashboard/transactions",
     transaction:  (id: string) => `/dashboard/transactions/${id}`,
+    wallet:       "/dashboard/wallet",
     profile: {
       root:          "/dashboard/profile",
       privacy:       "/dashboard/profile/privacy",

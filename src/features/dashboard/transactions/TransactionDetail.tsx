@@ -22,10 +22,12 @@ const STATUS_CONFIG: Record<
   PaymentStatus,
   { label: string; color: "success" | "warning" | "danger" | "default"; icon: React.ReactNode; heroBg: string; heroText: string }
 > = {
-  paid:     { label: "Paid",     color: "success", icon: <IconCheckCircle   size={28} />, heroBg: "bg-success-light",   heroText: "text-success"        },
-  created:  { label: "Pending",  color: "warning", icon: <IconClockAlert    size={28} />, heroBg: "bg-warning-light",   heroText: "text-warning"        },
-  failed:   { label: "Failed",   color: "danger",  icon: <IconXCircle       size={28} />, heroBg: "bg-danger-light",    heroText: "text-danger"         },
-  refunded: { label: "Refunded", color: "default", icon: <IconArrowLeftRight size={28}/>, heroBg: "bg-surface-muted",   heroText: "text-text-secondary" },
+  paid:           { label: "Paid",           color: "success", icon: <IconCheckCircle   size={28} />, heroBg: "bg-success-light",   heroText: "text-success"        },
+  created:        { label: "Pending",        color: "warning", icon: <IconClockAlert    size={28} />, heroBg: "bg-warning-light",   heroText: "text-warning"        },
+  cash_pending:   { label: "Awaiting Code",  color: "warning", icon: <IconClockAlert    size={28} />, heroBg: "bg-warning-light",   heroText: "text-warning"        },
+  cash_collected: { label: "Cash Confirmed", color: "default", icon: <IconCheckCircle   size={28} />, heroBg: "bg-surface-muted",   heroText: "text-text-secondary" },
+  failed:         { label: "Failed",         color: "danger",  icon: <IconXCircle       size={28} />, heroBg: "bg-danger-light",    heroText: "text-danger"         },
+  refunded:       { label: "Refunded",       color: "default", icon: <IconArrowLeftRight size={28}/>, heroBg: "bg-surface-muted",   heroText: "text-text-secondary" },
 };
 
 function formatDate(iso: string) {
@@ -111,7 +113,7 @@ export function TransactionDetail({ id }: { id: string }) {
         <p className={`text-4xl font-black tracking-tight ${cfg.heroText}`}>
           ₹{parseFloat(tx.amount).toLocaleString("en-IN")}
         </p>
-        <Chip color={cfg.color} variant="flat" size="sm" className="font-semibold">
+        <Chip color={cfg.color} variant="soft" size="sm" className="font-semibold">
           {cfg.label}
         </Chip>
         <div className="flex items-center gap-2 text-sm text-text-secondary">
