@@ -100,6 +100,7 @@ export async function getRideById(id: string): Promise<Ride> {
     rating: b.review?.rating ?? 0,
     journeyDate: b.trip?.journeyDate ?? "",
     journeyTime: b.trip?.journeyTime ?? "",
+    vehicleType: b.trip?.vehicleType ?? "",
     payment: b.payment?.status ?? "",
     tip: 0,
     paymentMethod: b.payment?.method ?? "",

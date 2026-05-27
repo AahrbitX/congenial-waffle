@@ -29,7 +29,7 @@ function ReviewDetails({ review }: ReviewDetailsProps) {
             <span className="ml-1 text-sm font-bold text-foreground">{review.rating}/5</span>
           </div>
           {review.comment && (
-            <p className="text-sm text-default-600 leading-relaxed">"{review.comment}"</p>
+            <p className="text-sm text-default-600 leading-relaxed">&quot;{review.comment}&quot;</p>
           )}
           {review.submittedAt && (
             <p className="text-xs text-default-400">

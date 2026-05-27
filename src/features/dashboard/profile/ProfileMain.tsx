@@ -90,7 +90,7 @@ export function ProfileMain() {
             {[
               { v: String(stats?.totalRides ?? "—"), l: "Rides" },
               { v: String(stats?.rating ?? "—"), l: "Rating" },
-              { v: `₹${stats?.walletBalance ?? 0}`, l: "Wallet" },
+              { v: `₹${stats?.totalSpent ?? 0}`, l: "Spent" },
             ].map(({ v, l }) => (
               <div key={l} className="flex-1 text-center">
                 <p className="text-xl font-semibold text-primary">{v}</p>

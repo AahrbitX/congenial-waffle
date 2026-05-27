@@ -366,7 +366,7 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
           <div className="space-y-2">
             {!timeReached && (
               <p className="text-xs text-center text-text-tertiary">
-                "Start Ride" will be enabled at the scheduled time
+                &quot;Start Ride&quot; will be enabled at the scheduled time
               </p>
             )}
             <button

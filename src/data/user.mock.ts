@@ -3,7 +3,7 @@ import type { UserStats } from "@/types/user.types";
 export const MOCK_USER_STATS: UserStats = {
   totalRides: 24,
   thisMonth: 6,
-  walletBalance: 820,
+  totalSpent: 4200,
   rating: 4.8,
   ratingCount: 18,
   monthLabel: "May 2026",

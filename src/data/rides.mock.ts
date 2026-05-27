@@ -1,7 +1,20 @@
 import type { Ride } from "@/types/ride.types";
 
+const DEFAULTS = {
+  bookingRef: "",
+  journeyDate: "",
+  journeyTime: "",
+  vehicleType: "",
+  paymentMethod: "",
+  paymentMode: "",
+  paidAt: null,
+  paymentId: null,
+  paidAmount: 0,
+} satisfies Partial<Ride>;
+
 export const MOCK_RIDES: Ride[] = [
   {
+    ...DEFAULTS,
     id: "TRP1001",
     status: "completed",
     date: "Today, 9:14 AM",
@@ -19,6 +32,7 @@ export const MOCK_RIDES: Ride[] = [
     tip: 20,
   },
   {
+    ...DEFAULTS,
     id: "TRP0999",
     status: "completed",
     date: "Yesterday, 6:40 PM",
@@ -36,6 +50,7 @@ export const MOCK_RIDES: Ride[] = [
     tip: 0,
   },
   {
+    ...DEFAULTS,
     id: "TRP0994",
     status: "cancelled",
     date: "2 May, 2:10 PM",
@@ -53,6 +68,7 @@ export const MOCK_RIDES: Ride[] = [
     tip: 0,
   },
   {
+    ...DEFAULTS,
     id: "TRP0981",
     status: "completed",
     date: "1 May, 8:00 AM",
@@ -70,6 +86,7 @@ export const MOCK_RIDES: Ride[] = [
     tip: 50,
   },
   {
+    ...DEFAULTS,
     id: "TRP0982",
     status: "completed",
     date: "1 May, 8:00 AM",
@@ -87,6 +104,7 @@ export const MOCK_RIDES: Ride[] = [
     tip: 50,
   },
   {
+    ...DEFAULTS,
     id: "TRP0984",
     status: "completed",
     date: "1 May, 8:00 AM",
@@ -104,6 +122,7 @@ export const MOCK_RIDES: Ride[] = [
     tip: 50,
   },
   {
+    ...DEFAULTS,
     id: "TRP0985",
     status: "completed",
     date: "1 May, 8:00 AM",
@@ -121,6 +140,7 @@ export const MOCK_RIDES: Ride[] = [
     tip: 50,
   },
   {
+    ...DEFAULTS,
     id: "TRP0986",
     status: "completed",
     date: "1 May, 8:00 AM",

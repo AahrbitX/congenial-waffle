@@ -5,9 +5,11 @@ const STATUS_MAP: Record<
   RideStatus,
   { label: string; color: "success" | "danger" | "accent" | "warning" }
 > = {
+  pending:   { label: "Pending",   color: "warning" },
+  confirmed: { label: "Confirmed", color: "accent" },
+  ongoing:   { label: "Ongoing",   color: "accent" },
   completed: { label: "Completed", color: "success" },
   cancelled: { label: "Cancelled", color: "danger" },
-  ongoing: { label: "Ongoing", color: "accent" },
 };
 
 interface StatusBadgeProps {
