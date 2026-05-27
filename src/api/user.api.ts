@@ -31,3 +31,15 @@ export async function getFaqs(): Promise<Faq[]> {
 export async function getReferrals(): Promise<typeof MOCK_REFERRALS> {
   return MOCK_REFERRALS;
 }
+
+export async function hasPassword(): Promise<boolean> {
+  const res = await request<{ hasPassword: boolean }>("/api/users/me/has-password");
+  return res.hasPassword;
+}
+
+export async function setPassword(otp: string, newPassword: string): Promise<void> {
+  await request<{ success: boolean; message: string }>("/api/users/me/password", {
+    method: "POST",
+    body: JSON.stringify({ otp, newPassword }),
+  });
+}

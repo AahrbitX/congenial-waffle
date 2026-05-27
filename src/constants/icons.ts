@@ -49,4 +49,5 @@ export {
   ClockAlert       as IconClockAlert,
   TicketPlus       as IconTicket,
   Circle           as IconCircle,
+  Lock             as IconLock,
 } from "lucide-react";

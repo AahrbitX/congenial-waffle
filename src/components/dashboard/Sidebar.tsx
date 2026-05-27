@@ -107,18 +107,14 @@ export function Sidebar() {
         {/* Bottom actions */}
         <div className="space-y-2 border-t border-border p-3">
           <Button
-            onPress={openNotifPanel}
             fullWidth
             variant="secondary"
-            className="h-11 justify-start rounded-xl px-4 text-sm font-semibold"
+            isDisabled
+            className="h-11 justify-start rounded-xl px-4 text-sm font-semibold opacity-40 pointer-events-none"
           >
             <IconBell size={17} />
             Notifications
-            {unread > 0 && (
-              <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
-                {unread}
-              </span>
-            )}
+            <span className="ml-auto text-[10px] text-muted">Soon</span>
           </Button>
 
           <Button
