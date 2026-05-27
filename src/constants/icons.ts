@@ -47,4 +47,6 @@ export {
   LocateFixed      as IconLocate,
   Receipt          as IconReceipt,
   ClockAlert       as IconClockAlert,
+  TicketPlus       as IconTicket,
+  Circle           as IconCircle,
 } from "lucide-react";

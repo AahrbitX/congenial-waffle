@@ -8,6 +8,8 @@ import { authClient } from "@/lib/auth-client";
 import { useUserStats } from "@/hooks/useUser";
 import { initials } from "@/lib/dashboard/helpers";
 import { ROUTES } from "@/constants/routes";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import {
   IconCamera,
   IconLogOut,
@@ -57,6 +59,8 @@ export function ProfileMain() {
   const { data: session } = authClient.useSession();
   const user = session?.user;
   const { data: stats } = useUserStats();
+  const queryClient = useQueryClient();
+  const router = useRouter();
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user?.name ?? "");
@@ -203,7 +207,15 @@ export function ProfileMain() {
               <Button
                 onPress={() => {
                   setShowSignOut(false);
-                  authClient.signOut();
+                  authClient.signOut({
+                    fetchOptions: {
+                      onSuccess: () => {
+                        queryClient.clear();
+                        router.push("/");
+                        router.refresh();
+                      },
+                    },
+                  });
                 }}
                 className="flex-1 rounded-xl font-bold bg-[var(--color-danger)] text-white"
               >

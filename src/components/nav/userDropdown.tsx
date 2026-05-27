@@ -2,28 +2,30 @@
 
 import React from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { authClient } from "@/lib/auth-client";
 import { Avatar, Dropdown, Label, Spinner } from "@heroui/react";
 import { Car, Headphones, LogOut, User } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 function UserDropdown() {
   const { data, isPending } = authClient.useSession();
 
   const router = useRouter();
+  const queryClient = useQueryClient();
   const isAdmin = (data?.user as any)?.role === "admin";
   const userName = data?.user?.name || "User";
 
   const handleLogout = async () => {
-    try {
-      await authClient.signOut();
-    } catch (_) {
-      // ignore network errors
-    } finally {
-      router.push("/");
-      router.refresh();
-    }
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          queryClient.clear();
+          router.push("/");
+          router.refresh();
+        },
+      },
+    });
   };
 
   if (isPending) {

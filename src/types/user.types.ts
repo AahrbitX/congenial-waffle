@@ -8,7 +8,7 @@ export interface DashboardUser {
 export interface UserStats {
   totalRides: number;
   thisMonth: number;
-  walletBalance: number;
+  totalSpent: number;
   rating: number;
   ratingCount: number;
   monthLabel: string;

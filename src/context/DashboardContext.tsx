@@ -12,6 +12,14 @@ interface DashboardContextValue {
   ratingRide: Ride | null;
   openRatingModal: (ride: Ride) => void;
   closeRatingModal: () => void;
+  // Raise ticket modal
+  ticketRide: Ride | null;
+  openTicketModal: (ride: Ride) => void;
+  closeTicketModal: () => void;
+  // Book ride modal
+  bookOpen: boolean;
+  openBookModal: () => void;
+  closeBookModal: () => void;
   // Active trip
   activeTrip: boolean;
   setActiveTrip: (v: boolean) => void;
@@ -22,6 +30,8 @@ const DashboardContext = createContext<DashboardContextValue | null>(null);
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [notifOpen, setNotifOpen]   = useState(false);
   const [ratingRide, setRatingRide] = useState<Ride | null>(null);
+  const [ticketRide, setTicketRide] = useState<Ride | null>(null);
+  const [bookOpen, setBookOpen]     = useState(false);
   const [activeTrip, setActiveTrip] = useState(false);
 
   return (
@@ -33,6 +43,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         ratingRide,
         openRatingModal:  (ride) => setRatingRide(ride),
         closeRatingModal: () => setRatingRide(null),
+        ticketRide,
+        openTicketModal:  (ride) => setTicketRide(ride),
+        closeTicketModal: () => setTicketRide(null),
+        bookOpen,
+        openBookModal:  () => setBookOpen(true),
+        closeBookModal: () => setBookOpen(false),
         activeTrip,
         setActiveTrip,
       }}

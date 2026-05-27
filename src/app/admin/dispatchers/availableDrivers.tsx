@@ -21,8 +21,10 @@ type Driver = {
   name: string;
   phone: string;
   vehicleType: string;
+  vehicleNumber: string;
   ac: boolean;
-  seats: number;
+  isAvailable: boolean;
+  hasConflict: boolean;
   etaMin: number;
 };
 
@@ -52,7 +54,6 @@ export default function AvailableDrivers({ tripId }: Props) {
   const queryClient = useQueryClient();
 
   const [filters, setFilters] = useState<Filters>({});
-  const [hydratedDefaults, setHydratedDefaults] = useState(false);
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -83,31 +84,12 @@ export default function AvailableDrivers({ tripId }: Props) {
 
   useEffect(() => {
     if (!tripId) return;
-
     setFilters({});
-    setHydratedDefaults(false);
   }, [tripId]);
 
-  useEffect(() => {
-    if (!data?.filters || hydratedDefaults) return;
-
-    setFilters((prev) => ({
-      ...prev,
-      vehicleType: prev.vehicleType ?? data.filters.vehicleType,
-
-      ac:
-        prev.ac ??
-        (data.filters.ac !== undefined ? String(data.filters.ac) : undefined),
-
-      seats:
-        prev.seats ??
-        (data.filters.seats !== undefined
-          ? String(data.filters.seats)
-          : undefined),
-    }));
-
-    setHydratedDefaults(true);
-  }, [data, hydratedDefaults]);
+  // Suggested filters from the booking — stored but NOT auto-applied.
+  // Dispatcher can tap "Match Trip" to apply them.
+  const suggestedFilters = data?.filters;
 
   const assignMutation = useMutation({
     mutationFn: async (driverId: string) => {
@@ -152,12 +134,29 @@ export default function AvailableDrivers({ tripId }: Props) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-default-900">
             <Users size={20} className="text-accent" />
-            <h3 className="font-bold">Available Drivers</h3>
+            <h3 className="font-bold">All Drivers</h3>
           </div>
 
-          <span className="text-xs text-muted font-medium">
-            {drivers.length} found
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted font-medium">
+              {drivers.length} drivers
+            </span>
+            {suggestedFilters && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onPress={() =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    vehicleType: suggestedFilters.vehicleType,
+                    ac: String(suggestedFilters.ac),
+                  }))
+                }
+              >
+                Match Trip
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="flex gap-2">
@@ -183,7 +182,7 @@ export default function AvailableDrivers({ tripId }: Props) {
 
       <Surface
         variant="tertiary"
-        className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 scrollbar-thin"
+        className="flex-1 overflow-y-auto p-3 flex flex-col gap-2 scrollbar-thin"
       >
         {isLoading && (
           <>
@@ -196,32 +195,71 @@ export default function AvailableDrivers({ tripId }: Props) {
 
         {!isLoading &&
           drivers.map((driver) => (
-            <Card key={driver.id} variant="default">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-3">
-                  <Avatar color="accent" variant="soft">
-                    <Avatar.Fallback>
-                      {driver.name.slice(0, 2).toUpperCase()}
-                    </Avatar.Fallback>
-                  </Avatar>
+            <Card
+              key={driver.id}
+              variant="default"
+              className={cn(
+                "py-3 px-4",
+                driver.hasConflict && "border-warning/40 bg-warning/5",
+              )}
+            >
+              <div className="flex items-center gap-3">
+                {/* Avatar */}
+                <Avatar
+                  size="sm"
+                  color={driver.hasConflict ? "warning" : "accent"}
+                  variant="soft"
+                  className="shrink-0"
+                >
+                  <Avatar.Fallback className="text-xs font-bold">
+                    {driver.name.slice(0, 2).toUpperCase()}
+                  </Avatar.Fallback>
+                </Avatar>
 
-                  <div>
-                    <h4 className="font-semibold text-lg">{driver.name}</h4>
+                {/* Info block */}
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold leading-tight truncate">
+                    {driver.name}
+                  </p>
 
-                    <div className="flex gap-2 mt-1 flex-wrap *:px-2 *:capitalize">
-                      <Chip size="sm">{driver.vehicleType}</Chip>
-                      <Chip size="sm">{driver.ac ? "AC" : "Non-AC"}</Chip>
-                      <Chip size="sm">{driver.seats} seats</Chip>
-                      <Chip size="sm" color="accent">
-                        ETA {driver.etaMin} min
-                      </Chip>
+                  {/* Status badge — only when flagged */}
+                  {(driver.hasConflict || !driver.isAvailable) && (
+                    <div className="mt-0.5">
+                      {driver.hasConflict ? (
+                        <Chip size="sm" color="warning" variant="soft" className="text-[11px]">
+                          Same-day ride
+                        </Chip>
+                      ) : (
+                        <Chip size="sm" color="danger" variant="soft" className="text-[11px]">
+                          Marked busy
+                        </Chip>
+                      )}
                     </div>
+                  )}
+
+                  {/* Attribute chips */}
+                  <div className="flex items-center gap-1.5 mt-1.5 overflow-hidden">
+                    <Chip size="sm" className="shrink-0 capitalize px-2 text-[11px]">
+                      {driver.vehicleType}
+                    </Chip>
+                    <Chip size="sm" className="shrink-0 px-2 text-[11px]">
+                      {driver.ac ? "AC" : "Non-AC"}
+                    </Chip>
+                    {driver.vehicleNumber && (
+                      <Chip size="sm" className="px-2 text-[11px] max-w-[100px] truncate">
+                        {driver.vehicleNumber}
+                      </Chip>
+                    )}
                   </div>
                 </div>
 
+                {/* Assign button */}
                 <Button
-                  variant="primary"
+                  size="sm"
+                  variant={driver.hasConflict ? "secondary" : "primary"}
                   onPress={() => assignMutation.mutate(driver.id)}
+                  isDisabled={assignMutation.isPending}
+                  className="shrink-0"
                 >
                   Assign
                 </Button>

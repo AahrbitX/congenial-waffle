@@ -1,20 +1,33 @@
-import { MOCK_USER_STATS, MOCK_REFERRALS } from "@/data/user.mock";
+import { request } from "@/lib/api-client";
+import { MOCK_REFERRALS } from "@/data/user.mock";
 import { MOCK_FAQS } from "@/data/faqs.mock";
 import type { UserStats, Faq } from "@/types/user.types";
 
-const delay = (ms = 400) => new Promise<void>((r) => setTimeout(r, ms));
+type StatsResponse = {
+  totalRides: number;
+  thisMonth: number;
+  totalSpent: number;
+  rating: number;
+  ratingCount: number;
+  monthLabel: string;
+};
 
 export async function getUserStats(): Promise<UserStats> {
-  await delay();
-  return MOCK_USER_STATS;
+  const res = await request<StatsResponse>("/api/users/stats");
+  return {
+    totalRides: res.totalRides,
+    thisMonth: res.thisMonth,
+    totalSpent: res.totalSpent,
+    rating: res.rating,
+    ratingCount: res.ratingCount,
+    monthLabel: res.monthLabel,
+  };
 }
 
 export async function getFaqs(): Promise<Faq[]> {
-  await delay(300);
   return MOCK_FAQS;
 }
 
 export async function getReferrals(): Promise<typeof MOCK_REFERRALS> {
-  await delay(300);
   return MOCK_REFERRALS;
 }

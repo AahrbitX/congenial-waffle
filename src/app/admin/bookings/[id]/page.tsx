@@ -63,7 +63,7 @@ function BookingDetailsPage() {
         <div className="space-y-4">
           <RideInformation info={bookingDetails.info} />
           <RouteDetails route={bookingDetails.route} />
-          <ReviewDetails />
+          <ReviewDetails review={bookingDetails.review ?? null} />
         </div>
       </div>
     </Surface>

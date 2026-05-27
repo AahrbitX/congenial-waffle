@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { useVehicles } from "@/hooks/useBooking";
@@ -23,11 +24,8 @@ import type {
   TripTab,
   Vehicle,
 } from "@/types/booking.types";
-import {
-  createBooking,
-  createPaymentOrder,
-  verifyPayment,
-} from "@/api/booking.api";
+import { createBooking, cancelBooking } from "@/api/booking.api";
+import { createPaymentOrder, verifyPayment } from "@/api/transactions.api";
 import dynamic from "next/dynamic";
 const LocationPickerMap = dynamic(
   () =>
@@ -140,6 +138,7 @@ export function BookRideModal({
     : undefined;
   const isInquiry = config?.formType === "inquiry";
   const { data: session } = authClient.useSession();
+  const qc = useQueryClient();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [confirmed, setConfirmed] = useState(false);
@@ -347,9 +346,9 @@ export function BookRideModal({
     setError("");
 
     // 1. Create booking
-    let bookingResult: { bookingId: string };
+    let bookingId: string;
     try {
-      bookingResult = await createBooking({
+      const result = await createBooking({
         serviceId: config?.id ?? "city-taxi",
         serviceTab: config?.serviceTab ?? "local",
         tripTab: form.tripTab,
@@ -370,6 +369,7 @@ export function BookRideModal({
         customerPhone: session?.user?.phoneNumber ?? "",
         totalFare: String(computedFare),
       });
+      bookingId = result.bookingId;
     } catch (err) {
       setError(
         err instanceof Error
@@ -389,16 +389,14 @@ export function BookRideModal({
       keyId: string;
     };
     try {
-      const orderRes = await createPaymentOrder(
-        bookingResult.bookingId,
-        amount,
-        mode,
-      );
+      const orderRes = await createPaymentOrder(bookingId, amount, mode);
       orderData = orderRes.data;
     } catch {
-      setError("Failed to initiate payment. Please try again.");
-      setPayProcessing(false);
-      setPayMode(null);
+      // Order creation failed — cancel the orphaned booking and close
+      cancelBooking(bookingId)
+        .then(() => qc.invalidateQueries({ queryKey: ["my-transactions"] }))
+        .catch(() => {});
+      handleClose();
       return;
     }
 
@@ -418,11 +416,12 @@ export function BookRideModal({
       }) => {
         try {
           await verifyPayment(
-            bookingResult.bookingId,
+            bookingId,
             response.razorpay_order_id,
             response.razorpay_payment_id,
             response.razorpay_signature,
           );
+          // bookingId is a local variable — no stale closure risk
           setConfirmed(true);
           setTimeout(() => {
             handleClose();
@@ -434,8 +433,13 @@ export function BookRideModal({
       },
       modal: {
         ondismiss: () => {
+          // Cancel the booking immediately and close — bookingId is a local variable, no stale closure
+          cancelBooking(bookingId)
+            .then(() => qc.invalidateQueries({ queryKey: ["my-transactions"] }))
+            .catch(() => {});
           setPayProcessing(false);
           setPayMode(null);
+          handleClose();
         },
       },
       prefill: {

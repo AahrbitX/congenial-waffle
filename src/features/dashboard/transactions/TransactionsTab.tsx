@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Card, Chip } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
-import { useMyTransactions } from "@/hooks/useTransactions";
+import { useMyTransactions, useRazorpayPayment } from "@/hooks/useTransactions";
+import { authClient } from "@/lib/auth-client";
 import { ROUTES } from "@/constants/routes";
 import {
   IconCar,
@@ -64,7 +65,9 @@ function EmptyState({ message }: { message: string }) {
 
 /** A clickable transaction row for the history section (no action buttons) */
 function HistoryRow({ tx }: { tx: UserTransaction }) {
-  const { label, color, icon } = STATUS_CONFIG[tx.status] ?? STATUS_CONFIG.created;
+  // created payments only appear in history when the booking is non-ongoing (abandoned/cancelled) — show as Failed
+  const displayStatus = tx.status === "created" ? "failed" : tx.status;
+  const { label, color, icon } = STATUS_CONFIG[displayStatus] ?? STATUS_CONFIG.failed;
 
   return (
     <Link
@@ -101,12 +104,14 @@ function PendingRow({
   amountDue,
   label,
   isBalance,
+  onPayNow,
   onPayToDriver,
 }: {
   tx: UserTransaction;
   amountDue: number;
   label: string;
   isBalance?: boolean;
+  onPayNow: () => void;
   onPayToDriver: () => void;
 }) {
   const statusCfg = isBalance
@@ -143,12 +148,13 @@ function PendingRow({
             size="sm"
             variant="primary"
             className="flex-1 rounded-xl font-semibold text-xs"
+            onPress={onPayNow}
           >
             <IconCreditCard size={13} />
             Pay Now
           </Button>
-          {/* Only show Pay to Driver when a driver is assigned to the booking */}
-          {tx.driverId && (
+          {/* Only show Pay to Driver when a driver is assigned and the ride is ongoing */}
+          {tx.driverId && tx.bookingStatus === "ongoing" && (
             <Button
               size="sm"
               variant="outline"
@@ -179,7 +185,27 @@ function PendingRow({
 
 export function TransactionsTab() {
   const { data: transactions = [], isLoading } = useMyTransactions();
+  const { data: session } = authClient.useSession();
+  const { pay } = useRazorpayPayment();
   const [modalTx, setModalTx] = useState<{ tx: UserTransaction; amountDue?: number; isBalance?: boolean } | null>(null);
+
+  // Load Razorpay checkout.js
+  useEffect(() => {
+    if (document.querySelector('script[src*="razorpay"]')) return;
+    const s = document.createElement("script");
+    s.src = "https://checkout.razorpay.com/v1/checkout.js";
+    document.body.appendChild(s);
+  }, []);
+
+  function handlePayNow(tx: UserTransaction, amountDue: number, mode: "full" | "partial" | "balance") {
+    pay({
+      bookingId: tx.bookingId,
+      amount: amountDue,
+      mode,
+      userName: session?.user?.name ?? "",
+      userPhone: (session?.user as any)?.phoneNumber ?? "",
+    });
+  }
 
   if (isLoading) {
     return (
@@ -189,30 +215,52 @@ export function TransactionsTab() {
     );
   }
 
-  // Pending: unpaid online (created) + cash awaiting code (cash_pending)
-  const pendingOnline  = transactions.filter((t) => t.status === "created");
-  const pendingCash    = transactions.filter((t) => t.status === "cash_pending");
-  const pendingItems   = [...pendingOnline, ...pendingCash];
-
-  // Bookings that already have a dedicated balance payment record
-  const bookingsWithBalancePayment = new Set(
-    transactions.filter((t) => t.mode === "balance").map((t) => t.bookingId),
+  // Bookings that already have a successful payment — exclude these from "created" pending
+  const bookingsAlreadyPaid = new Set(
+    transactions
+      .filter((t) => t.status === "paid" || t.status === "cash_collected")
+      .map((t) => t.bookingId),
   );
 
-  // Partial balance dues: paid partial where amount < totalFare and no balance record yet
+  // Pending: unpaid online (created) + cash awaiting code (cash_pending)
+  // Only surface for ongoing rides — abandoned/dismissed Razorpay orders for non-ongoing bookings are hidden
+  const pendingOnline  = transactions.filter(
+    (t) => t.status === "created" && !bookingsAlreadyPaid.has(t.bookingId) && t.bookingStatus === "ongoing",
+  );
+  const pendingCash    = transactions.filter((t) => t.status === "cash_pending" && !bookingsAlreadyPaid.has(t.bookingId) && t.bookingStatus === "ongoing");
+  const pendingItems   = [...pendingOnline, ...pendingCash];
+
+  // Sum all paid amounts per booking (covers both partial + balance payments)
+  const totalPaidByBooking = new Map<string, number>();
+  transactions.forEach((t) => {
+    if (t.status === "paid" || t.status === "cash_collected") {
+      totalPaidByBooking.set(
+        t.bookingId,
+        (totalPaidByBooking.get(t.bookingId) ?? 0) + parseFloat(t.amount),
+      );
+    }
+  });
+
+  // Balance due: partial advance paid, but total paid across all records < totalFare
+  // Exclude cancelled bookings — balance is cleared when a booking is cancelled
   const balanceDues = transactions.filter(
     (t) =>
       t.status === "paid" &&
       t.mode === "partial" &&
-      parseFloat(t.totalFare) - parseFloat(t.amount) > 0.01 &&
-      !bookingsWithBalancePayment.has(t.bookingId),
+      t.bookingStatus !== "cancelled" &&
+      (totalPaidByBooking.get(t.bookingId) ?? 0) < parseFloat(t.totalFare) - 0.01,
   );
 
   const totalPendingCount = pendingItems.length + balanceDues.length;
 
-  // History: paid (full or partial advance), cash_collected, refunded, failed
+  // History: paid, cash_collected, refunded, failed + abandoned attempts (created for non-ongoing bookings)
   const history = transactions.filter(
-    (t) => t.status === "paid" || t.status === "cash_collected" || t.status === "refunded" || t.status === "failed",
+    (t) =>
+      t.status === "paid" ||
+      t.status === "cash_collected" ||
+      t.status === "refunded" ||
+      t.status === "failed" ||
+      (t.status === "created" && t.bookingStatus !== "ongoing"),
   );
 
   return (
@@ -249,6 +297,7 @@ export function TransactionsTab() {
                   tx={tx}
                   amountDue={parseFloat(tx.amount)}
                   label={`${tx.pickupName} → ${tx.dropName}`}
+                  onPayNow={() => handlePayNow(tx, parseFloat(tx.amount), tx.mode as "full" | "partial")}
                   onPayToDriver={() => setModalTx({ tx })}
                 />
               ))}
@@ -281,6 +330,7 @@ export function TransactionsTab() {
                       amountDue={remaining}
                       label={`Balance Due — ${tx.pickupName} → ${tx.dropName}`}
                       isBalance
+                      onPayNow={() => handlePayNow(tx, remaining, "balance")}
                       onPayToDriver={() => setModalTx({ tx, amountDue: remaining, isBalance: true })}
                     />
                   </div>

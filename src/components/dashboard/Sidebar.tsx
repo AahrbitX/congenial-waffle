@@ -49,7 +49,7 @@ export function Sidebar() {
 
   const { data: session } = authClient.useSession();
   const { data: notifications } = useNotifications();
-  const { openNotifPanel } = useDashboard();
+  const { openNotifPanel, openBookModal } = useDashboard();
   const unread = notifications?.filter((n) => !n.read).length ?? 0;
 
   return (
@@ -123,6 +123,7 @@ export function Sidebar() {
 
           <Button
             fullWidth
+            onPress={openBookModal}
             className="h-11 rounded-xl bg-primary text-sm font-semibold text-white"
           >
             <IconPlus size={16} />
@@ -164,12 +165,12 @@ export function Sidebar() {
           })}
 
           {/* Floating Add Booking Button */}
-          <Link
-            href={"/"}
+          <button
+            onClick={openBookModal}
             className="absolute left-1/2 top-0 z-10 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-primary text-white shadow-2xl ring-4 ring-background transition-transform active:scale-95"
           >
             <IconPlus size={24} />
-          </Link>
+          </button>
         </div>
       </div>
     </>

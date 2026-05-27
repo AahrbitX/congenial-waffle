@@ -12,15 +12,18 @@ export default function AdminDispatchersPage() {
   return (
     <Surface className="h-full min-h-0 p-4" variant="secondary">
       <Surface className="grid h-full min-h-0 grid-cols-[0.75fr_1fr_0.85fr] rounded-2xl overflow-hidden border">
-        <TripsList
-          activeTripId={activeTripId}
-          setActiveTripIdAction={setActiveTripId}
-        />
+        <div className="h-full min-h-0 overflow-hidden">
+          <TripsList
+            activeTripId={activeTripId}
+            setActiveTripIdAction={setActiveTripId}
+          />
+        </div>
 
-        <div className="border-r">
+        <div className="h-full min-h-0 overflow-hidden border-r">
           <TripDetails tripId={activeTripId} />
         </div>
-        <div>
+
+        <div className="h-full min-h-0 overflow-hidden">
           <AvailableDrivers tripId={activeTripId} />
         </div>
       </Surface>

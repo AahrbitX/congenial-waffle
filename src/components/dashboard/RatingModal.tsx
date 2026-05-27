@@ -2,15 +2,16 @@
 
 import { useState } from "react";
 import { useDashboard } from "@/context/DashboardContext";
-import { Button } from "@/components/ui/Button";
+import { useSubmitReview } from "@/hooks/useRides";
+import { Button, Chip } from "@heroui/react";
 import {
-  IconX,
   IconStar,
-  IconAlert,
-  IconChevronRight,
   IconCheckCircle,
+  IconX,
+  IconMapPin,
+  IconCar,
+  IconLoader,
 } from "@/constants/icons";
-import { TextArea } from "@heroui/react";
 
 const TAG_OPTIONS = [
   "Great Driver",
@@ -22,255 +23,232 @@ const TAG_OPTIONS = [
   "AC was great",
   "Professional",
 ];
-const TIP_OPTIONS = [10, 20, 50];
 
-const ratingLabel = (r: number) =>
-  ["", "Poor", "Fair", "Good", "Great", "Excellent!"][r] ?? "";
-const ratingColor = (r: number) =>
-  r >= 4
-    ? "text-[var(--color-success)]"
-    : r === 3
-      ? "text-[var(--color-warning)]"
-      : r > 0
-        ? "text-[var(--color-danger)]"
-        : "text-muted";
+const RATING_LABEL = ["", "Poor", "Fair", "Good", "Great", "Excellent!"];
+
+function formatJourneyDate(journeyDate: string, journeyTime: string) {
+  try {
+    const [year, month, day] = journeyDate.split("-").map(Number);
+    const [hour, minute]     = journeyTime.split(":").map(Number);
+    const d = new Date(year, month - 1, day, hour, minute);
+    return d.toLocaleDateString("en-IN", {
+      day:    "numeric",
+      month:  "short",
+      year:   "numeric",
+      hour:   "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return journeyDate;
+  }
+}
 
 function StarPicker({
   value,
-  hover,
-  onHover,
-  onLeave,
-  onPick,
-  size = 36,
+  onChange,
 }: {
   value: number;
-  hover: number;
-  onHover: (v: number) => void;
-  onLeave: () => void;
-  onPick: (v: number) => void;
-  size?: number;
+  onChange: (v: number) => void;
 }) {
+  const [hover, setHover] = useState(0);
+  const active = hover || value;
+
   return (
-    <div className="flex justify-center gap-2">
-      {[1, 2, 3, 4, 5].map((s) => (
-        <button
-          key={s}
-          onMouseEnter={() => onHover(s)}
-          onMouseLeave={onLeave}
-          onClick={() => onPick(s)}
-          className="transition-transform hover:scale-110"
-        >
-          <IconStar
-            size={size}
-            className={`transition-colors ${(hover || value) >= s ? "text-yellow-400 fill-yellow-400" : "text-[var(--color-border-strong)]"}`}
-          />
-        </button>
-      ))}
+    <div className="flex flex-col items-center gap-2">
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((s) => (
+          <button
+            key={s}
+            type="button"
+            onMouseEnter={() => setHover(s)}
+            onMouseLeave={() => setHover(0)}
+            onClick={() => onChange(s)}
+            className="transition-transform hover:scale-110 active:scale-95 focus:outline-none p-1"
+          >
+            <IconStar
+              size={40}
+              className={`transition-colors ${
+                active >= s
+                  ? "text-warning fill-warning"
+                  : "text-default-200"
+              }`}
+            />
+          </button>
+        ))}
+      </div>
+      <p
+        className={`text-sm font-bold min-h-[20px] transition-all ${
+          active >= 4
+            ? "text-success"
+            : active === 3
+            ? "text-warning"
+            : active > 0
+            ? "text-danger"
+            : "text-transparent"
+        }`}
+      >
+        {RATING_LABEL[active] ?? ""}
+      </p>
     </div>
   );
 }
 
 export function RatingModal() {
   const { ratingRide, closeRatingModal } = useDashboard();
-  const [driverStars, setDriverStars] = useState(0);
-  const [hoverDriver, setHoverDriver] = useState(0);
-  const [rideStars, setRideStars] = useState(0);
-  const [hoverRide, setHoverRide] = useState(0);
-  const [tags, setTags] = useState<string[]>([]);
-  const [comment, setComment] = useState("");
-  const [tip, setTip] = useState<number | null>(null);
+  const submitReview = useSubmitReview();
+
+  const [stars, setStars]         = useState(0);
+  const [tags, setTags]           = useState<string[]>([]);
+  const [comment, setComment]     = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   if (!ratingRide) return null;
 
+  const handleSubmit = async () => {
+    if (!ratingRide || stars === 0) return;
+    const tagStr      = tags.length > 0 ? tags.join(", ") : "";
+    const fullComment = [tagStr, comment.trim()].filter(Boolean).join(". ") || undefined;
+
+    await submitReview.mutateAsync({
+      bookingId: ratingRide.id,
+      rating:    stars,
+      comment:   fullComment,
+    });
+
+    setSubmitted(true);
+    setTimeout(closeRatingModal, 2500);
+  };
+
+  const toggleTag = (tag: string) =>
+    setTags((prev) =>
+      prev.includes(tag) ? prev.filter((x) => x !== tag) : [...prev, tag],
+    );
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-background rounded-3xl shadow-2xl w-full max-w-md max-h-[90svh] overflow-y-auto">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={(e) => { if (e.target === e.currentTarget) closeRatingModal(); }}
+    >
+      <div className="bg-white dark:bg-zinc-900 w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden">
+
         {submitted ? (
-          <div className="flex flex-col items-center justify-center py-14 px-8 gap-3">
-            <div className="w-16 h-16 rounded-full bg-[var(--color-success-light)] flex items-center justify-center">
-              <IconCheckCircle
-                size={32}
-                className="text-[var(--color-success)]"
-              />
+          /* ── Success ── */
+          <div className="flex flex-col items-center justify-center py-12 px-8 gap-4 text-center">
+            <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center">
+              <IconCheckCircle size={34} className="text-success" />
             </div>
-            <p className="text-[18px] font-black text-primary">
-              Thanks for the feedback!
-            </p>
-            <p className="text-[13px] text-muted text-center">
-              Your rating helps us improve the service.
-            </p>
-            {driverStars >= 4 && (
-              <p className="text-[13px] text-[var(--color-primary)] font-semibold bg-[var(--color-primary-light)] px-4 py-2 rounded-full">
-                Glad you had a great ride with {ratingRide.driver}!
+            <div>
+              <p className="text-lg font-black text-foreground">Thanks for the feedback!</p>
+              <p className="text-sm text-default-400 mt-1">
+                Your rating helps us improve the service.
+              </p>
+            </div>
+            {stars >= 4 && (
+              <p className="text-sm text-primary font-semibold bg-primary/10 px-4 py-2 rounded-full">
+                Glad you had a great ride
+                {ratingRide.driver !== "—" ? ` with ${ratingRide.driver}` : ""}!
               </p>
             )}
           </div>
         ) : (
           <>
-            <div className="bg-[var(--color-surface-muted)] px-6 py-5 flex items-start justify-between">
-              <div>
-                <p className="text-xs text-muted">Rate your ride</p>
-                <p className="text-base font-bold text-primary my-0.5">
-                  {ratingRide.from} → {ratingRide.to}
+            {/* ── Header ── */}
+            <div className="flex items-start justify-between px-5 pt-5 pb-4 border-b border-divider">
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] text-default-400 font-semibold uppercase tracking-wider mb-1">
+                  Rate your ride
                 </p>
-                <p className="text-xs text-muted mt-0.5">
-                  {ratingRide.driver !== "—" ? ratingRide.driver : "—"} ·{" "}
-                  {ratingRide.date}
-                </p>
+                <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground truncate">
+                  <IconMapPin size={13} className="text-primary shrink-0" />
+                  <span className="truncate">{ratingRide.from}</span>
+                  <span className="text-default-400 shrink-0 text-xs">→</span>
+                  <span className="truncate">{ratingRide.to}</span>
+                </div>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <IconCar size={12} className="text-default-400 shrink-0" />
+                  <p className="text-xs text-default-400">
+                    {ratingRide.driver !== "—" ? ratingRide.driver : "Driver"}
+                    {" · "}
+                    {formatJourneyDate(ratingRide.journeyDate, ratingRide.journeyTime)}
+                  </p>
+                </div>
               </div>
               <button
-                onClick={closeRatingModal}
-                className="p-1.5 rounded-lg hover:bg-[var(--color-border)]"
+                onClick={() => closeRatingModal()}
+                className="p-1.5 rounded-lg hover:bg-default-100 text-default-400 ml-3 shrink-0"
               >
                 <IconX size={16} />
               </button>
             </div>
 
-            <div className="pt-0 p-4 space-y-5">
-              <div>
-                <p className="text-sm font-semibold text-center text-primary mb-1">
+            <div className="p-5 space-y-5 max-h-[70svh] overflow-y-auto">
+
+              {/* ── Stars ── */}
+              <div className="flex flex-col items-center gap-1">
+                <p className="text-sm font-semibold text-default-700 mb-1">
                   How was your driver?
                 </p>
-                <p className="text-xs text-muted text-center mb-3">
-                  Tap a star to rate
-                </p>
-                <StarPicker
-                  value={driverStars}
-                  hover={hoverDriver}
-                  onHover={setHoverDriver}
-                  onLeave={() => setHoverDriver(0)}
-                  onPick={setDriverStars}
-                />
-                {(hoverDriver || driverStars) > 0 && (
-                  <p
-                    className={`text-center text-xs font-semibold mt-1 ${ratingColor(hoverDriver || driverStars)}`}
-                  >
-                    {ratingLabel(hoverDriver || driverStars)}
-                  </p>
-                )}
+                <StarPicker value={stars} onChange={setStars} />
               </div>
 
-              <div className="">
-                <p className="text-sm font-semibold text-center text-primary mb-3">
-                  How was the overall ride?
-                </p>
-                <StarPicker
-                  value={rideStars}
-                  hover={hoverRide}
-                  onHover={setHoverRide}
-                  onLeave={() => setHoverRide(0)}
-                  onPick={setRideStars}
-                />
-              </div>
-
-              {driverStars > 0 && (
+              {/* ── Tags ── */}
+              {stars > 0 && (
                 <div>
-                  <p className="text-sm font-semibold text-center text-primary mb-2">
-                    What stood out?
+                  <p className="text-xs font-semibold text-default-500 uppercase tracking-wide mb-2">
+                    What stood out?{" "}
+                    <span className="normal-case font-normal">(optional)</span>
                   </p>
-                  <div className="flex flex-wrap gap-2 items-center justify-center">
-                    {TAG_OPTIONS.map((t) => (
-                      <button
-                        key={t}
-                        onClick={() =>
-                          setTags((prev) =>
-                            prev.includes(t)
-                              ? prev.filter((x) => x !== t)
-                              : [...prev, t],
-                          )
-                        }
-                        className={`text-[12px] font-semibold px-3 py-1.5 rounded-full border transition-all ${tags.includes(t) ? "bg-primary text-white border-[var(--color-primary)]" : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border-[var(--color-border-strong)] hover:border-[var(--color-primary)]"}`}
+                  <div className="flex flex-wrap gap-1.5">
+                    {TAG_OPTIONS.map((tag) => (
+                      <Chip
+                        key={tag}
+                        variant={tags.includes(tag) ? "primary" : "soft"}
+                        size="sm"
+                        className="cursor-pointer select-none"
+                        onClick={() => toggleTag(tag)}
                       >
-                        {t}
-                      </button>
+                        {tag}
+                      </Chip>
                     ))}
                   </div>
                 </div>
               )}
 
-              <TextArea
-                rows={2}
-                variant="secondary"
+              {/* ── Comment ── */}
+              <textarea
+                rows={3}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Add a comment (optional)..."
-                className="w-full text-sm rounded-xl px-4 py-3 resize-none mb-2"
+                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 resize-none focus:outline-none focus:border-primary transition-colors"
               />
 
-              <div className="bg-[var(--color-primary-light)] rounded-xl p-4 border border-[var(--color-primary-light)]">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="size-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-                    <span className="text-white text-sm font-semibold">
-                      &#x20b9;
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-primary">
-                      Tip your driver
-                    </p>
-                    <p className="text-xs text-muted">
-                      100% goes to{" "}
-                      {ratingRide.driver !== "—"
-                        ? ratingRide.driver
-                        : "the driver"}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  {TIP_OPTIONS.map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => setTip(tip === t ? null : t)}
-                      className={`flex-1 py-2.5 rounded-xl text-[13px] font-bold border transition-all ${tip === t ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]" : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border-[var(--color-border-strong)] hover:border-[var(--color-primary)]"}`}
-                    >
-                      &#x20b9;{t}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => setTip(0)}
-                    className={`flex-1 py-2.5 rounded-xl text-[13px] font-semibold border transition-all ${tip === 0 ? "bg-[var(--color-border)] text-[var(--color-text-secondary)] border-[var(--color-border-strong)]" : "bg-[var(--color-surface)] text-muted border-[var(--color-border-strong)]"}`}
-                  >
-                    Skip
-                  </button>
-                </div>
-              </div>
-
-              <button className="w-full flex items-center gap-3 px-4 py-3 bg-[var(--color-surface-muted)] rounded-xl border border-[var(--color-border)] hover:bg-[var(--color-warning-light)] hover:border-[var(--color-warning)] transition-colors group text-left">
-                <IconAlert
-                  size={18}
-                  className=" text-warning transition-colors shrink-0"
-                />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-warning group-hover:text-warning">
-                    Report a safety issue
-                  </p>
-                  <p className="text-xs text-muted">
-                    Something feel unsafe? Let us know.
-                  </p>
-                </div>
-                <IconChevronRight size={14} className="text-muted" />
-              </button>
-
-              <div className="flex gap-3 pb-2">
+              {/* ── Actions ── */}
+              <div className="flex gap-3 pb-1">
                 <Button
                   variant="secondary"
-                  fullWidth
-                  onPress={closeRatingModal}
+                  className="flex-1"
+                  onPress={() => closeRatingModal()}
                 >
-                  Skip for now
+                  Skip
                 </Button>
-                <Button
-                  fullWidth
-                  variant="primary"
-                  onPress={() => {
-                    setSubmitted(true);
-                    setTimeout(closeRatingModal, 2000);
-                  }}
-                  disabled={driverStars === 0}
+                <button
+                  onClick={handleSubmit}
+                  disabled={stars === 0 || submitReview.isPending}
+                  className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-colors ${
+                    stars === 0 || submitReview.isPending
+                      ? "bg-primary/40 text-white cursor-not-allowed"
+                      : "bg-primary text-white hover:bg-primary/90"
+                  }`}
                 >
-                  {driverStars === 0 ? "Rate driver first" : "Submit Rating"}
-                </Button>
+                  {submitReview.isPending ? (
+                    <><IconLoader size={14} className="animate-spin" /> Submitting…</>
+                  ) : stars === 0 ? (
+                    "Select a rating"
+                  ) : (
+                    "Submit Rating"
+                  )}
+                </button>
               </div>
             </div>
           </>
