@@ -71,7 +71,7 @@ export const TripsList = ({
   }
 
   return (
-    <div className="flex min-h-0 flex-col border-r">
+    <div className="flex h-full min-h-0 flex-col border-r">
       <div className="shrink-0 border-b p-4">
         <SearchField aria-label="Search trips" variant="secondary">
           <SearchField.Group>

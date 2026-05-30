@@ -4,8 +4,9 @@ export const ROUTES = {
     overview:    "/dashboard/overview",
     rides:       "/dashboard/rides",
     ride:        (id: string) => `/dashboard/rides/${id}`,
-    wallet:      "/dashboard/wallet",
-    transaction: (id: string) => `/dashboard/wallet/transactions/${id}`,
+    transactions: "/dashboard/transactions",
+    transaction:  (id: string) => `/dashboard/transactions/${id}`,
+    wallet:       "/dashboard/wallet",
     profile: {
       root:          "/dashboard/profile",
       privacy:       "/dashboard/profile/privacy",

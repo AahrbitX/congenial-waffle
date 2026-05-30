@@ -20,7 +20,8 @@ export default function AdminDispatchersPage() {
         <div className="border-b md:border-r">
           <TripDetails tripId={activeTripId} />
         </div>
-        <div>
+
+        <div className="h-full min-h-0 overflow-hidden">
           <AvailableDrivers tripId={activeTripId} />
         </div>
       </Surface>

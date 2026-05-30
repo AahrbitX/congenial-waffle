@@ -79,14 +79,17 @@ function HeroSection() {
             </TextAnimate>
 
             {/* Headline */}
-            <TextAnimate
-              once
-              as="h1"
-              animation="slideLeft"
-              className="text-center sm:text-left mb-3 text-4xl font-black leading-[1.05] tracking-[-0.04em] text-primary sm:text-5xl md:text-[3.4rem] lg:text-[3.6rem] md:mr-10"
-            >
-              Hey Buddy! Where are you Riding to?
-            </TextAnimate>
+            <h1 className="text-center sm:text-left mb-3 text-4xl font-black leading-[1.05] tracking-[-0.04em] text-black sm:text-5xl md:text-[3.4rem] lg:text-[3.6rem] md:mr-10">
+              <TextAnimate once as="span" animation="slideLeft">
+                {"Hey Buddy! Where are you "}
+              </TextAnimate>
+              <TextAnimate once as="span" animation="slideLeft" className="text-primary">
+                {"Riding"}
+              </TextAnimate>
+              <TextAnimate once as="span" animation="slideLeft">
+                {" to?"}
+              </TextAnimate>
+            </h1>
 
             {/* Subtitle */}
             <TextAnimate

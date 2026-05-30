@@ -54,11 +54,8 @@ export function DashboardHeader() {
           <p className="text-sm text-muted">{meta.subFn(firstName)}</p>
         )}
       </div>
-      <Button isIconOnly variant="ghost" onClick={openNotifPanel}>
+      <Button isIconOnly variant="ghost" onClick={openNotifPanel} isDisabled className="opacity-40 pointer-events-none">
         <IconBell size={14} className="text-muted" />
-        {unread > 0 && (
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary" />
-        )}
       </Button>
     </div>
   );

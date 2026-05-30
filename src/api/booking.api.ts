@@ -5,8 +5,8 @@ import type { Vehicle, Place, BookingRequest, BookingResponse } from "@/types/bo
 
 const delay = (ms = 400) => new Promise<void>((r) => setTimeout(r, ms));
 
-/** Map frontend display vehicle types → backend DB enum ("sedan" | "suv" | "minivan") */
-function toBackendVehicleType(type: string): "sedan" | "suv" | "minivan" {
+/** Map frontend display vehicle types → backend DB enum */
+function toBackendVehicleType(type: string): "hatchback" | "sedan" | "suv" | "minivan" {
   const t = type.toLowerCase();
   if (t.includes("tempo") || t.includes("traveller")) return "minivan";
   if (
@@ -14,7 +14,8 @@ function toBackendVehicleType(type: string): "sedan" | "suv" | "minivan" {
     t.includes("muv")   || t.includes("ertiga")  ||
     t.includes("suv")
   ) return "suv";
-  return "sedan"; // hatchback, sedan, luxury sedan
+  if (t.includes("hatchback")) return "hatchback";
+  return "sedan"; // sedan, luxury sedan
 }
 
 export async function getVehicles(): Promise<Vehicle[]> {
@@ -56,25 +57,10 @@ export async function createBooking(req: BookingRequest): Promise<BookingRespons
   return { id: res.data.bookingRef, bookingId: res.data.id, status: "confirmed" };
 }
 
-export async function createPaymentOrder(
-  bookingId: string,
-  amount: number,
-  mode: "full" | "partial",
-) {
-  return request<{ success: boolean; data: { orderId: string; amount: number; currency: string; keyId: string } }>(
-    "/api/payments/create-order",
-    { method: "POST", body: JSON.stringify({ bookingId, amount, mode }) },
+export async function cancelBooking(bookingId: string): Promise<void> {
+  await request<{ success: boolean }>(
+    `/api/bookings/${bookingId}/cancel`,
+    { method: "PATCH" },
   );
 }
 
-export async function verifyPayment(
-  bookingId:       string,
-  rzp_order_id:    string,
-  rzp_payment_id:  string,
-  rzp_signature:   string,
-) {
-  return request<{ success: boolean; message: string }>(
-    "/api/payments/verify",
-    { method: "POST", body: JSON.stringify({ bookingId, rzp_order_id, rzp_payment_id, rzp_signature }) },
-  );
-}

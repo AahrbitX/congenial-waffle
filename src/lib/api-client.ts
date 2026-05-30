@@ -1,4 +1,9 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+// In the browser, use relative URLs so requests go through the Next.js proxy
+// (which is where the auth cookie lives). On the server, use the absolute URL.
+const API_BASE =
+  typeof window !== "undefined"
+    ? ""
+    : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000");
 
 export async function request<T>(
   path: string,
