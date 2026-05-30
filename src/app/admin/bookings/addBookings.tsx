@@ -121,6 +121,7 @@ function AddBookings({ className }: { className?: string }) {
   return (
     <Modal isOpen={isOpen} onOpenChange={setIsOpen}>
       <Button
+        size="sm"
         variant="primary"
         className={cn("", className)}
         onPress={() => setIsOpen(true)}

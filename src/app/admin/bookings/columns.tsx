@@ -6,6 +6,7 @@ import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import AssignDriver from "./assignDriver";
 import { Booking } from "@/types/bookings";
 import { dateParser } from "@/utils/date-parser";
+import StatusIndicator from "@/components/data/statusIndicator";
 
 const columnHelper = createColumnHelper<Booking>();
 
@@ -78,15 +79,9 @@ export const bookingColumns: ColumnDef<Booking, any>[] = [
   }),
   columnHelper.accessor("status", {
     header: "Status",
-    cell: (info) => (
-      <Chip size="sm" color={statusColorMap[info.getValue()]} variant="soft">
-        {info.getValue()}
-      </Chip>
-    ),
-    size: 30,
+    cell: (cell) => <StatusIndicator status={cell.getValue()} />,
   }),
   columnHelper.accessor("fare", {
     header: "Fare",
-    size: 30,
   }),
 ];

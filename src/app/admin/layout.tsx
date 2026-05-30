@@ -8,6 +8,7 @@ import {
   BadgeIndianRupee,
   CalendarCheck,
   Car,
+  Home,
   LayoutDashboard,
   Star,
   User,
@@ -31,10 +32,16 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="h-screen overflow-hidden">
-      <div className="grid w-full h-full grid-rows-[52px_1fr] md:grid-cols-[216px_1fr] bg-background rounded-2xl">
+      <div className="grid w-full h-full grid-rows-[64px_1fr] md:grid-cols-[216px_1fr] bg-background rounded-2xl">
         {/* Header */}
-        <div className="col-span-2 border-b border-divider p-2 px-4 flex items-center font-bold uppercase tracking-tight">
-          <Link href={"/"}>MohanCabs</Link>
+        <div className="col-span-2 border-b border-divider p-4 flex items-center">
+          <Link
+            className={buttonVariants({ variant: "outline", isIconOnly: true })}
+            href={"/"}
+          >
+            <Home size={12} />
+          </Link>
+          <p className="font-semibold text-xl ml-2">Mohan Cabs</p>
         </div>
 
         {/* Sidebar (Desktop Only) */}

@@ -40,12 +40,12 @@ export default function BookingsPage() {
       <div className="flex items-center justify-between my-0">
         <div className="flex items-center justify-center gap-2">
           <h1 className="text-2xl font-bold">Bookings</h1>
-          <Button isIconOnly variant="ghost" name="refresh">
+          <Button isIconOnly variant="ghost" name="refresh" size="sm">
             <RefreshCcw />
           </Button>
         </div>
         <div className="flex items-center justify-center gap-2">
-          <Button variant="secondary">
+          <Button variant="secondary" size="sm">
             <Upload /> Export
           </Button>
           <AddBookings />

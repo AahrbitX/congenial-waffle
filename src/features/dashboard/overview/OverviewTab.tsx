@@ -35,6 +35,7 @@ import {
   Surface,
   Table,
   Tabs,
+  Tooltip,
 } from "@heroui/react";
 import { STATUS_COLOR } from "@/types/ride.types";
 import { OverviewSkeleton } from "./OverviewTabSkeleton";
@@ -61,22 +62,27 @@ export function OverviewTab() {
   // Upcoming ride: nearest future pending/confirmed ride (shown only if no ongoing ride)
   const now = Date.now();
   const upcomingRide = !ongoingRide
-    ? rides
+    ? (rides
         .filter((r) => {
           if (r.status !== "pending" && r.status !== "confirmed") return false;
-          const rideAt = new Date(`${r.journeyDate}T${r.journeyTime}`).getTime();
+          const rideAt = new Date(
+            `${r.journeyDate}T${r.journeyTime}`,
+          ).getTime();
           return rideAt > now;
         })
         .sort((a, b) => {
           const dtA = new Date(`${a.journeyDate}T${a.journeyTime}`).getTime();
           const dtB = new Date(`${b.journeyDate}T${b.journeyTime}`).getTime();
           return dtA - dtB;
-        })[0] ?? null
+        })[0] ?? null)
     : null;
 
   // Show banner only if the most recent completed ride has no rating in DB
   const lastCompletedRide = rides.find((r) => r.status === "completed") ?? null;
-  const needsRatingRide = lastCompletedRide && lastCompletedRide.rating === 0 ? lastCompletedRide : null;
+  const needsRatingRide =
+    lastCompletedRide && lastCompletedRide.rating === 0
+      ? lastCompletedRide
+      : null;
   const filteredRides = rides
     .filter((r) => statusFilter === "all" || r.status === statusFilter)
     .filter(
@@ -87,10 +93,32 @@ export function OverviewTab() {
         r.to.toLowerCase().includes(search.toLowerCase()),
     );
 
-  const handleCopy = (id: string) => {
-    navigator.clipboard.writeText(id);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 1500);
+  const parseDate = (date: string) => {
+    const dateObj = new Date(date);
+
+    // Format the date part (e.g., "Apr 23, 2026")
+    const datePart = dateObj.toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
+
+    // Format the time part (e.g., "07:05 PM")
+    const timePart = dateObj.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    return (
+      <Tooltip delay={0}>
+        <Tooltip.Trigger>{datePart}</Tooltip.Trigger>
+        <Tooltip.Content showArrow offset={12}>
+          <Tooltip.Arrow />
+          {datePart} at {timePart}
+        </Tooltip.Content>
+      </Tooltip>
+    );
   };
 
   if (statsLoading || ridesLoading) {
@@ -127,14 +155,20 @@ export function OverviewTab() {
             <StatCard
               label="Your Rating"
               value={stats.ratingCount > 0 ? `${stats.rating} ★` : "—"}
-              sub={stats.ratingCount > 0 ? `${stats.ratingCount} ratings` : "No ratings yet"}
+              sub={
+                stats.ratingCount > 0
+                  ? `${stats.ratingCount} ratings`
+                  : "No ratings yet"
+              }
               icon={IconStar}
               colorClass="bg-yellow-500 text-white"
             />
           </div>
           {stats.totalRides === 0 && (
             <div className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3">
-              <p className="text-sm text-text-secondary">You haven&apos;t taken any rides yet. Book your first ride!</p>
+              <p className="text-sm text-text-secondary">
+                You haven&apos;t taken any rides yet. Book your first ride!
+              </p>
               <Button size="sm" onPress={() => setBookOpen(true)}>
                 <IconPlus size={14} />
                 Book a Ride
@@ -145,17 +179,16 @@ export function OverviewTab() {
       )}
 
       {/* ── Ongoing Ride (driver has started the trip) ── */}
-      {ongoingRide && <OngoingRideCard ride={ongoingRide} onEndTrip={openRatingModal} />}
+      {ongoingRide && (
+        <OngoingRideCard ride={ongoingRide} onEndTrip={openRatingModal} />
+      )}
 
       {/* ── Upcoming Ride (shown only when no ride is in progress) ── */}
       {upcomingRide && <UpcomingRideCard ride={upcomingRide} />}
 
       {/* ── Rate Driver Banner ── */}
       {needsRatingRide && (
-        <RateDriverBanner
-          ride={needsRatingRide}
-          onRate={openRatingModal}
-        />
+        <RateDriverBanner ride={needsRatingRide} onRate={openRatingModal} />
       )}
 
       {/* ── Rides Table ── */}
@@ -177,7 +210,7 @@ export function OverviewTab() {
                     <Tabs.Indicator />
                   </Tabs.Tab>
                   <Tabs.Tab id="ongoing">
-                    On Trip
+                    Ongoing
                     <Tabs.Indicator />
                   </Tabs.Tab>
                   <Tabs.Tab id="completed">
@@ -203,10 +236,10 @@ export function OverviewTab() {
                   Booking ID
                 </Table.Column>
                 <Table.Column id="route">Route</Table.Column>
+                <Table.Column id="date">Date</Table.Column>
                 <Table.Column id="driver">Driver</Table.Column>
                 <Table.Column id="status">Status</Table.Column>
                 <Table.Column id="fare">Fare</Table.Column>
-                <Table.Column className="text-end">Actions</Table.Column>
               </Table.Header>
               <Table.Body
                 renderEmptyState={() =>
@@ -262,12 +295,10 @@ export function OverviewTab() {
                           <Skeleton className="h-6 w-20 rounded-full" />
                         </Table.Cell>
                         <Table.Cell>
-                          <Skeleton className="h-4 w-12 rounded-lg" />
+                          <Skeleton className="h-6 w-20 rounded-full" />
                         </Table.Cell>
                         <Table.Cell>
-                          <div className="flex justify-end">
-                            <Skeleton className="size-8 rounded-lg" />
-                          </div>
+                          <Skeleton className="h-4 w-12 rounded-lg" />
                         </Table.Cell>
                       </Table.Row>
                     ))
@@ -275,59 +306,47 @@ export function OverviewTab() {
                       <Table.Row key={ride.id} id={ride.id}>
                         {/* Booking ID + copy */}
                         <Table.Cell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold">{"#" + ride.bookingRef}</span>
-                            <Button
-                              isIconOnly
-                              size="sm"
-                              variant="ghost"
-                              onPress={() => handleCopy(ride.bookingRef)}
-                              aria-label="Copy booking ID"
-                            >
-                              <IconCopy
-                                size={14}
-                                className={
-                                  copiedId === ride.id
-                                    ? "text-success"
-                                    : "text-muted"
-                                }
-                              />
-                            </Button>
-                          </div>
+                          <Link
+                            className="flex items-center gap-2"
+                            href={`/dashboard/rides/${ride.id}`}
+                          >
+                            <span className="text-accent font-semibold hover:underline">
+                              {"#" + ride.bookingRef}
+                            </span>
+                          </Link>
                         </Table.Cell>
 
                         {/* Route */}
                         <Table.Cell>
-                          <div className="flex items-center gap-2">
-                            <span>{ride.from}</span>
+                          <div
+                            className="flex items-center gap-2"
+                            title={`${ride.from} -- ${ride.to}`}
+                          >
+                            <span className="max-w-[320px] line-clamp-1">
+                              {ride.from}
+                            </span>
                             <IconArrowLeftRight
                               size={14}
                               className="text-muted"
                             />
-                            <span>{ride.to}</span>
+                            <span className="max-w-[320px] line-clamp-1">
+                              {ride.to}
+                            </span>
                           </div>
                         </Table.Cell>
+
+                        <Table.Cell>{parseDate(ride.date)}</Table.Cell>
 
                         {/* Driver with avatar */}
                         <Table.Cell>
                           {ride.driver ? (
                             <div className="flex items-center gap-3">
-                              <Avatar size="sm">
-                                <Avatar.Fallback>
-                                  {ride.driver
-                                    .split(" ")
-                                    .map((n: string) => n[0])
-                                    .join("")}
-                                </Avatar.Fallback>
-                              </Avatar>
-                              <div className="flex flex-col">
-                                <span className="text-sm font-medium">
-                                  {ride.driver}
-                                </span>
-                                <span className="text-xs text-muted">
+                              <span className="text-sm font-medium">
+                                {ride.driver}
+                              </span>
+                              {/* <span className="text-xs text-muted">
                                   {ride.driverPhone}
-                                </span>
-                              </div>
+                                </span> */}
                             </div>
                           ) : (
                             <span className="text-muted text-sm">
@@ -353,43 +372,8 @@ export function OverviewTab() {
                         </Table.Cell>
 
                         {/* Fare */}
-                        <Table.Cell className="font-bold">
+                        <Table.Cell className="">
                           {ride.fare > 0 ? `₹${ride.fare}` : "—"}
-                        </Table.Cell>
-
-                        {/* Actions */}
-                        <Table.Cell>
-                          <div className="flex items-center justify-end gap-1">
-                            <Button
-                              isIconOnly
-                              size="sm"
-                              variant="tertiary"
-                              aria-label="View ride"
-                            >
-                              <Link href={`/dashboard/rides/${ride.id}`}>
-                                <IconEye size={15} />
-                              </Link>
-                            </Button>
-                            {ride.status === "completed" &&
-                              ride.rating === 0 && (
-                                <Button
-                                  size="sm"
-                                  variant="tertiary"
-                                  onPress={() => openRatingModal(ride)}
-                                >
-                                  <IconStar size={15} />
-                                  Rate
-                                </Button>
-                              )}
-                            <Button
-                              size="sm"
-                              variant="tertiary"
-                              onPress={() => openTicketModal(ride)}
-                              aria-label="Raise a ticket"
-                            >
-                              <IconTicket size={15} />
-                            </Button>
-                          </div>
                         </Table.Cell>
                       </Table.Row>
                     ))}

@@ -19,7 +19,10 @@ import {
   IconCreditCard,
 } from "@/constants/icons";
 import { PayToDriverModal } from "./PayToDriverModal";
-import type { UserTransaction, PaymentStatus } from "@/types/transactions.types";
+import type {
+  UserTransaction,
+  PaymentStatus,
+} from "@/types/transactions.types";
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -40,14 +43,38 @@ function formatTime(t: string) {
 
 const STATUS_CONFIG: Record<
   PaymentStatus,
-  { label: string; color: "success" | "warning" | "danger" | "default" | "accent"; icon: React.ReactNode }
+  {
+    label: string;
+    color: "success" | "warning" | "danger" | "default" | "accent";
+    icon: React.ReactNode;
+  }
 > = {
-  paid:           { label: "Paid",            color: "success",  icon: <IconCheckCircle    size={13} /> },
-  created:        { label: "Pending",         color: "warning",  icon: <IconClockAlert     size={13} /> },
-  cash_pending:   { label: "Awaiting Code",   color: "warning",  icon: <IconClockAlert     size={13} /> },
-  cash_collected: { label: "Cash Confirmed",  color: "accent",   icon: <IconCheckCircle    size={13} /> },
-  failed:         { label: "Failed",          color: "danger",   icon: <IconXCircle        size={13} /> },
-  refunded:       { label: "Refunded",        color: "default",  icon: <IconArrowLeftRight size={13} /> },
+  paid: {
+    label: "Paid",
+    color: "success",
+    icon: <IconCheckCircle size={13} />,
+  },
+  created: {
+    label: "Pending",
+    color: "warning",
+    icon: <IconClockAlert size={13} />,
+  },
+  cash_pending: {
+    label: "Awaiting Code",
+    color: "warning",
+    icon: <IconClockAlert size={13} />,
+  },
+  cash_collected: {
+    label: "Cash Confirmed",
+    color: "accent",
+    icon: <IconCheckCircle size={13} />,
+  },
+  failed: { label: "Failed", color: "danger", icon: <IconXCircle size={13} /> },
+  refunded: {
+    label: "Refunded",
+    color: "default",
+    icon: <IconArrowLeftRight size={13} />,
+  },
 };
 
 // ── sub-components ──────────────────────────────────────────────────────────
@@ -67,7 +94,8 @@ function EmptyState({ message }: { message: string }) {
 function HistoryRow({ tx }: { tx: UserTransaction }) {
   // created payments only appear in history when the booking is non-ongoing (abandoned/cancelled) — show as Failed
   const displayStatus = tx.status === "created" ? "failed" : tx.status;
-  const { label, color, icon } = STATUS_CONFIG[displayStatus] ?? STATUS_CONFIG.failed;
+  const { label, color, icon } =
+    STATUS_CONFIG[displayStatus] ?? STATUS_CONFIG.failed;
 
   return (
     <Link
@@ -82,15 +110,24 @@ function HistoryRow({ tx }: { tx: UserTransaction }) {
           {tx.pickupName} → {tx.dropName}
         </p>
         <p className="text-xs text-text-secondary">
-          {tx.bookingRef} · {formatDate(tx.journeyDate)} {formatTime(tx.journeyTime)}
+          {tx.bookingRef} · {formatDate(tx.journeyDate)}{" "}
+          {formatTime(tx.journeyTime)}
         </p>
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1">
         <p className="text-sm font-bold text-text-primary">
           ₹{parseFloat(tx.amount).toLocaleString("en-IN")}
         </p>
-        <Chip color={color} variant="soft" size="sm" className="text-[10px] font-semibold">
-          <span className="flex items-center gap-1">{icon}{label}</span>
+        <Chip
+          color={color}
+          variant="soft"
+          size="sm"
+          className="text-[10px] font-semibold"
+        >
+          <span className="flex items-center gap-1">
+            {icon}
+            {label}
+          </span>
         </Chip>
       </div>
       <IconChevronRight size={14} className="shrink-0 text-text-tertiary" />
@@ -119,24 +156,37 @@ function PendingRow({
     : (STATUS_CONFIG[tx.status] ?? STATUS_CONFIG.created);
 
   return (
-    <div className={`rounded-2xl border bg-surface-muted p-4 space-y-3 ${isBalance ? "border-dashed border-warning ml-4" : "border-border"}`}>
+    <div
+      className={`rounded-2xl border bg-surface-muted p-4 space-y-3 ${isBalance ? "border-dashed border-warning ml-4" : "border-border"}`}
+    >
       {/* Top row */}
       <div className="flex items-center gap-4">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-surface border border-border text-text-secondary">
           <IconCar size={18} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-text-primary">{label}</p>
+          <p className="truncate text-sm font-semibold text-text-primary">
+            {label}
+          </p>
           <p className="text-xs text-text-secondary">
-            {tx.bookingRef} · {formatDate(tx.journeyDate)} {formatTime(tx.journeyTime)}
+            {tx.bookingRef} · {formatDate(tx.journeyDate)}{" "}
+            {formatTime(tx.journeyTime)}
           </p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <p className="text-sm font-bold text-text-primary">
             ₹{amountDue.toLocaleString("en-IN")}
           </p>
-          <Chip color={statusCfg.color} variant="soft" size="sm" className="text-[10px] font-semibold">
-            <span className="flex items-center gap-1">{statusCfg.icon}{isBalance ? "Balance Due" : statusCfg.label}</span>
+          <Chip
+            color={statusCfg.color}
+            variant="soft"
+            size="sm"
+            className="text-[10px] font-semibold"
+          >
+            <span className="flex items-center gap-1">
+              {statusCfg.icon}
+              {isBalance ? "Balance Due" : statusCfg.label}
+            </span>
           </Chip>
         </div>
       </div>
@@ -171,8 +221,15 @@ function PendingRow({
       {/* Awaiting code state */}
       {tx.status === "cash_pending" && (
         <div className="flex items-center justify-between">
-          <p className="text-xs text-warning font-medium">Waiting for driver code</p>
-          <Button size="sm" variant="outline" onPress={onPayToDriver} className="rounded-xl text-xs">
+          <p className="text-xs text-warning font-medium">
+            Waiting for driver code
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            onPress={onPayToDriver}
+            className="rounded-xl text-xs"
+          >
             Enter Code
           </Button>
         </div>
@@ -187,7 +244,11 @@ export function TransactionsTab() {
   const { data: transactions = [], isLoading } = useMyTransactions();
   const { data: session } = authClient.useSession();
   const { pay } = useRazorpayPayment();
-  const [modalTx, setModalTx] = useState<{ tx: UserTransaction; amountDue?: number; isBalance?: boolean } | null>(null);
+  const [modalTx, setModalTx] = useState<{
+    tx: UserTransaction;
+    amountDue?: number;
+    isBalance?: boolean;
+  } | null>(null);
 
   // Load Razorpay checkout.js
   useEffect(() => {
@@ -197,7 +258,11 @@ export function TransactionsTab() {
     document.body.appendChild(s);
   }, []);
 
-  function handlePayNow(tx: UserTransaction, amountDue: number, mode: "full" | "partial" | "balance") {
+  function handlePayNow(
+    tx: UserTransaction,
+    amountDue: number,
+    mode: "full" | "partial" | "balance",
+  ) {
     pay({
       bookingId: tx.bookingId,
       amount: amountDue,
@@ -224,11 +289,19 @@ export function TransactionsTab() {
 
   // Pending: unpaid online (created) + cash awaiting code (cash_pending)
   // Only surface for ongoing rides — abandoned/dismissed Razorpay orders for non-ongoing bookings are hidden
-  const pendingOnline  = transactions.filter(
-    (t) => t.status === "created" && !bookingsAlreadyPaid.has(t.bookingId) && t.bookingStatus === "ongoing",
+  const pendingOnline = transactions.filter(
+    (t) =>
+      t.status === "created" &&
+      !bookingsAlreadyPaid.has(t.bookingId) &&
+      t.bookingStatus === "ongoing",
   );
-  const pendingCash    = transactions.filter((t) => t.status === "cash_pending" && !bookingsAlreadyPaid.has(t.bookingId) && t.bookingStatus === "ongoing");
-  const pendingItems   = [...pendingOnline, ...pendingCash];
+  const pendingCash = transactions.filter(
+    (t) =>
+      t.status === "cash_pending" &&
+      !bookingsAlreadyPaid.has(t.bookingId) &&
+      t.bookingStatus === "ongoing",
+  );
+  const pendingItems = [...pendingOnline, ...pendingCash];
 
   // Sum all paid amounts per booking (covers both partial + balance payments)
   const totalPaidByBooking = new Map<string, number>();
@@ -248,7 +321,8 @@ export function TransactionsTab() {
       t.status === "paid" &&
       t.mode === "partial" &&
       t.bookingStatus !== "cancelled" &&
-      (totalPaidByBooking.get(t.bookingId) ?? 0) < parseFloat(t.totalFare) - 0.01,
+      (totalPaidByBooking.get(t.bookingId) ?? 0) <
+        parseFloat(t.totalFare) - 0.01,
   );
 
   const totalPendingCount = pendingItems.length + balanceDues.length;
@@ -265,20 +339,16 @@ export function TransactionsTab() {
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-bold text-text-primary">Transactions</h1>
-        <p className="text-sm text-text-secondary mt-0.5">
-          Your ride payment history and pending dues
-        </p>
-      </div>
-
       {/* Pending Payments */}
-      <Card className="rounded-3xl border border-border bg-surface shadow-sm">
-        <Card.Header className="flex flex-row items-center justify-between border-b border-border px-5 py-4">
+      <Card className="">
+        <Card.Header className="flex flex-row items-center justify-between">
           <div>
-            <Card.Title className="text-base font-semibold">Pending Payments</Card.Title>
-            <p className="text-sm text-text-secondary">Rides awaiting payment</p>
+            <Card.Title className="text-base font-semibold">
+              Pending Payments
+            </Card.Title>
+            <p className="text-sm text-text-secondary">
+              Rides awaiting payment
+            </p>
           </div>
           {totalPendingCount > 0 && (
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-warning text-white text-xs font-bold">
@@ -297,13 +367,20 @@ export function TransactionsTab() {
                   tx={tx}
                   amountDue={parseFloat(tx.amount)}
                   label={`${tx.pickupName} → ${tx.dropName}`}
-                  onPayNow={() => handlePayNow(tx, parseFloat(tx.amount), tx.mode as "full" | "partial")}
+                  onPayNow={() =>
+                    handlePayNow(
+                      tx,
+                      parseFloat(tx.amount),
+                      tx.mode as "full" | "partial",
+                    )
+                  }
                   onPayToDriver={() => setModalTx({ tx })}
                 />
               ))}
 
               {balanceDues.map((tx) => {
-                const remaining = parseFloat(tx.totalFare) - parseFloat(tx.amount);
+                const remaining =
+                  parseFloat(tx.totalFare) - parseFloat(tx.amount);
                 return (
                   <div key={`balance-${tx.id}`} className="space-y-1">
                     {/* Paid advance row */}
@@ -315,13 +392,22 @@ export function TransactionsTab() {
                         <p className="truncate text-xs font-semibold text-text-primary">
                           {tx.pickupName} → {tx.dropName} (Advance)
                         </p>
-                        <p className="text-[11px] text-text-tertiary">{tx.bookingRef}</p>
+                        <p className="text-[11px] text-text-tertiary">
+                          {tx.bookingRef}
+                        </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         <span className="text-xs font-bold text-text-primary">
                           ₹{parseFloat(tx.amount).toLocaleString("en-IN")}
                         </span>
-                        <Chip color="success" variant="soft" size="sm" className="text-[10px]">Paid</Chip>
+                        <Chip
+                          color="success"
+                          variant="soft"
+                          size="sm"
+                          className="text-[10px]"
+                        >
+                          Paid
+                        </Chip>
                       </div>
                     </div>
                     {/* Balance due row */}
@@ -331,7 +417,13 @@ export function TransactionsTab() {
                       label={`Balance Due — ${tx.pickupName} → ${tx.dropName}`}
                       isBalance
                       onPayNow={() => handlePayNow(tx, remaining, "balance")}
-                      onPayToDriver={() => setModalTx({ tx, amountDue: remaining, isBalance: true })}
+                      onPayToDriver={() =>
+                        setModalTx({
+                          tx,
+                          amountDue: remaining,
+                          isBalance: true,
+                        })
+                      }
                     />
                   </div>
                 );
@@ -342,10 +434,14 @@ export function TransactionsTab() {
       </Card>
 
       {/* Payment History */}
-      <Card className="rounded-3xl border border-border bg-surface shadow-sm">
-        <Card.Header className="border-b border-border px-5 py-4">
-          <Card.Title className="text-base font-semibold">Payment History</Card.Title>
-          <p className="text-sm text-text-secondary">Completed, refunded, and cash-confirmed transactions</p>
+      <Card className="">
+        <Card.Header className="">
+          <Card.Title className="text-base font-semibold">
+            Payment History
+          </Card.Title>
+          <p className="text-sm text-text-secondary">
+            Completed, refunded, and cash-confirmed transactions
+          </p>
         </Card.Header>
         <Card.Content className="flex flex-col gap-3 p-5">
           {history.length === 0 ? (

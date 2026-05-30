@@ -3,6 +3,7 @@ import { dateParser } from "@/utils/date-parser";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import { ArrowRightLeft } from "lucide-react";
 import StatusIndicator from "@/components/data/statusIndicator";
+import { RouteCell } from "@/components/dataTable/routeCell";
 
 // Trip ID
 // Rider
@@ -48,15 +49,7 @@ export const ridesColumns: ColumnDef<any, any>[] = [
     cell: (cell) => {
       const route = cell.getValue();
 
-      return (
-        <div className="flex items-center gap-2">
-          <span>{route.pickup}</span>
-          <span>
-            <ArrowRightLeft size={14} color="var(--color-muted)" />
-          </span>
-          <span>{route.drop}</span>
-        </div>
-      );
+      return <RouteCell from={route.pickup} to={route.drop} />;
     },
   }),
   columnHelper.accessor("status", {

@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
 import { ArrowLeftRight, Calendar, MapPin, Clock } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, Variants } from "motion/react";
 
 import { Button } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
@@ -56,6 +56,32 @@ function HeroSection() {
     { id: "roundtrip", label: "Round Trip" },
   ];
 
+  const containerVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.15,
+      },
+    },
+  };
+
+  const itemVariants: Variants = {
+    hidden: {
+      opacity: 0,
+      x: 40,
+      y: 0,
+    },
+    visible: {
+      opacity: 1,
+      x: 0,
+      y: 0,
+      transition: {
+        duration: 0.85,
+        ease: [0.22, 1, 0.36, 1],
+      },
+    },
+  };
+
   return (
     <section className="relative min-h-[100svh] sm:mx-4 p-4 sm:p-0 rounded-xl drop-shadow-2xl overflow-hidden">
       {/* Parallax ambient blobs */}
@@ -83,7 +109,12 @@ function HeroSection() {
               <TextAnimate once as="span" animation="slideLeft">
                 {"Hey Buddy! Where are you "}
               </TextAnimate>
-              <TextAnimate once as="span" animation="slideLeft" className="text-primary">
+              <TextAnimate
+                once
+                as="span"
+                animation="slideLeft"
+                className="text-primary"
+              >
                 {"Riding"}
               </TextAnimate>
               <TextAnimate once as="span" animation="slideLeft">
@@ -118,22 +149,29 @@ function HeroSection() {
             </motion.div>
 
             <div className="sm:flex flex flex-col sm:flex-row sm:items-center sm:gap-5">
-              <div className="flex flex-wrap justify-center gap-x-8 gap-y-4">
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.4 }}
+                className="flex flex-wrap justify-center gap-x-8 gap-y-4"
+              >
                 {[
                   { value: "5L", label: "Happy Riders" },
                   { value: "4.8", label: "Avg Rating" },
                   { value: "24/7", label: "Support" },
                 ].map(({ value, label }) => (
-                  <div key={label}>
-                    <p className="font-bold text-primary text-3xl text-center sm:text-left ">
+                  <motion.div key={label} variants={itemVariants}>
+                    <p className="text-center text-3xl font-bold text-primary sm:text-left">
                       {value}
                     </p>
-                    <p className="text-xs text-muted text-center sm:text-left ">
+
+                    <p className="text-center text-xs text-muted sm:text-left">
                       {label}
                     </p>
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
 
               {/* Action buttons */}
               {/* <motion.div
