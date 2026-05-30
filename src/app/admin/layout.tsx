@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import AddBookings from "./bookings/addBookings";
+import { MobileFloatingNav } from "@/components/ui/MobileFloatingNav";
 
 const navLinks = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -76,6 +77,8 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
             {children}
           </section>
         </div>
+
+        <MobileFloatingNav />
       </div>
     </div>
   );

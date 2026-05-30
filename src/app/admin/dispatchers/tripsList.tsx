@@ -45,14 +45,23 @@ export const TripsList = ({
   });
 
   if (isError) {
-    return <div className="p-4 text-sm">Failed to load trips</div>;
+    return (
+      <div className="h-full flex items-center justify-center px-6 text-center text-default-400 border-b md:border-r">
+        <div className="space-y-2">
+          <p className="text-lg font-semibold"> Failed to load trips</p>
+          <p className="text-sm">
+            Failed to load trip data. Please try again later.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const dispatchers = data?.data ?? [];
 
   if (dispatchers.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center px-6 text-center text-default-400 border-r">
+      <div className="h-full flex items-center justify-center px-6 text-center text-default-400 border-b md:border-r">
         <div className="space-y-2">
           <p className="text-lg font-semibold">No Unassigned Trips</p>
           <p className="text-sm">There is no unassigned trips for now</p>

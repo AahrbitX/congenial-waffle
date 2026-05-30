@@ -53,12 +53,12 @@ const CAR_CATEGORY_MAP: Record<string, string> = {
 
 function CarsSection() {
   return (
-    <section className="px-4 pb-4">
+    <section className="px-4 pb-10">
       <div className="max-w-7xl mx-auto">
         <div className="mb-4">
           <TextAnimate
             as="h2"
-            className="text-center sm:text-left text-[1.75rem] font-extrabold tracking-tight"
+            className="text-center sm:text-left text-2xl font-bold tracking-tight"
           >
             Select Your Car
           </TextAnimate>

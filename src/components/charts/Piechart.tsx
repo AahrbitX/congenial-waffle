@@ -67,27 +67,29 @@ export function PieChartComponent() {
         <Card.Description>Current ride status breakdown</Card.Description>
       </Card.Header>
 
-      <ChartContainer
-        config={chartConfig}
-        className="mx-auto aspect-square w-full max-h-[286px]"
-      >
-        <PieChart>
-          <ChartTooltip
-            cursor={false}
-            content={<ChartTooltipContent indicator="line" />}
-          />
+      <Card.Content className="flex items-center justify-center">
+        <ChartContainer
+          config={chartConfig}
+          className="mx-auto aspect-square w-full max-h-[206px]"
+        >
+          <PieChart>
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent indicator="line" />}
+            />
 
-          <Pie
-            data={chartData}
-            innerRadius="10%"
-            outerRadius="100%"
-            cornerRadius={8}
-            paddingAngle={2}
-            dataKey="value"
-            isAnimationActive
-          />
-        </PieChart>
-      </ChartContainer>
+            <Pie
+              data={chartData}
+              innerRadius="10%"
+              outerRadius="100%"
+              cornerRadius={8}
+              paddingAngle={2}
+              dataKey="value"
+              isAnimationActive
+            />
+          </PieChart>
+        </ChartContainer>
+      </Card.Content>
     </Card>
   );
 }

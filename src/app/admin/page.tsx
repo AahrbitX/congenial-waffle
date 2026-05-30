@@ -19,14 +19,14 @@ function AdminPage() {
   return (
     <Surface className="h-full min-h-0 p-4" variant="secondary">
       <div>
-        <h1 className="text-2xl font-semibold">
+        <h1 className="text-xl font-semibold">
           Welcome Back, {authData?.user.name || "Admin"}
         </h1>
         <Description>
           Here&apos;s what&apos;s happening with Mohan Cabs today.
         </Description>
       </div>
-      <div className="my-4 grid grid-cols-[1fr_1fr_0.8fr] gap-4">
+      <div className="my-4 grid grid-cols-1 md:grid-cols-[1fr_1fr_0.8fr] gap-4">
         <LineChartComponent />
         <BarChartHorizontal />
         <PieChartComponent />
