@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Modal, Button } from "@heroui/react";
+import { Modal, Button, TextArea, Input, Label } from "@heroui/react";
 
 import { useDashboard } from "@/context/DashboardContext";
 import { raiseTicket } from "@/api/rides.api";
@@ -59,6 +59,7 @@ export function RaiseTicketModal() {
 
   return (
     <Modal
+      isOpen={!!ticketRide}
       onOpenChange={(open) => {
         if (!open) closeTicketModal();
       }}
@@ -68,7 +69,7 @@ export function RaiseTicketModal() {
           <Modal.Dialog className="max-w-lg">
             {submitted ? (
               <>
-                <Modal.Body className="py-10">
+                <Modal.Body className="">
                   <div className="flex flex-col items-center gap-4 text-center">
                     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
                       <IconCheckCircle size={34} className="text-success" />
@@ -90,34 +91,18 @@ export function RaiseTicketModal() {
               <>
                 <Modal.Header>
                   <div className="flex flex-col gap-2 w-full">
-                    <div className="flex items-center gap-2">
-                      <IconTicket size={14} />
-                      <span className="text-xs uppercase tracking-wider text-muted font-semibold">
-                        Support Ticket
-                      </span>
+                    <div className="flex items-center gap-2 text-muted">
+                      <IconTicket size={16} />
+                      <span className="">Support Ticket</span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-sm font-semibold">
-                      <IconMapPin size={14} />
-
-                      <span className="truncate">{ticketRide.from}</span>
-
-                      <span className="text-muted">→</span>
-
-                      <span className="truncate">{ticketRide.to}</span>
-                    </div>
-
-                    <p className="text-xs text-muted">
-                      #{ticketRide.bookingRef}
-                    </p>
+                    <p className="">For Booking: #{ticketRide.bookingRef}</p>
                   </div>
                 </Modal.Header>
 
-                <Modal.Body className="space-y-5">
+                <Modal.Body className="space-y-4">
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted">
-                      Category
-                    </label>
+                    <label className="mb-2 block">Category</label>
 
                     <div className="grid grid-cols-2 gap-2">
                       {CATEGORIES.map((item) => (
@@ -125,10 +110,10 @@ export function RaiseTicketModal() {
                           key={item.value}
                           type="button"
                           onClick={() => setCategory(item.value)}
-                          className={`rounded-xl border px-3 py-2 text-left text-xs font-medium transition-all ${
+                          className={`rounded-xl border px-3 py-2 text-left text-sm font-medium transition-all ${
                             category === item.value
-                              ? "border-primary bg-primary text-white"
-                              : "border-border bg-secondary hover:border-primary"
+                              ? " bg-primary text-white"
+                              : " bg-[var(--color-default)] "
                           }`}
                         >
                           {item.label}
@@ -137,30 +122,40 @@ export function RaiseTicketModal() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted">
+                  <div className="px-1">
+                    <Label
+                      htmlFor={"subject"}
+                      className="mb-2 block text-muted"
+                    >
                       Subject
-                    </label>
+                    </Label>
 
-                    <input
+                    <Input
+                      fullWidth
+                      id="subject"
                       value={subject}
+                      variant="secondary"
                       onChange={(e) => setSubject(e.target.value)}
                       placeholder="Charged twice for this trip"
-                      className="w-full rounded-xl border border-border bg-secondary px-3 py-2.5 text-sm outline-none transition-colors focus:border-primary"
                     />
                   </div>
 
-                  <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted">
+                  <div className="px-1">
+                    <Label
+                      htmlFor="description"
+                      className="mb-2 block text-muted"
+                    >
                       Description
-                    </label>
+                    </Label>
 
-                    <textarea
+                    <TextArea
                       rows={5}
+                      fullWidth
+                      id="description"
+                      variant="secondary"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Describe the issue in detail..."
-                      className="w-full resize-none rounded-xl border border-border bg-secondary px-3 py-2.5 text-sm outline-none transition-colors focus:border-primary"
                     />
                   </div>
                 </Modal.Body>

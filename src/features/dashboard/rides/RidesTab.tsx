@@ -32,7 +32,7 @@ export function RidesTab() {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 max-md:px-2 max-md:mt-4">
       <Tabs defaultSelectedKey="all">
         <Tabs.ListContainer>
           <div className="flex items-center justify-between flex-wrap">

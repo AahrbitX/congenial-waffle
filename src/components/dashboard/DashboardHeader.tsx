@@ -53,7 +53,7 @@ export function DashboardHeader() {
   return (
     <div className="flex items-center justify-between mb-2">
       <div>
-        <h1 className="text-2xl font-bold ">{meta.title}</h1>
+        <h1 className="text-xl md:text-2xl font-bold">{meta.title}</h1>
         {meta.subFn && (
           <p className="text-sm text-muted">{meta.subFn(firstName)}</p>
         )}

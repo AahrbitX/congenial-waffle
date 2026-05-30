@@ -22,6 +22,7 @@ import {
 import { ROUTES } from "@/constants/routes";
 import { ChevronLeft } from "lucide-react";
 import { Button, Card, CardTitle } from "@heroui/react";
+import { ResponsiveCard } from "@/components/ui/ResponsiveCard";
 
 const STATUS_CONFIG = {
   completed: { bg: "bg-success", text: "Completed", dot: "bg-white" },
@@ -60,7 +61,6 @@ function formatDate(d: string) {
   if (!d) return "—";
   const [year, month, day] = d.split("-").map(Number);
   return new Date(year, month - 1, day).toLocaleDateString("en-IN", {
-    weekday: "short",
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -132,20 +132,18 @@ export function RideDetail({ id }: RideDetailProps) {
   return (
     <div className="max-w-lg mx-auto pb-8">
       {/* ── Hero Header ── */}
-      <div className={`${statusCfg.bg} rounded-b-3xl px-5 pt-5 pb-6 mb-4`}>
+      <div className={`${statusCfg.bg} rounded-b-3xl px-4 pt-4 pb-6 mb-4`}>
         <Link
           href={ROUTES.dashboard.rides}
-          className="inline-flex items-center gap-1 text-white/70 text-xs font-medium mb-4 hover:text-white transition-colors"
+          className="inline-flex items-center gap-1 text-white/80 text-sm font-medium mb-4 hover:text-white transition-colors"
         >
           <ChevronLeft size={14} /> Ride History
         </Link>
 
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <p className="text-white/70 text-xs font-medium mb-0.5">
-              #{ride.bookingRef}
-            </p>
-            <div className="flex items-center gap-1.5 flex-wrap">
+            <p className="text-white font-medium mb-0.5">#{ride.bookingRef}</p>
+            {/* <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-white font-bold text-base leading-snug truncate max-w-[130px]">
                 {ride.from}
               </span>
@@ -153,7 +151,7 @@ export function RideDetail({ id }: RideDetailProps) {
               <span className="text-white font-bold text-base leading-snug truncate max-w-[130px]">
                 {ride.to}
               </span>
-            </div>
+            </div> */}
           </div>
           <span className="inline-flex items-center gap-1.5 bg-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full shrink-0">
             <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
@@ -162,10 +160,10 @@ export function RideDetail({ id }: RideDetailProps) {
         </div>
       </div>
 
-      <div className="px-4 space-y-4">
+      <div className="md:px-4 space-y-4">
         {/* ── Status Timeline ── */}
         {!isCancelled && (
-          <Card className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 pb-0">
+          <ResponsiveCard className=" pb-0">
             <Card.Header className="text-muted font-semibold">
               <Card.Title>Journey Progress</Card.Title>
             </Card.Header>
@@ -231,12 +229,12 @@ export function RideDetail({ id }: RideDetailProps) {
                 );
               })}
             </div>
-          </Card>
+          </ResponsiveCard>
         )}
 
         {/* ── Cancelled notice ── */}
         {isCancelled && (
-          <div className="rounded-2xl border border-danger/20 bg-danger/5 p-4 flex items-center gap-3">
+          <div className="mx-2 rounded-2xl border border-danger/20 bg-danger/5 p-4 flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-danger/10 flex items-center justify-center shrink-0">
               <IconX size={16} className="text-danger" />
             </div>
@@ -247,14 +245,14 @@ export function RideDetail({ id }: RideDetailProps) {
         )}
 
         {/* ── Route ── */}
-        <Card className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4">
+        <ResponsiveCard className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4">
           <Card.Header className="text-sm font-semibold">
             <Card.Title>Route</Card.Title>
           </Card.Header>
           <Card.Content className="flex flex-row items-start gap-3">
             <div className="flex flex-col items-center gap-1 pt-0.5">
               <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-              <div className="w-px h-8 bg-zinc-200 dark:bg-zinc-700" />
+              <div className="w-px h-14 md:h-10 bg-zinc-200 dark:bg-zinc-700" />
               <div className="w-2.5 h-2.5 rounded-full bg-danger" />
             </div>
             <div className="flex-1 space-y-4">
@@ -272,10 +270,10 @@ export function RideDetail({ id }: RideDetailProps) {
               </div>
             </div>
           </Card.Content>
-        </Card>
+        </ResponsiveCard>
 
         {/* ── Journey Details ── */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2 px-2">
           {[
             {
               icon: <IconCalendar size={15} className="text-primary" />,
@@ -310,7 +308,7 @@ export function RideDetail({ id }: RideDetailProps) {
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-muted">{label}</p>
-                <p className="text-sm font-bold text-foreground truncate">
+                <p className="text-sm font-bold text-foreground">
                   {value || "—"}
                 </p>
               </div>
@@ -320,7 +318,7 @@ export function RideDetail({ id }: RideDetailProps) {
 
         {/* ── Driver ── */}
         {hasDriver && (
-          <Card className="flex-row flex items-center gap-3">
+          <ResponsiveCard className="flex-row flex items-center gap-3">
             <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
               {initials(ride.driver)}
             </div>
@@ -337,11 +335,11 @@ export function RideDetail({ id }: RideDetailProps) {
                 </p>
               )}
             </div>
-          </Card>
+          </ResponsiveCard>
         )}
 
         {/* ── Fare ── */}
-        <Card className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4">
+        <ResponsiveCard className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4">
           <Card.Header className="text-sm font-semibold">
             <Card.Title>Fare</Card.Title>
           </Card.Header>
@@ -365,10 +363,10 @@ export function RideDetail({ id }: RideDetailProps) {
               </span>
             </div>
           </div>
-        </Card>
+        </ResponsiveCard>
 
         {/* ── Transaction Details ── */}
-        <Card className="">
+        <ResponsiveCard className="">
           <Card.Header className="flex flex-row items-center gap-2 justify-start">
             <IconReceipt size={14} className="text-muted" />
             <Card.Title className="">
@@ -439,12 +437,12 @@ export function RideDetail({ id }: RideDetailProps) {
               })}
             </div>
           )}
-        </Card>
+        </ResponsiveCard>
 
         {/* ── Rating ── */}
         {ride.status === "completed" &&
           (ride.rating > 0 ? (
-            <Card className="flex-row flex items-center justify-between gap-3">
+            <ResponsiveCard className="flex-row flex items-center justify-between gap-3">
               <div>
                 <Card.Header className="text-sm">
                   <Card.Title> Your Rating</Card.Title>
@@ -469,9 +467,9 @@ export function RideDetail({ id }: RideDetailProps) {
               <Button size="sm" onClick={() => openRatingModal(ride)}>
                 Edit
               </Button>
-            </Card>
+            </ResponsiveCard>
           ) : (
-            <Button onClick={() => openRatingModal(ride)}>
+            <Button onPress={() => openRatingModal(ride)}>
               <IconStar size={16} /> Rate this Ride
             </Button>
           ))}
@@ -481,6 +479,7 @@ export function RideDetail({ id }: RideDetailProps) {
           onPress={() => {
             openTicketModal(ride);
           }}
+          className={"mx-2"}
           fullWidth
           variant="danger-soft"
         >

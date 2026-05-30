@@ -51,6 +51,7 @@ import {
   IconLoader,
   IconLocate,
 } from "@/constants/icons";
+import { Input } from "@heroui/react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1153,7 +1154,7 @@ function HireForm({
               size={14}
               className="text-[var(--color-text-tertiary)]"
             />
-            <input
+            <Input
               type="date"
               value={form.endDate}
               onChange={(e) => update("endDate", e.target.value)}
