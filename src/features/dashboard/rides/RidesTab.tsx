@@ -10,6 +10,7 @@ import { COLORS } from "@/constants/colors";
 import { ROUTES } from "@/constants/routes";
 import { IconCar, IconLoader, IconChevronRight } from "@/constants/icons";
 import { ArrowRight } from "lucide-react";
+import { dateParser } from "@/utils/DateParser";
 
 type RideFilter = "all" | "completed" | "cancelled";
 
@@ -104,9 +105,7 @@ export function RidesTab() {
                       {/* Meta */}
                       <div className="grid grid-cols-2 gap-3 ">
                         <div className="min-w-0">
-                          <p className="text-[11px] font-medium uppercase tracking-wide text-muted">
-                            Vehicle
-                          </p>
+                          <p className="text-xs text-muted">Vehicle</p>
 
                           <p className="mt-1 truncate text-sm font-semibold text-foreground">
                             {ride.vehicle !== "—" ? ride.vehicle : "Unassigned"}
@@ -114,12 +113,10 @@ export function RidesTab() {
                         </div>
 
                         <div className="min-w-0">
-                          <p className="text-[11px] font-medium uppercase tracking-wide text-muted">
-                            Plate
-                          </p>
+                          <p className="text-xs text-muted">Plate</p>
 
                           <p className="mt-1 truncate text-sm font-semibold text-foreground">
-                            {ride.plate || "—"}
+                            {ride.plate || "-"}
                           </p>
                         </div>
                       </div>
@@ -127,17 +124,15 @@ export function RidesTab() {
                       {/* Bottom */}
                       <div className="mt-auto flex items-end justify-between gap-4">
                         <div className="min-w-0">
-                          <p className="text-[11px] font-medium uppercase tracking-wide text-muted">
-                            Ride Date
-                          </p>
+                          <p className="text-xs text-muted">Ride Date</p>
 
                           <p className="mt-1 text-sm font-medium text-foreground">
-                            {ride.date}
+                            {dateParser(ride.date)}
                           </p>
                         </div>
 
                         <div className="text-right">
-                          <p className="text-[11px] font-medium uppercase tracking-wide text-muted">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted">
                             Fare
                           </p>
 
@@ -148,17 +143,18 @@ export function RidesTab() {
                       </div>
 
                       {/* Rating */}
-                      {ride.rating > 0 && (
-                        <div className="flex items-center justify-between border-t border-border pt-3">
-                          <span className="text-xs font-medium text-muted">
-                            Your Rating
-                          </span>
-
+                      <div className="flex items-center justify-between border-t border-border pt-3">
+                        <span className="text-xs font-medium text-muted">
+                          Your Rating
+                        </span>
+                        {ride.rating > 0 ? (
                           <div className="flex items-center gap-0.5 text-sm text-yellow-500">
                             {"★".repeat(ride.rating)}
                           </div>
-                        </div>
-                      )}
+                        ) : (
+                          <p>-</p>
+                        )}
+                      </div>
                     </Card.Content>
                   </Card>
                 ))}

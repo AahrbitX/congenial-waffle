@@ -17,8 +17,8 @@ import {
 const CATEGORIES = [
   { value: "payment", label: "Payment Issue" },
   { value: "driver_issue", label: "Driver Issue" },
-  { value: "route_issue", label: "Route / Pickup Issue" },
-  { value: "other", label: "Other" },
+  { value: "route_issue", label: "Route Issue" },
+  { value: "other", label: "Others" },
 ] as const;
 
 type Category = (typeof CATEGORIES)[number]["value"];
@@ -66,7 +66,7 @@ export function RaiseTicketModal() {
     >
       <Modal.Backdrop>
         <Modal.Container>
-          <Modal.Dialog className="max-w-lg">
+          <Modal.Dialog className="max-w-lg px-4">
             {submitted ? (
               <>
                 <Modal.Body className="">
@@ -102,7 +102,7 @@ export function RaiseTicketModal() {
 
                 <Modal.Body className="space-y-4">
                   <div>
-                    <label className="mb-2 block">Category</label>
+                    <Label className="mb-2 block text-muted">Category</Label>
 
                     <div className="grid grid-cols-2 gap-2">
                       {CATEGORIES.map((item) => (
@@ -110,7 +110,7 @@ export function RaiseTicketModal() {
                           key={item.value}
                           type="button"
                           onClick={() => setCategory(item.value)}
-                          className={`rounded-xl border px-3 py-2 text-left text-sm font-medium transition-all ${
+                          className={`rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors duration-100 ${
                             category === item.value
                               ? " bg-primary text-white"
                               : " bg-[var(--color-default)] "

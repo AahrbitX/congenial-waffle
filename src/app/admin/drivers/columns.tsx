@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Driver } from "@/types/driver";
-import { dateParser } from "@/utils/date-parser";
+import { tableDateParser } from "@/utils/tableDateParser";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 
 const columnHelper = createColumnHelper<Driver>();
@@ -31,7 +31,7 @@ export const driverColumns: ColumnDef<Driver, any>[] = [
   }),
   columnHelper.accessor("createdAt", {
     header: "Joined At",
-    cell: ({ getValue }) => dateParser({ getValue }),
+    cell: ({ getValue }) => tableDateParser({ getValue }),
   }),
   columnHelper.accessor("vehicleType", {
     header: "Vehicle Type",

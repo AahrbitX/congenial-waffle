@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Avatar, Card, Input, Label } from "@heroui/react";
+import { Avatar, Card, Input, Label, ListBox, Select } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
 import { authClient } from "@/lib/auth-client";
 import { useUserStats, useHasPassword } from "@/hooks/useUser";
@@ -64,13 +64,18 @@ const MENU_ITEMS = [
 export function ProfileMain() {
   const { data: session } = authClient.useSession();
   const user = session?.user;
+
   const { data: stats } = useUserStats();
   const { data: pwData } = useHasPassword();
-  const queryClient = useQueryClient();
+
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user?.name ?? "");
+  const [gender, setGender] = useState<
+    "male" | "female" | "other" | "prefer_not_to_say" | ""
+  >("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
@@ -104,7 +109,9 @@ export function ProfileMain() {
             </Avatar>
           </div>
           <div>
-            <p className="text-xl font-bold text-primary">{user?.name ?? "User"}</p>
+            <p className="text-xl font-bold text-primary">
+              {user?.name ?? "User"}
+            </p>
           </div>
           <div className="flex gap-4 w-full pt-2 border-t border-border">
             {[
@@ -119,7 +126,11 @@ export function ProfileMain() {
             ))}
           </div>
         </Card>
-        <Button onPress={() => setShowSignOut(true)} variant="danger-soft" fullWidth>
+        <Button
+          onPress={() => setShowSignOut(true)}
+          variant="danger-soft"
+          fullWidth
+        >
           <IconLogOut size={15} className="mr-2" /> Sign Out
         </Button>
       </div>
@@ -128,7 +139,7 @@ export function ProfileMain() {
       <div className="lg:col-span-2 space-y-4">
         <Card>
           <Card.Header className="flex-row items-center justify-between mb-2">
-            <Card.Title className="text-lg">Personal Information</Card.Title>
+            <Card.Title className="">Personal Information</Card.Title>
             <div className="space-x-2">
               {editing && (
                 <Button size="sm" onPress={handleSave} isLoading={saving}>
@@ -149,25 +160,68 @@ export function ProfileMain() {
               </Button>
             </div>
           </Card.Header>
-          <Card.Content className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <Label>Full Name</Label>
+          <Card.Content className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="block" htmlFor="name">
+                Full Name
+              </Label>
               <Input
-                type="text"
+                id="name"
                 value={name}
+                fullWidth
                 variant="secondary"
                 onChange={(e) => setName(e.target.value)}
                 disabled={!editing || saving}
               />
             </div>
-            <div>
-              <Label>Phone Number</Label>
+
+            <div className="space-y-2">
+              <Label className="block" htmlFor="phone">
+                Phone Number
+              </Label>
               <Input
+                id="phone"
                 type="tel"
+                fullWidth
                 value={phone}
                 variant="secondary"
                 disabled
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="block">Gender</Label>
+              <Select
+                value={gender}
+                onChange={(key) =>
+                  setGender(
+                    (key?.toString() as
+                      | "male"
+                      | "female"
+                      | "other"
+                      | "prefer_not_to_say") ?? "",
+                  )
+                }
+                isDisabled={!editing}
+                variant="secondary"
+                placeholder="Select gender"
+              >
+                <Select.Trigger>
+                  <Select.Value />
+                  <Select.Indicator />
+                </Select.Trigger>
+
+                <Select.Popover>
+                  <ListBox>
+                    <ListBox.Item id="male">Male</ListBox.Item>
+                    <ListBox.Item id="female">Female</ListBox.Item>
+                    <ListBox.Item id="other">Other</ListBox.Item>
+                    <ListBox.Item id="prefer_not_to_say">
+                      Prefer not to say
+                    </ListBox.Item>
+                  </ListBox>
+                </Select.Popover>
+              </Select>
             </div>
           </Card.Content>
           {saveError && (
@@ -177,7 +231,7 @@ export function ProfileMain() {
 
         <Card>
           <Card.Header>
-            <Card.Title className="text-lg">Account Settings</Card.Title>
+            <Card.Title className="">Account Settings</Card.Title>
           </Card.Header>
           <Card.Content>
             {MENU_ITEMS.map(({ icon: Icon, label, sub, href, disabled }) =>
@@ -204,13 +258,19 @@ export function ProfileMain() {
                   className="w-full flex items-center py-2 transition-colors text-left border-t border-[var(--color-border)] first:border-0 group"
                 >
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center group-hover:bg-primary-light transition-colors shrink-0 mr-2">
-                    <Icon size={22} className="text-muted group-hover:text-accent transition-colors" />
+                    <Icon
+                      size={22}
+                      className="text-muted group-hover:text-accent transition-colors"
+                    />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-semibold">{label}</p>
                     <p className="text-xs text-muted">{sub}</p>
                   </div>
-                  <IconChevronRight size={14} className="text-muted group-hover:text-accent transition-colors" />
+                  <IconChevronRight
+                    size={14}
+                    className="text-muted group-hover:text-accent transition-colors"
+                  />
                 </Link>
               ),
             )}
@@ -222,17 +282,25 @@ export function ProfileMain() {
               className="w-full flex items-center py-2 transition-colors text-left border-t border-[var(--color-border)] group"
             >
               <div className="w-9 h-9 rounded-xl flex items-center justify-center group-hover:bg-primary-light transition-colors shrink-0 mr-2">
-                <IconLock size={22} className="text-muted group-hover:text-accent transition-colors" />
+                <IconLock
+                  size={22}
+                  className="text-muted group-hover:text-accent transition-colors"
+                />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-semibold">
                   {pwData ? "Reset Password" : "Create Password"}
                 </p>
                 <p className="text-xs text-muted">
-                  {pwData ? "Change your password via OTP" : "Set a password for your account"}
+                  {pwData
+                    ? "Change your password via OTP"
+                    : "Set a password for your account"}
                 </p>
               </div>
-              <IconChevronRight size={14} className="text-muted group-hover:text-accent transition-colors" />
+              <IconChevronRight
+                size={14}
+                className="text-muted group-hover:text-accent transition-colors"
+              />
             </button>
           </Card.Content>
         </Card>
@@ -247,7 +315,8 @@ export function ProfileMain() {
             </div>
             <p className="text-[18px] font-black text-primary">Sign out?</p>
             <p className="text-[13px] text-muted leading-relaxed">
-              You&apos;ll need to log in again with your phone number to access your account.
+              You&apos;ll need to log in again with your phone number to access
+              your account.
             </p>
             <div className="flex gap-3 pt-2">
               <Button

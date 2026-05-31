@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { dateParser } from "@/utils/date-parser";
-import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
-import { ArrowRightLeft } from "lucide-react";
-import StatusIndicator from "@/components/data/statusIndicator";
+import { tableDateParser } from "@/utils/tableDateParser";
 import { RouteCell } from "@/components/dataTable/routeCell";
+import StatusIndicator from "@/components/data/statusIndicator";
+import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 
 // Trip ID
 // Rider
@@ -58,7 +57,7 @@ export const ridesColumns: ColumnDef<any, any>[] = [
   }),
   columnHelper.accessor("time", {
     header: "Time",
-    cell: ({ getValue }) => dateParser({ getValue }),
+    cell: ({ getValue }) => tableDateParser({ getValue }),
   }),
   columnHelper.accessor("fare", {
     header: "Fare",

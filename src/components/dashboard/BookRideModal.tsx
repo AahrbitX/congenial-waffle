@@ -51,7 +51,16 @@ import {
   IconLoader,
   IconLocate,
 } from "@/constants/icons";
-import { Input } from "@heroui/react";
+import {
+  ComboBox,
+  FieldError,
+  Input,
+  Label,
+  ListBox,
+  Modal,
+  Tab,
+  Tabs,
+} from "@heroui/react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -63,26 +72,34 @@ interface BookRideModalProps {
 }
 
 interface FormState {
-  // Common
   pickup: string;
   pickupLat: number | null;
   pickupLng: number | null;
+
   destination: string;
   destinationLat: number | null;
   destinationLng: number | null;
+
   date: string;
   time: string;
-  tripTab: TripTab;
   returnDate: string;
+  returnTime: string;
+
+  // Type of Trip
+  tripTab: TripTab;
+
   // Airport / Railway
   direction: "to" | "from";
   refNumber: string; // flight no. or train no.
+
   // Hire
   duration: string;
   endDate: string;
+
   // Event / Group
   passengers: string;
   notes: string;
+
   // Inquiry
   inqName: string;
   inqPhone: string;
@@ -94,19 +111,27 @@ const BLANK_FORM: FormState = {
   pickup: "",
   pickupLat: null,
   pickupLng: null,
+
   destination: "",
   destinationLat: null,
   destinationLng: null,
+
   date: "",
   time: "",
-  tripTab: "oneway",
   returnDate: "",
+  returnTime: "",
+
+  tripTab: "oneway",
+
   direction: "to",
   refNumber: "",
+
   duration: "",
   endDate: "",
+
   passengers: "",
   notes: "",
+
   inqName: "",
   inqPhone: "",
   inqOrg: "",
@@ -301,7 +326,9 @@ export function BookRideModal({
   }
 
   function handleStep1Next() {
+    console.log(form);
     const err = validateStep1(form, config?.formType);
+    console.log(err);
     if (err) {
       setError(err);
       return;
@@ -389,6 +416,7 @@ export function BookRideModal({
       currency: string;
       keyId: string;
     };
+
     try {
       const orderRes = await createPaymentOrder(bookingId, amount, mode);
       orderData = orderRes.data;
@@ -463,337 +491,326 @@ export function BookRideModal({
         : "Confirm Booking";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-[var(--color-surface)] rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
-        {/* ── Confirmation ──────────────────────────────────────────── */}
-        {confirmed ? (
-          <div className="flex flex-col items-center justify-center py-14 px-8 gap-4">
-            <div className="w-16 h-16 rounded-full bg-[var(--color-success-light)] flex items-center justify-center">
-              <IconCheckCircle
-                size={32}
-                className="text-[var(--color-success)]"
-              />
-            </div>
-            <p className="text-[20px] font-black text-primary">
-              {isInquiry ? "Enquiry Sent!" : "Ride Booked!"}
-            </p>
-            <p className="text-[13px] text-[var(--color-text-tertiary)]">
-              {isInquiry
-                ? "We'll get back to you shortly."
-                : "Looking for a driver nearby…"}
-            </p>
-            {!isInquiry && form.pickup && (
-              <div className="bg-[var(--color-primary-light)] text-[var(--color-primary)] text-[13px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5">
-                <IconMapPin size={13} /> {form.pickup}
-              </div>
-            )}
-          </div>
-        ) : (
-          <>
-            {/* ── Header ─────────────────────────────────────────────── */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] shrink-0">
-              <div className="flex items-center gap-2">
-                {step > 1 && (
-                  <button
-                    onClick={() => {
-                      setStep((s) => (s - 1) as 1 | 2 | 3);
-                      setError("");
-                    }}
-                    className="p-1.5 rounded-lg hover:bg-[var(--color-surface-muted)] mr-1"
-                  >
-                    <IconChevronLeft size={16} />
-                  </button>
-                )}
-                <div>
-                  <p className="text-[16px] font-black text-primary">
-                    {stepLabel}
+    <Modal
+      isOpen={isOpen}
+      onOpenChange={(open) => {
+        if (!open) handleClose();
+      }}
+    >
+      <Modal.Backdrop isDismissable={false}>
+        <Modal.Container>
+          <Modal.Dialog>
+            <div className="w-full max-w-lg max-h-[90vh] flex flex-col">
+              {/* ── Confirmation ──────────────────────────────────────────── */}
+              {confirmed ? (
+                <div className="flex flex-col items-center justify-center py-14 px-8 gap-4">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center">
+                    <IconCheckCircle
+                      size={32}
+                      className="text-[var(--color-success)]"
+                    />
+                  </div>
+                  <p className="text-[20px] font-black text-primary">
+                    {isInquiry ? "Enquiry Sent!" : "Ride Booked!"}
                   </p>
-                  {config && (
-                    <p className="text-[11px] font-semibold text-[var(--color-primary)] mt-0.5">
-                      {config.label}
-                    </p>
+                  <p className="text-[13px] text-[var(--color-text-tertiary)]">
+                    {isInquiry
+                      ? "We'll get back to you shortly."
+                      : "Looking for a driver nearby…"}
+                  </p>
+                  {!isInquiry && form.pickup && (
+                    <div className="bg-[var(--color-primary-light)] text-primary text-[13px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5">
+                      <IconMapPin size={13} /> {form.pickup}
+                    </div>
                   )}
                 </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                {/* Step dots — 3 for full flow, 1 for inquiry */}
-                {!isInquiry && (
-                  <div className="flex gap-1.5">
-                    {[1, 2, 3].map((s) => (
-                      <div
-                        key={s}
-                        className={`h-1.5 rounded-full transition-all ${
-                          s === step
-                            ? "w-5 bg-[var(--color-primary)]"
-                            : s < step
-                              ? "w-1.5 bg-[var(--color-primary)] opacity-40"
-                              : "w-1.5 bg-[var(--color-border-strong)]"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                )}
-                <button
-                  onClick={handleClose}
-                  className="p-1.5 rounded-full hover:bg-[var(--color-surface-muted)]"
-                >
-                  <IconX size={15} />
-                </button>
-              </div>
-            </div>
-
-            {/* ── Scrollable body ───────────────────────────────────── */}
-            <div className="overflow-y-auto flex-1 p-5 space-y-4">
-              {/* ── Step 1: Service-specific form ──────────────────── */}
-              {step === 1 && (
-                <Step1Form
-                  formType={config?.formType ?? "standard"}
-                  serviceId={config?.id}
-                  form={form}
-                  update={update}
-                  updateLocation={updateLocation}
-                  error={error}
-                />
-              )}
-
-              {/* ── Step 2: Preferences + Vehicles ─────────────────── */}
-              {step === 2 && (
+              ) : (
                 <>
-                  {/* Route summary */}
-                  <RouteSummary form={form} config={config} />
-
-                  {/* AC preference */}
-                  <div>
-                    <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-2">
-                      AC Preference
-                    </p>
-                    <div className="flex gap-2">
-                      {[
-                        {
-                          label: "AC",
-                          val: true as boolean | null,
-                          icon: true,
-                        },
-                        {
-                          label: "Non-AC",
-                          val: false as boolean | null,
-                          icon: false,
-                        },
-                        {
-                          label: "Any",
-                          val: null as boolean | null,
-                          icon: false,
-                        },
-                      ].map(({ label, val, icon }) => (
+                  <Modal.Header className="flex items-center justify-between flex-row">
+                    <div className="flex items-center gap-2">
+                      {step > 1 && (
                         <button
-                          key={label}
                           onClick={() => {
-                            setAcPref(val);
-                            setVehicle("");
+                            setStep((s) => (s - 1) as 1 | 2 | 3);
+                            setError("");
                           }}
-                          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[13px] font-semibold border transition-all ${
-                            acPref === val
-                              ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                              : "bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-primary)]"
-                          }`}
+                          className="p-1.5 rounded-lg hover:bg-[var(--color-surface-muted)] mr-1"
                         >
-                          {icon && <IconWind size={12} />}
-                          {label}
+                          <IconChevronLeft size={16} />
                         </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Seat filter */}
-                  <div>
-                    <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-2">
-                      Minimum Seats
-                    </p>
-                    <div className="flex gap-2 flex-wrap">
-                      {SEAT_OPTIONS.map(({ label, value }) => {
-                        const tooFew =
-                          value > 0 &&
-                          minPassengerSeats > 0 &&
-                          value < minPassengerSeats;
-                        return (
-                          <button
-                            key={label}
-                            disabled={tooFew}
-                            onClick={() => {
-                              if (!tooFew) {
-                                setSeatFilter(value);
-                                setVehicle("");
-                              }
-                            }}
-                            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-semibold border transition-all ${
-                              tooFew
-                                ? "opacity-35 cursor-not-allowed bg-[var(--color-surface-muted)] text-[var(--color-text-tertiary)] border-[var(--color-border)]"
-                                : seatFilter === value
-                                  ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                                  : "bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-primary)]"
-                            }`}
-                          >
-                            {value > 0 && <IconUsers size={11} />}
-                            {label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Vehicle list */}
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase">
-                        Available Vehicles
-                      </p>
-                      {distLoading && (
-                        <span className="flex items-center gap-1 text-[10px] text-[var(--color-primary)] font-semibold">
-                          <IconLoader size={10} className="animate-spin" />{" "}
-                          Calculating fare…
-                        </span>
                       )}
-                      {!distLoading && distanceKm != null && (
-                        <span className="text-[10px] text-[var(--color-primary)] font-semibold bg-[var(--color-primary-light)] px-2 py-0.5 rounded-full">
-                          {distanceKm} km route
-                        </span>
-                      )}
-                    </div>
-                    {filteredVehicles.length === 0 ? (
-                      <div className="text-center py-8 text-[13px] text-[var(--color-text-tertiary)]">
-                        No vehicles match these filters.
-                        <br />
-                        Try changing AC preference or seat count.
+                      <div>
+                        <p>{stepLabel}</p>
+                        {config && (
+                          <p className="text-[11px] font-semibold text-primary mt-0.5">
+                            {config.label}
+                          </p>
+                        )}
                       </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {filteredVehicles.map((v) => (
-                          <VehicleCard
-                            key={v.type}
-                            vehicle={v}
-                            selected={vehicle === v.type}
-                            onSelect={() => setVehicle(v.type)}
-                            serviceId={config?.id}
-                            disabled={
-                              minPassengerSeats > 0 &&
-                              v.seats < minPassengerSeats
-                            }
-                            distanceKm={distanceKm}
-                          />
-                        ))}
+                    </div>
+
+                    <div className="flex items-center gap-3 mr-12">
+                      {!isInquiry && (
+                        <div className="flex gap-1.5">
+                          {[1, 2, 3].map((s) => (
+                            <div
+                              key={s}
+                              className={`h-1.5 rounded-full transition-all ${
+                                s === step
+                                  ? "w-5 bg-primary"
+                                  : s < step
+                                    ? "w-1.5 bg-primary opacity-40"
+                                    : "w-1.5 bg-[var(--color-border-strong)]"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      <Modal.CloseTrigger />
+                    </div>
+                  </Modal.Header>
+                  <Modal.Body className="overflow-y-auto px-1">
+                    {step === 1 && (
+                      <Step1Form
+                        formType={config?.formType ?? "standard"}
+                        serviceId={config?.id}
+                        form={form}
+                        update={update}
+                        updateLocation={updateLocation}
+                        error={error}
+                      />
+                    )}
+
+                    {step === 2 && (
+                      <>
+                        <div className="text-foreground mb-2">
+                          <p className="text-sm mb-1">AC Preference</p>
+                          <div className="flex gap-2">
+                            {[
+                              {
+                                label: "AC",
+                                val: true as boolean | null,
+                                icon: true,
+                              },
+                              {
+                                label: "Non-AC",
+                                val: false as boolean | null,
+                                icon: false,
+                              },
+                              {
+                                label: "Any",
+                                val: null as boolean | null,
+                                icon: false,
+                              },
+                            ].map(({ label, val, icon }) => (
+                              <button
+                                key={label}
+                                onClick={() => {
+                                  setAcPref(val);
+                                  setVehicle("");
+                                }}
+                                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold border transition-all ${
+                                  acPref === val
+                                    ? "bg-primary text-white border-primary"
+                                    : "bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-primary"
+                                }`}
+                              >
+                                {icon && <IconWind size={14} />}
+                                {label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Seat filter */}
+                        <div className="mb-2">
+                          <p className="text-sm text-foreground mb-1">
+                            Minimum Seats
+                          </p>
+                          <div className="flex gap-2 flex-wrap">
+                            {SEAT_OPTIONS.map(({ label, value }) => {
+                              const tooFew =
+                                value > 0 &&
+                                minPassengerSeats > 0 &&
+                                value < minPassengerSeats;
+                              return (
+                                <button
+                                  key={label}
+                                  disabled={tooFew}
+                                  onClick={() => {
+                                    if (!tooFew) {
+                                      setSeatFilter(value);
+                                      setVehicle("");
+                                    }
+                                  }}
+                                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold border transition-all ${
+                                    tooFew
+                                      ? "opacity-35 cursor-not-allowed border-border"
+                                      : seatFilter === value
+                                        ? "bg-primary text-white"
+                                        : " border-border hover:border-primary"
+                                  }`}
+                                >
+                                  {value > 0 && <IconUsers size={14} />}
+                                  {label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Vehicle list */}
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <p className="text-sm text-foreground">
+                              Available Vehicles
+                            </p>
+                            {distLoading && (
+                              <span className="flex items-center gap-1 text-xs text-primary font-semibold">
+                                <IconLoader
+                                  size={10}
+                                  className="animate-spin"
+                                />
+                                Calculating fare…
+                              </span>
+                            )}
+                            {!distLoading && distanceKm != null && (
+                              <span className="text-[10px] text-[var(--color-primary)] font-semibold bg-[var(--color-primary-light)] px-2 py-0.5 rounded-full">
+                                {distanceKm} km route
+                              </span>
+                            )}
+                          </div>
+                          {filteredVehicles.length === 0 ? (
+                            <div className="text-center py-8 text-[13px] text-[var(--color-text-tertiary)]">
+                              No vehicles match these filters.
+                              <br />
+                              Try changing AC preference or seat count.
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {filteredVehicles.map((v) => (
+                                <VehicleCard
+                                  key={v.type}
+                                  vehicle={v}
+                                  selected={vehicle === v.type}
+                                  onSelect={() => setVehicle(v.type)}
+                                  serviceId={config?.id}
+                                  disabled={
+                                    minPassengerSeats > 0 &&
+                                    v.seats < minPassengerSeats
+                                  }
+                                  distanceKm={distanceKm}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    {step === 3 && selectedV && (
+                      <>
+                        <RouteSummary form={form} config={config} />
+
+                        {/* Vehicle summary */}
+                        <div className="flex items-center gap-4 px-4 py-3 rounded-xl border border-border my-2">
+                          <IconCar size={20} className="text-primary" />
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-primary">
+                              {selectedV.type}
+                            </p>
+                            <p className="text-xs text-muted">
+                              {selectedV.seats} seats ·{" "}
+                              {selectedV.ac ? "AC" : "Non-AC"} ·{" "}
+                              {selectedV.desc}
+                              {distanceKm != null && ` · ${distanceKm} km`}
+                            </p>
+                          </div>
+                          <p className="text-[15px] font-semibold text-[var(--color-primary)]">
+                            ₹{computedFare}
+                          </p>
+                        </div>
+
+                        {/* Fare breakdown */}
+                        <div className="rounded-xl overflow-hidden border border-border">
+                          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                            <span className="text-sm">Total Fare</span>
+                            <span className="text-[16px] font-semibold text-primary">
+                              ₹{computedFare}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between px-4 py-2">
+                            <div>
+                              <span className="text-sm ">
+                                Advance (Partial Pay)
+                              </span>
+                              <p className="text-xs">
+                                Balance ₹
+                                {computedFare - calcAdvance(computedFare)} paid
+                                to driver on arrival
+                              </p>
+                            </div>
+                            <span className=" font-semibold text-primary">
+                              ₹{calcAdvance(computedFare)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {error && (
+                          <p className="text-[12px] text-red-500 font-medium">
+                            {error}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </Modal.Body>
+                  <Modal.Footer className="mt-2">
+                    {step === 1 && (
+                      <Button onPress={handleStep1Next} fullWidth>
+                        {isInquiry ? "Send Enquiry" : "See Available Cabs →"}
+                      </Button>
+                    )}
+
+                    {step === 2 && (
+                      <Button
+                        onPress={() => setStep(3)}
+                        isDisabled={!vehicle}
+                        fullWidth
+                      >
+                        Continue →
+                      </Button>
+                    )}
+
+                    {step === 3 && (
+                      <div className="flex gap-2">
+                        <Button
+                          onPress={() => handleRazorpayPay("partial")}
+                          isDisabled={payProcessing}
+                          variant="secondary"
+                          isLoading={payProcessing && payMode === "partial"}
+                        >
+                          Pay ₹
+                          {computedFare > 0 ? calcAdvance(computedFare) : "..."}{" "}
+                          Advance
+                        </Button>
+
+                        <Button
+                          onPress={() => handleRazorpayPay("full")}
+                          isDisabled={payProcessing}
+                          isLoading={payProcessing && payMode === "full"}
+                        >
+                          Pay ₹{computedFare > 0 ? computedFare : "…"} Now
+                        </Button>
                       </div>
                     )}
-                  </div>
-                </>
-              )}
-
-              {/* ── Step 3: Payment ─────────────────────────────────── */}
-              {step === 3 && selectedV && (
-                <>
-                  <RouteSummary form={form} config={config} />
-
-                  {/* Vehicle summary */}
-                  <div className="flex items-center gap-4 px-4 py-3 bg-[var(--color-primary-light)] rounded-xl border border-[var(--color-primary)]/20">
-                    <IconCar
-                      size={20}
-                      className="text-[var(--color-primary)]"
-                    />
-                    <div className="flex-1">
-                      <p className="text-[14px] font-bold text-primary">
-                        {selectedV.type}
-                      </p>
-                      <p className="text-[12px] text-[var(--color-text-tertiary)]">
-                        {selectedV.seats} seats ·{" "}
-                        {selectedV.ac ? "AC" : "Non-AC"} · {selectedV.desc}
-                        {distanceKm != null && ` · ${distanceKm} km`}
-                      </p>
-                    </div>
-                    <p className="text-[15px] font-black text-[var(--color-primary)]">
-                      ₹{computedFare}
-                    </p>
-                  </div>
-
-                  {/* Fare breakdown */}
-                  <div className="rounded-xl overflow-hidden border border-[var(--color-border)]">
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface-muted)]">
-                      <span className="text-[13px] text-[var(--color-text-secondary)]">
-                        Total Fare
-                      </span>
-                      <span className="text-[16px] font-black text-primary">
-                        ₹{computedFare}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between px-4 py-3 bg-[var(--color-surface-muted)]">
-                      <div>
-                        <span className="text-[13px] text-[var(--color-text-secondary)]">
-                          Advance (Partial Pay)
-                        </span>
-                        <p className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5">
-                          Balance ₹{computedFare - calcAdvance(computedFare)}{" "}
-                          paid to driver on arrival
-                        </p>
-                      </div>
-                      <span className="text-[15px] font-bold text-[var(--color-primary)]">
-                        ₹{calcAdvance(computedFare)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {error && (
-                    <p className="text-[12px] text-red-500 font-medium">
-                      {error}
-                    </p>
-                  )}
+                  </Modal.Footer>
                 </>
               )}
             </div>
-
-            {/* ── Footer CTA ────────────────────────────────────────── */}
-            <div className="px-5 pb-5 pt-3 border-t border-[var(--color-border)] shrink-0">
-              {step === 1 && (
-                <Button
-                  onPress={handleStep1Next}
-                  className="w-full bg-[var(--color-primary)] text-white font-bold py-3.5 rounded-xl"
-                >
-                  {isInquiry ? "Send Enquiry" : "See Available Cabs →"}
-                </Button>
-              )}
-              {step === 2 && (
-                <Button
-                  onPress={() => setStep(3)}
-                  isDisabled={!vehicle}
-                  className="w-full bg-[var(--color-primary)] text-white font-bold py-3.5 rounded-xl disabled:opacity-50"
-                >
-                  Continue →
-                </Button>
-              )}
-              {step === 3 && (
-                <div className="flex gap-2">
-                  <Button
-                    onPress={() => handleRazorpayPay("partial")}
-                    isDisabled={payProcessing}
-                    isLoading={payProcessing && payMode === "partial"}
-                    className="flex-1 bg-[var(--color-surface-muted)] text-primary font-bold py-3 rounded-xl border border-[var(--color-border)] text-[13px]"
-                  >
-                    Pay ₹{computedFare > 0 ? calcAdvance(computedFare) : "…"}{" "}
-                    Advance
-                  </Button>
-                  <Button
-                    onPress={() => handleRazorpayPay("full")}
-                    isDisabled={payProcessing}
-                    isLoading={payProcessing && payMode === "full"}
-                    className="flex-1 bg-[var(--color-primary)] text-white font-bold py-3 rounded-xl text-[13px]"
-                  >
-                    Pay ₹{computedFare > 0 ? computedFare : "…"} Now
-                  </Button>
-                </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+    </Modal>
   );
 }
 
@@ -912,11 +929,11 @@ interface FormProps {
 // Standard: City Taxi, Nationwide
 function StandardForm({ form, update, updateLocation, error }: FormProps) {
   return (
-    <>
+    <div className="space-y-2 pb-2">
       <TripToggle value={form.tripTab} onChange={(v) => update("tripTab", v)} />
       <LocationInput
         label="Pickup Location"
-        dotClass="rounded-full bg-[var(--color-primary)]"
+        dotClass="rounded-full bg-primary"
         value={form.pickup}
         onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
         placeholder="Enter pickup location"
@@ -937,13 +954,16 @@ function StandardForm({ form, update, updateLocation, error }: FormProps) {
         highlight={!!error && !form.destination.trim()}
       />
       {form.tripTab === "roundtrip" && (
-        <ReturnDateInput
-          value={form.returnDate}
-          onChange={(v) => update("returnDate", v)}
+        <DateTimeRow
+          label="Return Date and Time"
+          date={form.returnDate}
+          time={form.returnTime}
+          onDate={(v) => update("returnDate", v)}
+          onTime={(v) => update("returnTime", v)}
         />
       )}
-      {error && <p className="text-[12px] text-red-500 font-medium">{error}</p>}
-    </>
+      {error.length > 0 && <p className="text-danger">{error}</p>}
+    </div>
   );
 }
 
@@ -954,7 +974,7 @@ function OutstationForm({ form, update, updateLocation, error }: FormProps) {
       <TripToggle value={form.tripTab} onChange={(v) => update("tripTab", v)} />
       <LocationInput
         label="Departure City"
-        dotClass="rounded-full bg-[var(--color-primary)]"
+        dotClass="rounded-full bg-primary"
         value={form.pickup}
         onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
         placeholder="E.g. Trivandrum"
@@ -976,9 +996,12 @@ function OutstationForm({ form, update, updateLocation, error }: FormProps) {
         onTime={(v) => update("time", v)}
       />
       {form.tripTab === "roundtrip" && (
-        <ReturnDateInput
-          value={form.returnDate}
-          onChange={(v) => update("returnDate", v)}
+        <DateTimeRow
+          label="Return Date & Time"
+          date={form.returnDate}
+          time={form.returnTime}
+          onDate={(v) => update("returnDate", v)}
+          onTime={(v) => update("returnTime", v)}
         />
       )}
       {error && <p className="text-[12px] text-red-500 font-medium">{error}</p>}
@@ -1009,8 +1032,8 @@ function AirportForm({ form, update, updateLocation, error }: FormProps) {
               onClick={() => update("direction", val)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[13px] font-semibold border transition-all ${
                 form.direction === val
-                  ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                  : "bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-primary)]"
+                  ? "bg-primary text-white border-primary"
+                  : "bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-primary"
               }`}
             >
               {icon}
@@ -1023,7 +1046,7 @@ function AirportForm({ form, update, updateLocation, error }: FormProps) {
         label={
           form.direction === "to" ? "Your Pickup Address" : "Airport Terminal"
         }
-        dotClass="rounded-full bg-[var(--color-primary)]"
+        dotClass="rounded-full bg-primary"
         value={form.pickup}
         onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
         placeholder={
@@ -1072,8 +1095,8 @@ function RailwayForm({ form, update, updateLocation, error }: FormProps) {
               onClick={() => update("direction", val)}
               className={`flex-1 py-2.5 rounded-xl text-[13px] font-semibold border transition-all ${
                 form.direction === val
-                  ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                  : "bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-primary)]"
+                  ? "bg-primary text-white border-primary"
+                  : "bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-primary"
               }`}
             >
               {label}
@@ -1083,7 +1106,7 @@ function RailwayForm({ form, update, updateLocation, error }: FormProps) {
       </div>
       <LocationInput
         label={form.direction === "to" ? "Your Pickup Address" : "Station Name"}
-        dotClass="rounded-full bg-[var(--color-primary)]"
+        dotClass="rounded-full bg-primary"
         value={form.pickup}
         onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
         placeholder={
@@ -1131,7 +1154,7 @@ function HireForm({
     <>
       <LocationInput
         label="Pickup Location"
-        dotClass="rounded-full bg-[var(--color-primary)]"
+        dotClass="rounded-full bg-primary"
         value={form.pickup}
         onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
         placeholder="Your pickup address"
@@ -1149,7 +1172,7 @@ function HireForm({
           <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-1.5">
             Return Date
           </p>
-          <div className="flex items-center gap-2 border border-[var(--color-border)] rounded-xl px-3 py-2.5 focus-within:border-[var(--color-primary)]">
+          <div className="flex items-center gap-2 border border-[var(--color-border)] rounded-xl px-3 py-2.5 focus-within:border-primary">
             <IconCalendar
               size={14}
               className="text-[var(--color-text-tertiary)]"
@@ -1178,8 +1201,8 @@ function HireForm({
                 onClick={() => update("duration", opt)}
                 className={`px-4 py-2 rounded-xl text-[13px] font-semibold border transition-all ${
                   form.duration === opt
-                    ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                    : "bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-primary)]"
+                    ? "bg-primary text-white border-primary"
+                    : "bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-primary"
                 }`}
               >
                 {opt}
@@ -1216,7 +1239,7 @@ function EventForm({ form, update, updateLocation, error }: FormProps) {
       />
       <LocationInput
         label="Pickup / Venue"
-        dotClass="rounded-full bg-[var(--color-primary)]"
+        dotClass="rounded-full bg-primary"
         value={form.pickup}
         onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
         placeholder="Venue or pickup address"
@@ -1233,8 +1256,8 @@ function EventForm({ form, update, updateLocation, error }: FormProps) {
               onClick={() => update("duration", opt)}
               className={`px-3 py-2 rounded-xl text-[12px] font-semibold border transition-all ${
                 form.duration === opt
-                  ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                  : "bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-primary)]"
+                  ? "bg-primary text-white border-primary"
+                  : "bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-primary"
               }`}
             >
               {opt}
@@ -1249,7 +1272,7 @@ function EventForm({ form, update, updateLocation, error }: FormProps) {
         <PassengerSelect
           value={form.passengers}
           onChange={(v) => update("passengers", v)}
-          options={["1–3", "4–6", "7–10", "10–15", "15+"]}
+          options={["1-3", "4-6", "7-10", "10-15", "15+"]}
         />
       </div>
       <div>
@@ -1262,7 +1285,7 @@ function EventForm({ form, update, updateLocation, error }: FormProps) {
           onChange={(e) => update("notes", e.target.value)}
           rows={2}
           placeholder="Decoration, multiple vehicles, accessibility needs…"
-          className="w-full border border-[var(--color-border)] rounded-xl px-3 py-2.5 text-[13px] text-primary bg-transparent outline-none resize-none focus:border-[var(--color-primary)]"
+          className="w-full border border-[var(--color-border)] rounded-xl px-3 py-2.5 text-[13px] text-primary bg-transparent outline-none resize-none focus:border-primary"
         />
       </div>
       {error && <p className="text-[12px] text-red-500 font-medium">{error}</p>}
@@ -1277,7 +1300,7 @@ function GroupForm({ form, update, updateLocation, error }: FormProps) {
       <TripToggle value={form.tripTab} onChange={(v) => update("tripTab", v)} />
       <LocationInput
         label="Pickup Location"
-        dotClass="rounded-full bg-[var(--color-primary)]"
+        dotClass="rounded-full bg-primary"
         value={form.pickup}
         onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
         placeholder="Enter pickup location"
@@ -1310,9 +1333,11 @@ function GroupForm({ form, update, updateLocation, error }: FormProps) {
         />
       </div>
       {form.tripTab === "roundtrip" && (
-        <ReturnDateInput
-          value={form.returnDate}
-          onChange={(v) => update("returnDate", v)}
+        <DateTimeRow
+          date={form.returnDate}
+          time={form.returnTime}
+          onDate={(v) => update("returnDate", v)}
+          onTime={(v) => update("returnTime", v)}
         />
       )}
       {error && <p className="text-[12px] text-red-500 font-medium">{error}</p>}
@@ -1368,7 +1393,7 @@ function InquiryForm({ form, update, updateLocation, error }: FormProps) {
           onChange={(e) => update("inqMessage", e.target.value)}
           rows={4}
           placeholder="Describe your transport needs, number of employees/students, routes, schedule…"
-          className={`w-full border rounded-xl px-3 py-2.5 text-[13px] text-primary bg-transparent outline-none resize-none focus:border-[var(--color-primary)] ${
+          className={`w-full border rounded-xl px-3 py-2.5 text-[13px] text-primary bg-transparent outline-none resize-none focus:border-primary ${
             error && !form.inqMessage.trim()
               ? "border-red-400"
               : "border-[var(--color-border)]"
@@ -1387,25 +1412,25 @@ function TripToggle({
   onChange,
 }: {
   value: TripTab;
-  onChange: (v: string) => void;
+  onChange: (v: TripTab) => void;
 }) {
   return (
-    <div className="flex gap-1 p-1 bg-[var(--color-surface-muted)] rounded-xl">
-      {TRIP_TABS.map(({ id, label }) => (
-        <button
-          key={id}
-          onClick={() => onChange(id)}
-          className={`flex-1 flex items-center justify-center gap-1.5 text-[12px] font-semibold py-2 rounded-lg transition-colors ${
-            value === id
-              ? "bg-[var(--color-surface)] shadow-sm text-primary"
-              : "text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]"
-          }`}
-        >
-          {id === "roundtrip" && <IconRoundTrip size={11} />}
-          {label}
-        </button>
-      ))}
-    </div>
+    <Tabs
+      selectedKey={value}
+      onSelectionChange={(key) => onChange(key as TripTab)}
+      className="mt-2 "
+    >
+      <Tabs.ListContainer>
+        <Tabs.List>
+          {TRIP_TABS.map(({ id, label }) => (
+            <Tabs.Tab key={id} id={id}>
+              {label}
+              <Tabs.Indicator />
+            </Tabs.Tab>
+          ))}
+        </Tabs.List>
+      </Tabs.ListContainer>
+    </Tabs>
   );
 }
 
@@ -1425,18 +1450,20 @@ function LocationInput({
   highlight: boolean;
 }) {
   const [showMap, setShowMap] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
   const [suggestions, setSuggestions] = useState<GeoResult[]>([]);
   const [loadingSug, setLoadingSug] = useState(false);
   const [locating, setLocating] = useState(false);
+
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Recent places from ride history
   const { data: rides } = useRides();
+
   const recentPlaces = useMemo(() => {
     if (!rides) return [];
+
     const seen = new Set<string>();
     const places: string[] = [];
+
     for (const r of rides) {
       if (r.from && !seen.has(r.from)) {
         seen.add(r.from);
@@ -1447,158 +1474,166 @@ function LocationInput({
         places.push(r.to);
       }
     }
+
     return places.slice(0, 5);
   }, [rides]);
 
+  const items = useMemo(() => {
+    if (!value.trim()) {
+      return recentPlaces.map((place) => ({
+        id: place,
+        label: place,
+        lat: null,
+        lng: null,
+      }));
+    }
+
+    return suggestions.map((s) => ({
+      id: s.name,
+      label: s.name,
+      lat: s.lat,
+      lng: s.lng,
+    }));
+  }, [value, recentPlaces, suggestions]);
+
   const handleChange = (val: string) => {
     onChange(val, null, null);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
     if (!val.trim()) {
       setSuggestions([]);
       return;
     }
+
     debounceRef.current = setTimeout(async () => {
-      setLoadingSug(true);
-      const results = await forwardGeocode(val);
-      setSuggestions(results);
-      setLoadingSug(false);
+      try {
+        setLoadingSug(true);
+        const results = await forwardGeocode(val);
+        setSuggestions(results);
+      } finally {
+        setLoadingSug(false);
+      }
     }, 350);
   };
 
   const handleLocate = () => {
     if (!navigator.geolocation) return;
+
     setLocating(true);
+
     navigator.geolocation.getCurrentPosition(
-      async ({ coords: pos }) => {
-        const addr = await reverseGeocode(pos.latitude, pos.longitude);
-        onChange(addr, pos.latitude, pos.longitude);
-        setLocating(false);
+      async ({ coords }) => {
+        try {
+          const addr = await reverseGeocode(coords.latitude, coords.longitude);
+          onChange(addr, coords.latitude, coords.longitude);
+        } finally {
+          setLocating(false);
+        }
       },
       () => setLocating(false),
-      { timeout: 8000 },
+      {
+        timeout: 8000,
+      },
     );
   };
 
-  const showingRecent = !value.trim() && recentPlaces.length > 0;
-  const showingSuggestions =
-    !!value.trim() && (suggestions.length > 0 || loadingSug);
-  const dropdownVisible = showDropdown && (showingRecent || showingSuggestions);
-
   return (
     <div>
-      <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-1.5">
-        {label}
-      </p>
-
+      <Label className="block mb-1">{label}</Label>
       <div
-        className={`relative rounded-xl border transition-colors ${
-          highlight
-            ? "border-red-400"
-            : "border-[var(--color-border)] focus-within:border-[var(--color-primary)]"
+        className={`relative ${
+          highlight ? "ring-1 ring-danger rounded-xl" : ""
         }`}
       >
-        <div className="flex items-center gap-2 px-3 py-2.5 pr-16">
-          <div className={`w-2.5 h-2.5 shrink-0 ${dotClass}`} />
-          <input
-            value={value}
-            onChange={(e) => handleChange(e.target.value)}
-            onFocus={() => setShowDropdown(true)}
-            onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-            placeholder={placeholder}
-            className="flex-1 text-[14px] outline-none text-primary bg-transparent"
-          />
-          {/* Current location button */}
-          <button
-            type="button"
-            onClick={handleLocate}
-            title="Use current location"
-            disabled={locating}
-            className="absolute right-9 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-colors text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)] disabled:opacity-50"
-          >
-            {locating ? (
-              <IconLoader size={14} className="animate-spin" />
-            ) : (
-              <IconLocate size={14} />
-            )}
-          </button>
-          {/* Map pin button */}
-          <button
-            type="button"
-            onClick={() => setShowMap((v) => !v)}
-            title="Pin on map"
-            className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-colors ${
-              showMap
-                ? "text-[var(--color-primary)]"
-                : "text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)]"
-            }`}
-          >
-            <IconMapPin size={15} />
-          </button>
-        </div>
+        <ComboBox
+          className="w-full"
+          onInputChange={handleChange}
+          onSelectionChange={(key) => {
+            const location = items.find((item) => item.id === key);
+            if (!location) return;
+            onChange(location?.label, location?.lat, location?.lng);
+          }}
+        >
+          <ComboBox.InputGroup>
+            <div className="relative w-full">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 z-20">
+                <div className={`w-2.5 h-2.5 ${dotClass}`} />
+              </div>
 
-        {/* Dropdown */}
-        {dropdownVisible && (
-          <div className="absolute z-50 top-full mt-1 w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto">
-            {showingRecent && (
-              <>
-                <p className="px-3 pt-2.5 pb-1 text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase">
-                  Recent
-                </p>
-                {recentPlaces.map((place) => (
-                  <button
-                    key={place}
-                    type="button"
-                    onMouseDown={() => {
-                      onChange(place, null, null);
-                      setShowDropdown(false);
-                    }}
-                    className="w-full flex items-start gap-2 px-3 py-2 text-sm text-left hover:bg-[var(--color-border)]/30 transition-colors"
-                  >
-                    <IconClock
-                      size={13}
-                      className="mt-0.5 shrink-0 text-[var(--color-text-tertiary)]"
-                    />
-                    <span className="line-clamp-1 text-primary">{place}</span>
-                  </button>
-                ))}
-              </>
-            )}
-            {showingSuggestions && (
-              <>
-                <p className="px-3 pt-2.5 pb-1 text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase">
-                  Suggestions
-                </p>
-                {loadingSug ? (
-                  <div className="flex items-center gap-2 px-3 py-2.5 text-sm text-[var(--color-text-tertiary)]">
-                    <IconLoader size={13} className="animate-spin shrink-0" />
-                    Searching…
-                  </div>
+              <Input
+                fullWidth
+                value={value}
+                variant="secondary"
+                placeholder={placeholder}
+                className="pl-8 pr-20"
+              />
+
+              <button
+                type="button"
+                onClick={handleLocate}
+                disabled={locating}
+                title="Use current location"
+                className="absolute right-13 top-1/2 -translate-y-1/2 z-20 p-1 rounded-lg text-muted hover:text-primary disabled:opacity-50"
+              >
+                {locating ? (
+                  <IconLoader size={14} className="animate-spin" />
                 ) : (
-                  suggestions.map((r) => (
-                    <button
-                      key={r.name}
-                      type="button"
-                      onMouseDown={() => {
-                        onChange(r.name, r.lat, r.lng);
-                        setSuggestions([]);
-                        setShowDropdown(false);
-                      }}
-                      className="w-full flex items-start gap-2 px-3 py-2 text-sm text-left hover:bg-[var(--color-border)]/30 transition-colors"
-                    >
-                      <IconMapPin
-                        size={13}
-                        className="mt-0.5 shrink-0 text-[var(--color-primary)]"
-                      />
-                      <span className="line-clamp-2 text-primary">
-                        {r.name}
-                      </span>
-                    </button>
-                  ))
+                  <IconLocate size={14} />
                 )}
-              </>
-            )}
-          </div>
-        )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowMap((v) => !v)}
+                title="Pin on map"
+                className={`absolute right-7 top-1/2 -translate-y-1/2 z-20 p-1 rounded-lg ${
+                  showMap ? "text-primary" : "text-muted"
+                }`}
+              >
+                <IconMapPin size={15} />
+              </button>
+            </div>
+
+            <ComboBox.Trigger />
+          </ComboBox.InputGroup>
+
+          <ComboBox.Popover>
+            <ListBox>
+              {loadingSug && (
+                <ListBox.Item id="loading" isDisabled>
+                  <div className="flex items-center gap-2">
+                    <IconLoader size={13} className="animate-spin" />
+                    Searching...
+                  </div>
+                </ListBox.Item>
+              )}
+
+              {!loadingSug &&
+                items.map((item) => (
+                  <ListBox.Item
+                    key={item.id}
+                    id={item.id}
+                    textValue={item.label}
+                  >
+                    <div className="flex items-start gap-2">
+                      {!value.trim() ? (
+                        <IconClock size={13} className="mt-0.5 text-muted" />
+                      ) : (
+                        <IconMapPin size={13} className="mt-0.5 text-primary" />
+                      )}
+
+                      <span>{item.label}</span>
+                    </div>
+
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                ))}
+            </ListBox>
+          </ComboBox.Popover>
+        </ComboBox>
       </div>
 
       <AnimatePresence>
@@ -1607,13 +1642,17 @@ function LocationInput({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
+            transition={{
+              duration: 0.25,
+              ease: "easeInOut",
+            }}
             className="overflow-hidden"
           >
             <LocationPickerMap
               initialAddress={value}
               onConfirm={(addr, coords) => {
                 onChange(addr, coords?.lat, coords?.lng);
+
                 setShowMap(false);
               }}
               onCancel={() => setShowMap(false)}
@@ -1640,68 +1679,19 @@ function DateTimeRow({
 }) {
   return (
     <div>
-      {label && (
-        <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-1.5">
-          {label}
-        </p>
-      )}
-      {!label && (
-        <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-1.5">
-          Date &amp; Time
-        </p>
-      )}
+      <Label className="block mb-1">{label ? label : "Date and Time"}</Label>
       <div className="grid grid-cols-2 gap-2">
-        <div className="flex items-center gap-2 border border-[var(--color-border)] rounded-xl px-3 py-2.5 focus-within:border-[var(--color-primary)]">
-          <IconCalendar
-            size={14}
-            className="text-[var(--color-text-tertiary)] shrink-0"
-          />
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => onDate(e.target.value)}
-            className="flex-1 text-[13px] text-[var(--color-text-secondary)] outline-none bg-transparent w-full"
-          />
-        </div>
-        <div className="flex items-center gap-2 border border-[var(--color-border)] rounded-xl px-3 py-2.5 focus-within:border-[var(--color-primary)]">
-          <IconClock
-            size={14}
-            className="text-[var(--color-text-tertiary)] shrink-0"
-          />
-          <input
-            type="time"
-            value={time}
-            onChange={(e) => onTime(e.target.value)}
-            className="flex-1 text-[13px] text-[var(--color-text-secondary)] outline-none bg-transparent w-full"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ReturnDateInput({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div>
-      <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-1.5">
-        Return Date
-      </p>
-      <div className="flex items-center gap-2 border border-[var(--color-border)] rounded-xl px-3 py-2.5 focus-within:border-[var(--color-primary)]">
-        <IconCalendar
-          size={14}
-          className="text-[var(--color-text-tertiary)] shrink-0"
-        />
-        <input
+        <Input
           type="date"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="flex-1 text-[13px] text-[var(--color-text-secondary)] outline-none bg-transparent w-full"
+          variant="secondary"
+          value={date}
+          onChange={(e) => onDate(e.target.value)}
+        />
+        <Input
+          type="time"
+          variant="secondary"
+          value={time}
+          onChange={(e) => onTime(e.target.value)}
         />
       </div>
     </div>
@@ -1721,7 +1711,7 @@ function FieldInput({
 }) {
   return (
     <div
-      className={`flex items-center border rounded-xl px-3 py-2.5 focus-within:border-[var(--color-primary)] ${
+      className={`flex items-center border rounded-xl px-3 py-2.5 focus-within:border-primary ${
         highlight ? "border-red-400" : "border-[var(--color-border)]"
       }`}
     >
@@ -1752,8 +1742,8 @@ function PassengerSelect({
           onClick={() => onChange(opt)}
           className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold border transition-all ${
             value === opt
-              ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-              : "bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-primary)]"
+              ? "bg-primary text-white border-primary"
+              : "bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-primary"
           }`}
         >
           {opt}
@@ -1768,36 +1758,63 @@ function RouteSummary({
   config,
 }: {
   form: FormState;
-  config?: { label: string } | undefined;
+  config?: { label: string };
 }) {
+  const entries = [
+    ...(config
+      ? [
+          {
+            label: "Service",
+            value: config.label,
+          },
+        ]
+      : []),
+
+    {
+      label: "Pickup Location",
+      value: form.pickup,
+    },
+    {
+      label: "Destination",
+      value: form.destination,
+    },
+    {
+      label: "Pickup Date",
+      value: form.date,
+    },
+    {
+      label: "Pickup Time",
+      value: form.time,
+    },
+    {
+      label: "Trip Type",
+      value: form.tripTab,
+    },
+    {
+      label: "Return Date",
+      value: form.returnDate,
+    },
+    {
+      label: "Return Time",
+      value: form.returnTime,
+    },
+  ];
+
   return (
-    <div className="bg-[var(--color-surface-muted)] rounded-xl p-3 text-[12px] space-y-1">
-      {config && (
-        <p className="font-bold text-[var(--color-primary)]">{config.label}</p>
-      )}
-      {form.pickup && (
-        <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
-          <span className="font-semibold">From</span>
-          <span className="text-primary">{form.pickup}</span>
-        </div>
-      )}
-      {form.destination && (
-        <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
-          <span className="font-semibold">To</span>
-          <span className="text-primary">{form.destination}</span>
-        </div>
-      )}
-      {(form.date || form.time) && (
-        <p className="text-[var(--color-text-tertiary)]">
-          {form.date}
-          {form.time ? ` · ${form.time}` : ""}
-        </p>
-      )}
-      {form.tripTab === "roundtrip" && form.returnDate && (
-        <p className="text-[var(--color-text-tertiary)]">
-          Return: {form.returnDate}
-        </p>
-      )}
+    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-secondary)] p-4">
+      <div className="space-y-3">
+        {entries.map(({ label, value }) => (
+          <div key={label} className="grid grid-cols-[140px_1fr] gap-3 text-sm">
+            <span className="text-[var(--color-text-tertiary)] font-medium">
+              {label}
+            </span>
+
+            <span className="text-primary break-words capitalize">
+              {value?.toString().trim() || "-"}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1831,8 +1848,8 @@ function VehicleCard({
         disabled
           ? "bg-[var(--color-surface-muted)] border-[var(--color-border)] opacity-50 cursor-not-allowed"
           : selected
-            ? "bg-[var(--color-primary-light)] border-[var(--color-primary)]"
-            : "bg-[var(--color-surface)] border-[var(--color-border)] hover:border-[var(--color-primary)]"
+            ? "bg-[var(--color-primary-light)] border-primary"
+            : "bg-[var(--color-surface)] border-[var(--color-border)] hover:border-primary"
       }`}
     >
       <IconCar
@@ -1841,15 +1858,15 @@ function VehicleCard({
           disabled
             ? "text-[var(--color-text-tertiary)]"
             : selected
-              ? "text-[var(--color-primary)]"
-              : "text-[var(--color-text-tertiary)]"
+              ? "text-primary"
+              : "text-muted"
         }
       />
       <div className="flex-1 min-w-0">
-        <p className="text-[14px] font-bold text-primary truncate">
+        <p className="text-sm font-semibold text-primary truncate">
           {vehicle.type}
         </p>
-        <p className="text-[11px] text-[var(--color-text-tertiary)]">
+        <p className="text-xs text-muted">
           {vehicle.seats} seats · {vehicle.ac ? "AC" : "Non-AC"} · ETA{" "}
           {vehicle.eta}
           {disabled && (
@@ -1861,18 +1878,16 @@ function VehicleCard({
       </div>
       <div className="text-right shrink-0">
         <p
-          className={`text-[15px] font-black ${disabled ? "text-[var(--color-text-tertiary)]" : "text-[var(--color-primary)]"}`}
+          className={`text-base font-semibold ${disabled ? "text-muted" : "text-primary"}`}
         >
           {computedAmount != null ? `₹${computedAmount}` : formatFare(fare)}
         </p>
         {computedAmount != null && (
-          <p className="text-[10px] text-[var(--color-text-tertiary)]">
-            {formatFare(fare)}
-          </p>
+          <p className="text-xs text-muted">{formatFare(fare)}</p>
         )}
       </div>
       {selected && !disabled && (
-        <div className="w-5 h-5 rounded-full bg-[var(--color-primary)] flex items-center justify-center shrink-0">
+        <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center shrink-0">
           <IconCheck size={11} className="text-white" strokeWidth={2.5} />
         </div>
       )}
@@ -1888,12 +1903,12 @@ function calcAdvance(fare: number): number {
   return Math.round(fare * 0.5);
 }
 
-/** Parse a passenger string like "8", "7–10", "15+" into a minimum seat count. */
+/** Parse a passenger string like "8", "7-10", "15+" into a minimum seat count. */
 function parseMinSeats(passengers: string): number {
   if (!passengers) return 0;
   if (passengers.endsWith("+")) return parseInt(passengers) || 0;
-  // "7–10" or "7-10" → lower bound
-  const parts = passengers.split(/[–\-]/);
+  // "7-10" or "7-10" → lower bound
+  const parts = passengers.split(/[-\-]/);
   return parseInt(parts[0]) || 0;
 }
 
@@ -1951,8 +1966,21 @@ function validateStep1(form: FormState, formType?: string): string {
     default:
       if (!form.pickup.trim() || !form.destination.trim())
         return "Please enter pickup and destination.";
-      if (!form.date) return "Please select a date.";
-      if (!form.time) return "Please select a time.";
+      if (!form.date) return "Please select a pickup date.";
+      if (!form.time) return "Please select a pickup time.";
+      if (form.tripTab === "roundtrip" && !form.returnDate)
+        return "Please select a return date.";
+      if (form.tripTab === "roundtrip" && !form.returnTime)
+        return "Please select a return time.";
+      if (form.tripTab === "roundtrip") {
+        const pickupDateTime = new Date(`${form.date}T${form.time}`);
+        const returnDateTime = new Date(
+          `${form.returnDate}T${form.returnTime}`,
+        );
+        if (returnDateTime <= pickupDateTime) {
+          return "Return date and time must be later than the pickup date and time.";
+        }
+      }
       return "";
   }
 }

@@ -1,6 +1,6 @@
 import { Tooltip, TooltipTrigger } from "@heroui/react";
 
-export function dateParser({ getValue }: { getValue: any }) {
+export function tableDateParser({ getValue }: { getValue: any }) {
   const dateValue = getValue();
   if (!dateValue) return "-";
 

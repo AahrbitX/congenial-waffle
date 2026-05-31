@@ -49,12 +49,12 @@ const STATUS_ORDER: Record<string, number> = {
 };
 
 const PAYMENT_STATUS_LABEL: Record<string, { text: string; cls: string }> = {
-  paid: { text: "Paid", cls: "bg-success/10 text-success" },
-  cash_collected: { text: "Cash Collected", cls: "bg-success/10 text-success" },
-  cash_pending: { text: "Cash Pending", cls: "bg-warning/10 text-warning" },
-  created: { text: "Failed", cls: "bg-danger/10 text-danger" },
-  refunded: { text: "Refunded", cls: "bg-primary/10 text-primary" },
-  failed: { text: "Failed", cls: "bg-danger/10 text-danger" },
+  paid: { text: "Paid", cls: "text-success" },
+  cash_collected: { text: "Cash Collected", cls: " text-success" },
+  cash_pending: { text: "Cash Pending", cls: "text-warning" },
+  created: { text: "Failed", cls: "text-danger" },
+  refunded: { text: "Refunded", cls: " text-primary" },
+  failed: { text: "Failed", cls: "text-danger" },
 };
 
 function formatDate(d: string) {
@@ -277,7 +277,7 @@ export function RideDetail({ id }: RideDetailProps) {
           {[
             {
               icon: <IconCalendar size={15} className="text-primary" />,
-              label: "Booked Date",
+              label: "Booking Date",
               value: formatDate(ride.date),
             },
             {
@@ -296,7 +296,7 @@ export function RideDetail({ id }: RideDetailProps) {
               value: ride.paymentMethod
                 ? ride.paymentMethod.charAt(0).toUpperCase() +
                   ride.paymentMethod.slice(1)
-                : "—",
+                : "-",
             },
           ].map(({ icon, label, value }) => (
             <Card
@@ -399,11 +399,7 @@ export function RideDetail({ id }: RideDetailProps) {
                     )}
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted">Status</span>
-                      <span
-                        className={`text-sm font-semibold px-2.5 py-0.5 rounded-full ${cfg.cls}`}
-                      >
-                        {cfg.text}
-                      </span>
+                      <span className={`text-sm ${cfg.cls}`}>{cfg.text}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted">Amount</span>
@@ -414,9 +410,9 @@ export function RideDetail({ id }: RideDetailProps) {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted">Method</span>
                       <div className="flex items-center gap-1.5">
-                        <IconCreditCard size={12} className="text-muted" />
+                        <IconCreditCard size={16} className="text-muted" />
                         <span className="text-sm  text-foreground capitalize">
-                          {txn.method || "—"}
+                          {txn.method || "-"}
                         </span>
                       </div>
                     </div>
@@ -475,16 +471,17 @@ export function RideDetail({ id }: RideDetailProps) {
           ))}
 
         {/* ── Raise a Ticket ── */}
-        <Button
-          onPress={() => {
-            openTicketModal(ride);
-          }}
-          className={"mx-2"}
-          fullWidth
-          variant="danger-soft"
-        >
-          <IconTicket size={16} /> Raise a Ticket
-        </Button>
+        <div className="px-2">
+          <Button
+            onPress={() => {
+              openTicketModal(ride);
+            }}
+            fullWidth
+            variant="danger-soft"
+          >
+            <IconTicket size={16} /> Raise a Ticket
+          </Button>
+        </div>
       </div>
     </div>
   );

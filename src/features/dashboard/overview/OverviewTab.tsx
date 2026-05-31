@@ -49,7 +49,6 @@ export function OverviewTab() {
   const [bookOpen, setBookOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
-  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // tanstack query hooks
   const { data: rides = [], isLoading: ridesLoading } = useRides();
@@ -203,7 +202,7 @@ export function OverviewTab() {
               className="w-56"
             />
             <Tabs onSelectionChange={(key) => setStatusFilter(String(key))}>
-              <Tabs.ListContainer className="w-full max-w-[440px] text-sm overflow-x-scroll">
+              <Tabs.ListContainer className="w-full min-w-[440px] text-sm overflow-x-scroll scrollbar-hide">
                 <Tabs.List aria-label="Filter by status">
                   <Tabs.Tab id="all">
                     All

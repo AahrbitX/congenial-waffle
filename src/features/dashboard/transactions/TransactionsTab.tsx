@@ -338,7 +338,7 @@ export function TransactionsTab() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Pending Payments */}
       <Card className="">
         <Card.Header className="flex flex-row items-center justify-between">
@@ -356,7 +356,7 @@ export function TransactionsTab() {
             </span>
           )}
         </Card.Header>
-        <Card.Content className="flex flex-col gap-3 p-5">
+        <Card.Content className="flex flex-col gap-2">
           {totalPendingCount === 0 ? (
             <EmptyState message="No pending payments — you're all clear!" />
           ) : (
@@ -443,7 +443,7 @@ export function TransactionsTab() {
             Completed, refunded, and cash-confirmed transactions
           </p>
         </Card.Header>
-        <Card.Content className="flex flex-col gap-3 p-5">
+        <Card.Content className="flex flex-col gap-2">
           {history.length === 0 ? (
             <EmptyState message="No transaction history yet." />
           ) : (
