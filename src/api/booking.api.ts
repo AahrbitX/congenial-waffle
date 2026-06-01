@@ -1,7 +1,5 @@
-import { MOCK_VEHICLES } from "@/data/booking.mock";
-import { MOCK_RECENT_PLACES } from "@/data/places.mock";
 import { request } from "@/lib/api-client";
-import type { Vehicle, VehicleFare, Place, BookingRequest, BookingResponse } from "@/types/booking.types";
+import type { Vehicle, VehicleFare, Place, BookingRequest, BookingResponse, ServiceTab } from "@/types/booking.types";
 
 /** Map frontend display vehicle type names → backend DB enum */
 export function toBackendVehicleType(type: string): "hatchback" | "sedan" | "suv" | "minivan" {
@@ -13,54 +11,39 @@ export function toBackendVehicleType(type: string): "hatchback" | "sedan" | "suv
     t.includes("suv")
   ) return "suv";
   if (t.includes("hatchback")) return "hatchback";
-  return "sedan"; // sedan, luxury sedan, luxury suv
+  return "sedan";
 }
 
-type DbPricingRow = {
-  vehicleType:   string;
-  defaultAmount: string;
-  defaultUnit:   string;
-  serviceFares:  Record<string, { amount: number; unit: string }>;
+// Derived from category since these are booking-form concerns, not stored in DB
+const SERVICES_BY_CATEGORY: Record<string, ServiceTab[]> = {
+  Hatchback:  ["local"],
+  Sedan:      ["local", "outstation", "airport"],
+  MUV:        ["local", "outstation", "airport"],
+  Luxury:     ["outstation", "airport"],
+  Traveller:  ["airport", "outstation"],
 };
 
+const ETA_BY_CATEGORY: Record<string, string> = {
+  Hatchback:  "3 min",
+  Sedan:      "2 min",
+  MUV:        "5 min",
+  Luxury:     "8 min",
+  Traveller:  "10 min",
+};
+
+type VehicleApiRow = Omit<Vehicle, "services" | "eta">;
+
 export async function getVehicles(): Promise<Vehicle[]> {
-  // Fetch live pricing from DB; fall back to mock defaults if DB unavailable / empty
-  let dbPricing: DbPricingRow[] = [];
-  try {
-    const res = await request<{ success: boolean; data: DbPricingRow[] }>("/api/pricing");
-    dbPricing = res.data ?? [];
-  } catch {
-    return MOCK_VEHICLES;
-  }
-
-  if (dbPricing.length === 0) return MOCK_VEHICLES;
-
-  const dbMap = Object.fromEntries(dbPricing.map((p) => [p.vehicleType, p]));
-
-  return MOCK_VEHICLES.map((v) => {
-    const db = dbMap[v.type];
-    if (!db) return v; // vehicle type not yet configured in DB → use mock
-    return {
-      ...v,
-      defaultFare: {
-        amount: parseFloat(db.defaultAmount) || v.defaultFare.amount,
-        unit:   db.defaultUnit               || v.defaultFare.unit,
-      } satisfies VehicleFare,
-      // Only override serviceFares if the DB row has any configured
-      serviceFares: Object.keys(db.serviceFares).length > 0
-        ? Object.fromEntries(
-            Object.entries(db.serviceFares).map(([key, fare]) => [
-              key,
-              { amount: fare.amount, unit: fare.unit } satisfies VehicleFare,
-            ]),
-          )
-        : v.serviceFares,
-    };
-  });
+  const res = await request<{ success: boolean; data: VehicleApiRow[] }>("/api/vehicles");
+  return (res.data ?? []).map((v) => ({
+    ...v,
+    services: SERVICES_BY_CATEGORY[v.category] ?? ["local"],
+    eta:      ETA_BY_CATEGORY[v.category]      ?? "5 min",
+  }));
 }
 
 export async function getRecentPlaces(): Promise<Place[]> {
-  return MOCK_RECENT_PLACES;
+  return [];
 }
 
 export async function createBooking(req: BookingRequest): Promise<BookingResponse> {

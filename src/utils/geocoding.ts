@@ -6,21 +6,21 @@ export interface GeoResult {
   lng: number;
 }
 
-/** Returns road distance in km (1 decimal), or null if routing failed. */
+/** Returns road distance in km (1 decimal) via backend proxy, or null if routing failed. */
 export async function getRouteDistance(
   pickupLat: number, pickupLng: number,
   dropLat:   number, dropLng:   number,
 ): Promise<number | null> {
-  const url =
-    `https://api.mapbox.com/directions/v5/mapbox/driving/` +
-    `${pickupLng},${pickupLat};${dropLng},${dropLat}` +
-    `?access_token=${TOKEN}&overview=false`;
   try {
-    const res  = await fetch(url);
+    const params = new URLSearchParams({
+      pickupLat: String(pickupLat),
+      pickupLng: String(pickupLng),
+      dropLat:   String(dropLat),
+      dropLng:   String(dropLng),
+    });
+    const res  = await fetch(`/api/distance?${params}`);
     const data = await res.json();
-    const meters: number | undefined = data.routes?.[0]?.distance;
-    if (meters == null) return null;
-    return Math.round((meters / 1000) * 10) / 10; // 1 decimal place in km
+    return data.distanceKm ?? null;
   } catch {
     return null;
   }
