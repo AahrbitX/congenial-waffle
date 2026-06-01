@@ -687,7 +687,7 @@ export function BookRideModal({
                               Try changing AC preference or seat count.
                             </div>
                           ) : (
-                            <div className="space-y-2">
+                            <div className="space-y-2 max-h-[38vh] overflow-y-auto scrollbar-hide">
                               {filteredVehicles.map((v) => (
                                 <VehicleCard
                                   key={v.type}
