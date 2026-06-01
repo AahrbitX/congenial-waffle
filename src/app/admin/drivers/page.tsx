@@ -26,22 +26,13 @@ function AdminDriversPage() {
   });
 
   return (
-    <Surface className="p-4 ">
+    <Surface className="p-4 min-h-full">
       <div className="flex items-center justify-between my-0">
         <div className="flex items-center justify-center gap-2">
-          <h1 className="text-2xl font-bold">Drivers</h1>
-          <Button isIconOnly variant="ghost" name="refresh">
-            <RefreshCcw
-              className={
-                isLoading
-                  ? " animate-spin-fast direction-alternate-reverse"
-                  : ""
-              }
-            />
-          </Button>
+          <h1 className="text-xl font-bold">Drivers</h1>
         </div>
         <div className="flex items-center justify-center gap-2">
-          <Button variant="secondary">
+          <Button variant="secondary" size="sm">
             <Upload /> Export
           </Button>
           <AddDriver />

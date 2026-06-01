@@ -46,7 +46,7 @@ function AddDriver() {
 
   return (
     <Modal isOpen={isOpen} onOpenChange={setIsOpen}>
-      <Button onPress={() => setIsOpen(true)}>
+      <Button onPress={() => setIsOpen(true)} size="sm">
         <Plus size={18} />
         Add Driver
       </Button>

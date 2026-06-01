@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { Edit } from "lucide-react";
-import { Button, Chip } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 
 import AssignDriver from "./assignDriver";
 import { Booking } from "@/types/bookings";
-import { dateParser } from "@/utils/date-parser";
+import { tableDateParser } from "@/utils/tableDateParser";
+import StatusIndicator from "@/components/data/statusIndicator";
 
 const columnHelper = createColumnHelper<Booking>();
 
@@ -49,7 +50,7 @@ export const bookingColumns: ColumnDef<Booking, any>[] = [
   }),
   columnHelper.accessor("bookingDate", {
     header: "Booking Date",
-    cell: ({ getValue }) => dateParser({ getValue }),
+    cell: ({ getValue }) => tableDateParser({ getValue }),
   }),
   columnHelper.accessor("driver", {
     header: "Driver",
@@ -78,15 +79,9 @@ export const bookingColumns: ColumnDef<Booking, any>[] = [
   }),
   columnHelper.accessor("status", {
     header: "Status",
-    cell: (info) => (
-      <Chip size="sm" color={statusColorMap[info.getValue()]} variant="soft">
-        {info.getValue()}
-      </Chip>
-    ),
-    size: 30,
+    cell: (cell) => <StatusIndicator status={cell.getValue()} />,
   }),
   columnHelper.accessor("fare", {
     header: "Fare",
-    size: 30,
   }),
 ];

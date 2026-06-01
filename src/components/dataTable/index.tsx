@@ -128,8 +128,8 @@ function DataTable<TData>({
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <Table aria-label={ariaLabel}>
+    <div className="">
+      <Table aria-label={ariaLabel} className="overflow-x-scroll">
         <TableContent>
           <TableHeader>
             {table.getHeaderGroups()[0]!.headers.map((header) => (

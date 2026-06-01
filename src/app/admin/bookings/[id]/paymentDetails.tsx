@@ -14,7 +14,14 @@ import {
   IconCreditCard,
 } from "@/constants/icons";
 
-type PaymentStatus = "created" | "paid" | "cash_pending" | "cash_collected" | "refunded" | "failed" | null;
+type PaymentStatus =
+  | "created"
+  | "paid"
+  | "cash_pending"
+  | "cash_collected"
+  | "refunded"
+  | "failed"
+  | null;
 
 interface Payment {
   id: string | null;
@@ -29,20 +36,50 @@ interface Payment {
   adminVerifiedAt: string | null;
 }
 
-const STATUS_CONFIG: Record<string, { label: string; color: "success" | "warning" | "danger" | "default" | "accent"; icon: React.ReactNode }> = {
-  paid:           { label: "Paid",           color: "success",  icon: <IconCheckCircle    size={13} /> },
-  created:        { label: "Pending",        color: "warning",  icon: <IconClockAlert     size={13} /> },
-  cash_pending:   { label: "Awaiting Code",  color: "warning",  icon: <IconClockAlert     size={13} /> },
-  cash_collected: { label: "Cash Confirmed", color: "accent",   icon: <IconCheckCircle    size={13} /> },
-  failed:         { label: "Failed",         color: "danger",   icon: <IconXCircle        size={13} /> },
-  refunded:       { label: "Refunded",       color: "default",  icon: <IconArrowLeftRight size={13} /> },
+const STATUS_CONFIG: Record<
+  string,
+  {
+    label: string;
+    color: "success" | "warning" | "danger" | "default" | "accent";
+    icon: React.ReactNode;
+  }
+> = {
+  paid: {
+    label: "Paid",
+    color: "success",
+    icon: <IconCheckCircle size={13} />,
+  },
+  created: {
+    label: "Pending",
+    color: "warning",
+    icon: <IconClockAlert size={13} />,
+  },
+  cash_pending: {
+    label: "Awaiting Code",
+    color: "warning",
+    icon: <IconClockAlert size={13} />,
+  },
+  cash_collected: {
+    label: "Cash Confirmed",
+    color: "accent",
+    icon: <IconCheckCircle size={13} />,
+  },
+  failed: { label: "Failed", color: "danger", icon: <IconXCircle size={13} /> },
+  refunded: {
+    label: "Refunded",
+    color: "default",
+    icon: <IconArrowLeftRight size={13} />,
+  },
 };
 
 function fmt(iso: string | null) {
   if (!iso) return "—";
   return new Date(iso).toLocaleString("en-IN", {
-    day: "numeric", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -70,12 +107,12 @@ export default function PaymentDetails({ payment, bookingId }: PaymentDetailsPro
   const status = payment.status ?? "created";
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.created;
 
-  const totalFare   = parseFloat(payment.fare ?? "0");
-  const paidAmount  = parseFloat(payment.amount ?? "0");
-  const remaining   = totalFare - paidAmount;
-  const isPartial   = payment.mode === "partial" && remaining > 0.01;
+  const totalFare = parseFloat(payment.fare ?? "0");
+  const paidAmount = parseFloat(payment.amount ?? "0");
+  const remaining = totalFare - paidAmount;
+  const isPartial = payment.mode === "partial" && remaining > 0.01;
 
-  const isCashCollected  = status === "cash_collected";
+  const isCashCollected = status === "cash_collected";
   const needsAdminVerify = isCashCollected && !payment.adminVerifiedAt;
 
   async function handleAdminAction(approved: boolean) {
@@ -88,31 +125,53 @@ export default function PaymentDetails({ payment, bookingId }: PaymentDetailsPro
       <Card.Header className="flex flex-row items-center justify-between">
         <Card.Title>Payment &amp; Balance</Card.Title>
         {payment.status && (
-          <Chip color={cfg.color} variant="soft" size="sm" className="text-[11px] font-semibold">
-            <span className="flex items-center gap-1">{cfg.icon}{cfg.label}</span>
+          <Chip
+            color={cfg.color}
+            variant="soft"
+            size="sm"
+            className="text-[11px] font-semibold"
+          >
+            <span className="flex items-center gap-1">
+              {cfg.icon}
+              {cfg.label}
+            </span>
           </Chip>
         )}
       </Card.Header>
       <Separator />
 
       {!payment.id ? (
-        <div className="px-4 pb-4 text-sm text-text-secondary">No payment record found for this booking.</div>
+        <div className="px-4 pb-4 text-sm text-text-secondary">
+          No payment record found for this booking.
+        </div>
       ) : (
         <div className="px-4 pb-4 space-y-4">
           {/* Fare summary */}
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-surface-muted p-3 space-y-0.5">
-              <p className="text-[11px] text-text-tertiary uppercase tracking-wider">Total Fare</p>
-              <p className="text-base font-bold text-text-primary">₹{totalFare.toLocaleString("en-IN")}</p>
+              <p className="text-[11px] text-text-tertiary uppercase tracking-wider">
+                Total Fare
+              </p>
+              <p className="text-base font-bold text-text-primary">
+                ₹{totalFare.toLocaleString("en-IN")}
+              </p>
             </div>
             <div className="rounded-xl bg-surface-muted p-3 space-y-0.5">
-              <p className="text-[11px] text-text-tertiary uppercase tracking-wider">Paid</p>
-              <p className="text-base font-bold text-success">₹{paidAmount.toLocaleString("en-IN")}</p>
+              <p className="text-[11px] text-text-tertiary uppercase tracking-wider">
+                Paid
+              </p>
+              <p className="text-base font-bold text-success">
+                ₹{paidAmount.toLocaleString("en-IN")}
+              </p>
             </div>
             {isPartial && (
               <div className="col-span-2 rounded-xl bg-warning-light p-3 space-y-0.5">
-                <p className="text-[11px] text-text-tertiary uppercase tracking-wider">Balance Due</p>
-                <p className="text-base font-bold text-warning">₹{remaining.toLocaleString("en-IN")}</p>
+                <p className="text-[11px] text-text-tertiary uppercase tracking-wider">
+                  Balance Due
+                </p>
+                <p className="text-base font-bold text-warning">
+                  ₹{remaining.toLocaleString("en-IN")}
+                </p>
               </div>
             )}
           </div>
@@ -120,7 +179,11 @@ export default function PaymentDetails({ payment, bookingId }: PaymentDetailsPro
           {/* Payment method */}
           <div className="flex items-center gap-3 rounded-xl border border-border p-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-muted">
-              {payment.method === "cash" ? <IconCar size={16} className="text-text-secondary" /> : <IconCreditCard size={16} className="text-text-secondary" />}
+              {payment.method === "cash" ? (
+                <IconCar size={16} className="text-text-secondary" />
+              ) : (
+                <IconCreditCard size={16} className="text-text-secondary" />
+              )}
             </div>
             <div>
               <p className="text-sm font-semibold text-text-primary">
@@ -135,14 +198,24 @@ export default function PaymentDetails({ payment, bookingId }: PaymentDetailsPro
           {/* Cash collection details */}
           {(status === "cash_pending" || status === "cash_collected") && (
             <div className="rounded-xl border border-border p-3 space-y-2">
-              <p className="text-xs font-bold uppercase tracking-wider text-text-tertiary">Cash Collection</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-text-tertiary">
+                Cash Collection
+              </p>
               <div className="flex justify-between text-sm">
                 <span className="text-text-secondary">Code Verified</span>
-                <span className="font-medium text-text-primary">{payment.cashVerifiedAt ? fmt(payment.cashVerifiedAt) : "Pending"}</span>
+                <span className="font-medium text-text-primary">
+                  {payment.cashVerifiedAt
+                    ? fmt(payment.cashVerifiedAt)
+                    : "Pending"}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-text-secondary">Admin Verified</span>
-                <span className="font-medium text-text-primary">{payment.adminVerifiedAt ? fmt(payment.adminVerifiedAt) : "Not yet"}</span>
+                <span className="font-medium text-text-primary">
+                  {payment.adminVerifiedAt
+                    ? fmt(payment.adminVerifiedAt)
+                    : "Not yet"}
+                </span>
               </div>
             </div>
           )}
@@ -151,7 +224,8 @@ export default function PaymentDetails({ payment, bookingId }: PaymentDetailsPro
           {needsAdminVerify && (
             <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 space-y-2">
               <p className="text-xs font-semibold text-text-primary">
-                Passenger has entered the driver&apos;s code. Confirm cash was collected?
+                Passenger has entered the driver&apos;s code. Confirm cash was
+                collected?
               </p>
               <div className="flex gap-2">
                 <Button

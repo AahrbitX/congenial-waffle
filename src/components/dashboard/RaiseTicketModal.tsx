@@ -2,22 +2,23 @@
 
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { Modal, Button, TextArea, Input, Label } from "@heroui/react";
+
 import { useDashboard } from "@/context/DashboardContext";
 import { raiseTicket } from "@/api/rides.api";
-import { Button } from "@heroui/react";
+
 import {
   IconTicket,
   IconCheckCircle,
-  IconX,
   IconMapPin,
   IconLoader,
 } from "@/constants/icons";
 
 const CATEGORIES = [
-  { value: "payment",      label: "Payment Issue" },
+  { value: "payment", label: "Payment Issue" },
   { value: "driver_issue", label: "Driver Issue" },
-  { value: "route_issue",  label: "Route / Pickup Issue" },
-  { value: "other",        label: "Other" },
+  { value: "route_issue", label: "Route Issue" },
+  { value: "other", label: "Others" },
 ] as const;
 
 type Category = (typeof CATEGORIES)[number]["value"];
@@ -25,154 +26,164 @@ type Category = (typeof CATEGORIES)[number]["value"];
 export function RaiseTicketModal() {
   const { ticketRide, closeTicketModal } = useDashboard();
 
-  const [category, setCategory]   = useState<Category>("other");
-  const [subject, setSubject]     = useState("");
-  const [description, setDesc]    = useState("");
+  const [category, setCategory] = useState<Category>("other");
+  const [subject, setSubject] = useState("");
+  const [description, setDescription] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   const submit = useMutation({
     mutationFn: () =>
       raiseTicket({
-        bookingId:   ticketRide?.id,
+        bookingId: ticketRide?.id,
         category,
-        subject:     subject.trim(),
+        subject: subject.trim(),
         description: description.trim(),
       }),
     onSuccess: () => {
       setSubmitted(true);
-      setTimeout(closeTicketModal, 2500);
+
+      setTimeout(() => {
+        closeTicketModal();
+        setSubmitted(false);
+        setSubject("");
+        setDescription("");
+        setCategory("other");
+      }, 2000);
     },
   });
 
   if (!ticketRide) return null;
 
-  const canSubmit = subject.trim().length >= 3 && description.trim().length >= 5;
+  const canSubmit =
+    subject.trim().length >= 3 && description.trim().length >= 5;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm"
-      onClick={(e) => { if (e.target === e.currentTarget) closeTicketModal(); }}
+    <Modal
+      isOpen={!!ticketRide}
+      onOpenChange={(open) => {
+        if (!open) closeTicketModal();
+      }}
     >
-      <div className="bg-white dark:bg-zinc-900 w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden">
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-lg px-4">
+            {submitted ? (
+              <>
+                <Modal.Body className="">
+                  <div className="flex flex-col items-center gap-4 text-center">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
+                      <IconCheckCircle size={34} className="text-success" />
+                    </div>
 
-        {submitted ? (
-          <div className="flex flex-col items-center justify-center py-12 px-8 gap-4 text-center">
-            <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center">
-              <IconCheckCircle size={34} className="text-success" />
-            </div>
-            <div>
-              <p className="text-lg font-black text-foreground">Ticket Raised!</p>
-              <p className="text-sm text-default-400 mt-1">
-                Our team will get back to you shortly.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Header */}
-            <div className="flex items-start justify-between px-5 pt-5 pb-4 border-b border-divider">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <IconTicket size={14} className="text-primary shrink-0" />
-                  <p className="text-[11px] text-default-400 font-semibold uppercase tracking-wider">
-                    Raise a Ticket
-                  </p>
-                </div>
-                <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground truncate">
-                  <IconMapPin size={13} className="text-primary shrink-0" />
-                  <span className="truncate">{ticketRide.from}</span>
-                  <span className="text-default-400 shrink-0 text-xs">→</span>
-                  <span className="truncate">{ticketRide.to}</span>
-                </div>
-                <p className="text-xs text-default-400 mt-0.5">#{ticketRide.bookingRef}</p>
-              </div>
-              <button
-                onClick={() => closeTicketModal()}
-                className="p-1.5 rounded-lg hover:bg-default-100 text-default-400 ml-3 shrink-0"
-              >
-                <IconX size={16} />
-              </button>
-            </div>
+                    <div>
+                      <h3 className="text-lg font-bold">
+                        Ticket Raised Successfully
+                      </h3>
 
-            <div className="p-5 space-y-4 max-h-[70svh] overflow-y-auto">
+                      <p className="mt-1 text-sm text-muted">
+                        Our support team will get back to you shortly.
+                      </p>
+                    </div>
+                  </div>
+                </Modal.Body>
+              </>
+            ) : (
+              <>
+                <Modal.Header>
+                  <div className="flex flex-col gap-2 w-full">
+                    <div className="flex items-center gap-2 text-muted">
+                      <IconTicket size={16} />
+                      <span className="">Support Ticket</span>
+                    </div>
 
-              {/* Category */}
-              <div>
-                <label className="text-xs font-semibold text-default-500 uppercase tracking-wide block mb-2">
-                  Category
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {CATEGORIES.map((c) => (
-                    <button
-                      key={c.value}
-                      type="button"
-                      onClick={() => setCategory(c.value)}
-                      className={`text-xs font-semibold px-3 py-2 rounded-xl border transition-colors text-left ${
-                        category === c.value
-                          ? "bg-primary text-white border-primary"
-                          : "bg-zinc-50 dark:bg-zinc-800 text-default-600 border-zinc-200 dark:border-zinc-700 hover:border-primary/50"
-                      }`}
+                    <p className="">For Booking: #{ticketRide.bookingRef}</p>
+                  </div>
+                </Modal.Header>
+
+                <Modal.Body className="space-y-4">
+                  <div>
+                    <Label className="mb-2 block text-muted">Category</Label>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {CATEGORIES.map((item) => (
+                        <button
+                          key={item.value}
+                          type="button"
+                          onClick={() => setCategory(item.value)}
+                          className={`rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors duration-100 ${
+                            category === item.value
+                              ? " bg-primary text-white"
+                              : " bg-[var(--color-default)] "
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="px-1">
+                    <Label
+                      htmlFor={"subject"}
+                      className="mb-2 block text-muted"
                     >
-                      {c.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                      Subject
+                    </Label>
 
-              {/* Subject */}
-              <div>
-                <label className="text-xs font-semibold text-default-500 uppercase tracking-wide block mb-1.5">
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  placeholder="e.g. Charged twice for this trip"
-                  maxLength={200}
-                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-primary transition-colors"
-                />
-              </div>
+                    <Input
+                      fullWidth
+                      id="subject"
+                      value={subject}
+                      variant="secondary"
+                      onChange={(e) => setSubject(e.target.value)}
+                      placeholder="Charged twice for this trip"
+                    />
+                  </div>
 
-              {/* Description */}
-              <div>
-                <label className="text-xs font-semibold text-default-500 uppercase tracking-wide block mb-1.5">
-                  Description
-                </label>
-                <textarea
-                  rows={4}
-                  value={description}
-                  onChange={(e) => setDesc(e.target.value)}
-                  placeholder="Describe your issue in detail..."
-                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 resize-none focus:outline-none focus:border-primary transition-colors"
-                />
-              </div>
+                  <div className="px-1">
+                    <Label
+                      htmlFor="description"
+                      className="mb-2 block text-muted"
+                    >
+                      Description
+                    </Label>
 
-              {/* Actions */}
-              <div className="flex gap-3 pb-1">
-                <Button variant="secondary" className="flex-1" onPress={() => closeTicketModal()}>
-                  Cancel
-                </Button>
-                <button
-                  onClick={() => submit.mutate()}
-                  disabled={!canSubmit || submit.isPending}
-                  className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-colors ${
-                    !canSubmit || submit.isPending
-                      ? "bg-primary/40 text-white cursor-not-allowed"
-                      : "bg-primary text-white hover:bg-primary/90"
-                  }`}
-                >
-                  {submit.isPending ? (
-                    <><IconLoader size={14} className="animate-spin" /> Submitting…</>
-                  ) : (
-                    "Submit Ticket"
-                  )}
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+                    <TextArea
+                      rows={5}
+                      fullWidth
+                      id="description"
+                      variant="secondary"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Describe the issue in detail..."
+                    />
+                  </div>
+                </Modal.Body>
+
+                <Modal.Footer>
+                  <Button variant="secondary" onPress={closeTicketModal}>
+                    Cancel
+                  </Button>
+
+                  <Button
+                    isDisabled={!canSubmit || submit.isPending}
+                    onPress={() => submit.mutate()}
+                  >
+                    {submit.isPending ? (
+                      <div className="flex items-center gap-2">
+                        <IconLoader size={14} className="animate-spin" />
+                        Submitting...
+                      </div>
+                    ) : (
+                      "Submit Ticket"
+                    )}
+                  </Button>
+                </Modal.Footer>
+              </>
+            )}
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+    </Modal>
   );
 }

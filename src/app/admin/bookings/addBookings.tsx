@@ -155,7 +155,7 @@ function AddBookings({ className }: { className?: string }) {
 
   return (
     <Modal isOpen={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) { setFormData(initialFormData); setStep(1); } }}>
-      <Button variant="primary" className={cn("", className)} onPress={() => setIsOpen(true)}>
+      <Button size="sm" variant="primary" className={cn("", className)} onPress={() => setIsOpen(true)}>
         <Plus size={16} />
         Add Booking
       </Button>

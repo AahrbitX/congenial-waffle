@@ -93,10 +93,10 @@ const PACKAGES = [
 function PackagesSection() {
   const { openBooking } = useBooking();
   return (
-    <section className="py-6 px-6 sm:px-12">
+    <section className="pb-10 px-6 sm:px-12">
       <div className="max-w-7xl mx-auto">
         <div className="mb-4">
-          <h2 className="text-center sm:text-left text-[1.75rem] font-extrabold  tracking-tight">
+          <h2 className="text-center sm:text-left text-2xl font-bold tracking-tight">
             Our Packages
           </h2>
           <p className="text-center sm:text-left text-sm text-muted font-medium">

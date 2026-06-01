@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { User } from "@/types/user";
-import { dateParser } from "@/utils/date-parser";
+import { tableDateParser } from "@/utils/tableDateParser";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 
 const columnHelper = createColumnHelper<User>();
@@ -27,7 +27,7 @@ export const usersColumns: ColumnDef<User, any>[] = [
   }),
   columnHelper.accessor("createdAt", {
     header: "Joined",
-    cell: ({ getValue }) => dateParser({ getValue }),
+    cell: ({ getValue }) => tableDateParser({ getValue }),
   }),
   columnHelper.accessor("status", {
     header: "Status",

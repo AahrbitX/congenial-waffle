@@ -21,6 +21,10 @@ const PAGE_META: Record<
     title: "My Rides",
     subFn: () => "View and manage your trip history",
   },
+  [ROUTES.dashboard.transactions]: {
+    title: "Transactions",
+    subFn: () => "Your ride payment history and pending dues",
+  },
   [ROUTES.dashboard.wallet]: {
     title: "Wallet",
     subFn: () => "Manage your balance and payments",
@@ -49,12 +53,18 @@ export function DashboardHeader() {
   return (
     <div className="flex items-center justify-between mb-2">
       <div>
-        <h1 className="text-2xl font-bold ">{meta.title}</h1>
+        <h1 className="text-xl md:text-2xl font-bold">{meta.title}</h1>
         {meta.subFn && (
           <p className="text-sm text-muted">{meta.subFn(firstName)}</p>
         )}
       </div>
-      <Button isIconOnly variant="ghost" onClick={openNotifPanel} isDisabled className="opacity-40 pointer-events-none">
+      <Button
+        isIconOnly
+        variant="ghost"
+        onClick={openNotifPanel}
+        isDisabled
+        className="opacity-40 pointer-events-none"
+      >
         <IconBell size={14} className="text-muted" />
       </Button>
     </div>

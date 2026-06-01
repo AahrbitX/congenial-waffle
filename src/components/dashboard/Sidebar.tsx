@@ -33,10 +33,11 @@ const NAV_ITEMS = [
     href: ROUTES.dashboard.rides,
     icon: IconCar,
   },
-  { 
-    label: "Transactions", 
-    href: ROUTES.dashboard.transactions, 
-    icon: IconReceipt },
+  {
+    label: "Transactions",
+    href: ROUTES.dashboard.transactions,
+    icon: IconReceipt,
+  },
   {
     label: "Profile",
     href: ROUTES.dashboard.profile.root,
@@ -74,7 +75,7 @@ export function Sidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1  px-3 py-4 space-y-2">
+        <nav className="flex-1 p-2 space-y-2">
           {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
             const isActive =
               pathname === href ||
@@ -88,11 +89,11 @@ export function Sidebar() {
                   variant: isActive ? "secondary" : "ghost",
                   fullWidth: true,
                   className: `
-                    justify-start gap-3 rounded-xl px-4 text-sm font-semibold
+                    justify-start gap-3 rounded-xl px-4 text-sm 
                     ${
                       isActive
                         ? "bg-primary text-white shadow-sm"
-                        : "text-text-secondary hover:bg-surface-muted hover:text-foreground"
+                        : "hover:bg-surface-muted hover:text-foreground"
                     }
                   `,
                 })}
@@ -106,22 +107,13 @@ export function Sidebar() {
 
         {/* Bottom actions */}
         <div className="space-y-2 border-t border-border p-3">
-          <Button
-            fullWidth
-            variant="secondary"
-            isDisabled
-            className="h-11 justify-start rounded-xl px-4 text-sm font-semibold opacity-40 pointer-events-none"
-          >
+          <Button fullWidth variant="secondary" isDisabled className="">
             <IconBell size={17} />
             Notifications
-            <span className="ml-auto text-[10px] text-muted">Soon</span>
+            <span className="ml-auto text-xs text-muted">Soon</span>
           </Button>
 
-          <Button
-            fullWidth
-            onPress={openBookModal}
-            className="h-11 rounded-xl bg-primary text-sm font-semibold text-white"
-          >
+          <Button fullWidth onPress={openBookModal} className="">
             <IconPlus size={16} />
             Book Ride
           </Button>

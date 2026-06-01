@@ -42,7 +42,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
           <DashboardHeader />
         </div>
 
-        <main className="flex-1 overflow-y-auto px-4 pb-26 pt-4 scrollbar-thin">
+        <main className="flex-1 overflow-y-auto md:px-4 pb-24 md:pt-4 scrollbar-thin">
           {children}
         </main>
       </Surface>
@@ -50,7 +50,11 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
       <NotificationPanel />
       <RatingModal />
       <RaiseTicketModal />
-      <BookRideModal isOpen={bookOpen} onClose={closeBookModal} onBooked={closeBookModal} />
+      <BookRideModal
+        isOpen={bookOpen}
+        onClose={closeBookModal}
+        onBooked={closeBookModal}
+      />
     </div>
   );
 }
