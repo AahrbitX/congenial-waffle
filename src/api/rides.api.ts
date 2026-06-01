@@ -73,10 +73,20 @@ export async function endTrip(bookingId: string): Promise<void> {
   await request(`/api/bookings/${bookingId}/complete`, { method: "PATCH" });
 }
 
-export async function submitReview(bookingId: string, rating: number, comment?: string): Promise<void> {
+export interface SubmitReviewPayload {
+  bookingId:         string;
+  rating:            number;
+  comment?:          string;
+  ratingPunctuality?: number;
+  ratingCleanliness?: number;
+  ratingBehavior?:    number;
+  ratingDriving?:     number;
+}
+
+export async function submitReview(payload: SubmitReviewPayload): Promise<void> {
   await request("/api/reviews", {
     method: "POST",
-    body: JSON.stringify({ bookingId, rating, comment }),
+    body: JSON.stringify(payload),
   });
 }
 

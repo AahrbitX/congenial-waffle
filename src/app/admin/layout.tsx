@@ -1,19 +1,22 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { buttonVariants } from "@heroui/styles";
-import { usePathname } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 import {
   BadgeIndianRupee,
   CalendarCheck,
   Car,
   LayoutDashboard,
+  Settings,
   Star,
   User,
   Users,
 } from "lucide-react";
 import AddBookings from "./bookings/addBookings";
+import UserDropdown from "@/components/nav/userDropdown";
 
 const navLinks = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -23,17 +26,32 @@ const navLinks = [
   { name: "Drivers", href: "/admin/drivers", icon: Car },
   { name: "Payments", href: "/admin/payments", icon: BadgeIndianRupee },
   { name: "Reviews", href: "/admin/reviews", icon: Star },
+  { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathName = usePathname();
+  const router = useRouter();
+  const { data: session, isPending } = authClient.useSession();
+
+  const role = (session?.user as any)?.role as string | undefined;
+
+  useEffect(() => {
+    if (isPending) return;
+    if (role !== "admin") router.replace(role === "user" ? "/dashboard" : "/");
+  }, [role, isPending]);
+
+  // Only block when role is confirmed wrong — avoids SSR/client hydration mismatch
+  // (Server renders with session from cookie; client starts with isPending=true, must match)
+  if (!isPending && role !== "admin") return null;
 
   return (
     <div className="h-screen overflow-hidden">
       <div className="grid w-full h-full grid-rows-[52px_1fr] md:grid-cols-[216px_1fr] bg-background rounded-2xl">
         {/* Header */}
-        <div className="col-span-2 border-b border-divider p-2 px-4 flex items-center font-bold uppercase tracking-tight">
+        <div className="col-span-2 border-b border-divider p-2 px-4 flex items-center justify-between font-bold uppercase tracking-tight">
           <Link href={"/"}>MohanCabs</Link>
+          <UserDropdown showDashboard={false} />
         </div>
 
         {/* Sidebar (Desktop Only) */}

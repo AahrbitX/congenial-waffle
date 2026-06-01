@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { request } from "@/lib/api-client";
-import { Breadcrumbs, Card, Surface, Tabs } from "@heroui/react";
-import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
+import { Breadcrumbs, Button, Card, Surface, Tabs, toast } from "@heroui/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useParams, useRouter } from "next/navigation";
+import { Trash2 } from "lucide-react";
 import {
   ProfileHeader,
   ProfileHeaderSkeleton,
@@ -14,6 +15,19 @@ import EditDriver from "./editDriver";
 function DriverProfilePage() {
   const params = useParams<{ id: string }>();
   const driverId = params.id;
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const deleteMutation = useMutation({
+    mutationFn: () => request(`/api/drivers/${driverId}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["drivers"] });
+      toast.success("Driver removed successfully");
+      router.push("/admin/drivers");
+    },
+    onError: () => toast.danger("Failed to delete driver"),
+  });
 
   const { data, isLoading } = useQuery<any>({
     queryKey: [driverId],
@@ -24,24 +38,27 @@ function DriverProfilePage() {
     },
   });
 
-  console.log("DriverData :", data);
-
   if (isLoading) {
     return <div>Loading driver data</div>;
   }
 
-  const profileData = data.driver.profile;
-  const vehicleData = data.driver.vehicle;
+  if (!data?.data) {
+    return <div>Driver not found</div>;
+  }
+
+  // Drizzle innerJoin returns { drivers: {...}, user: {...} }
+  const driverRow = data.data.drivers;
+  const userRow = data.data.user;
 
   const formData = {
-    id: profileData.id,
-    name: profileData.name,
-    phone: profileData.phoneNumber,
-    ac: vehicleData.ac,
-    vehicleType: vehicleData.vehicleType,
-    dob: profileData.dob,
-    vehicleNumber: vehicleData.vehicleNumber,
-    isAvailable: data.driver.availability,
+    id: driverRow.id,
+    name: userRow.name,
+    phone: userRow.phoneNumber,
+    ac: driverRow.ac,
+    vehicleType: driverRow.vehicleType,
+    dob: userRow.dob,
+    vehicleNumber: driverRow.vehicleNumber,
+    isAvailable: driverRow.isAvailable,
   };
 
   return (
@@ -52,25 +69,48 @@ function DriverProfilePage() {
       <div className="flex items-center justify-between">
         <Breadcrumbs>
           <Breadcrumbs.Item href="/admin/drivers">Drivers</Breadcrumbs.Item>
-          <Breadcrumbs.Item>{profileData.id}</Breadcrumbs.Item>
+          <Breadcrumbs.Item>{driverRow.id}</Breadcrumbs.Item>
         </Breadcrumbs>
-        <EditDriver driverData={formData} />
+        <div className="flex items-center gap-2">
+          <EditDriver driverData={formData} />
+          {confirmDelete ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-danger font-medium">Remove this driver?</span>
+              <Button
+                size="sm"
+                variant="danger"
+                isDisabled={deleteMutation.isPending}
+                onPress={() => deleteMutation.mutate()}
+              >
+                {deleteMutation.isPending ? "Deleting…" : "Yes, Delete"}
+              </Button>
+              <Button size="sm" variant="ghost" onPress={() => setConfirmDelete(false)}>
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button variant="outline" size="sm" onPress={() => setConfirmDelete(true)}>
+              <Trash2 size={15} />
+              Delete Driver
+            </Button>
+          )}
+        </div>
       </div>
       <div className="my-2">
         {isLoading ? (
           <ProfileHeaderSkeleton />
         ) : (
           <ProfileHeader
-            name={profileData.name}
-            isActive={data.driver.isAvailable}
+            name={userRow.name}
+            isActive={driverRow.isAvailable}
             details={[
               {
                 label: "Phone",
-                value: profileData.phone,
+                value: userRow.phoneNumber,
               },
               {
                 label: "Last Updated At",
-                value: new Date(profileData.updatedAt).toLocaleString("en-IN", {
+                value: new Date(driverRow.updatedAt).toLocaleString("en-IN", {
                   day: "2-digit",
                   month: "short",
                   year: "numeric",
@@ -83,7 +123,7 @@ function DriverProfilePage() {
             stats={[
               {
                 label: "Member Since",
-                value: new Date(profileData.createdAt).toLocaleDateString(
+                value: new Date(driverRow.createdAt).toLocaleDateString(
                   "en-IN",
                   {
                     month: "short",
@@ -130,7 +170,6 @@ function DriverProfilePage() {
           </Card.Content>
         </Card>
       </div>
-      <div>{JSON.stringify(data, null, 2)}</div>
     </Surface>
   );
 }

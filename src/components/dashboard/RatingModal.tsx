@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useDashboard } from "@/context/DashboardContext";
 import { useSubmitReview } from "@/hooks/useRides";
-import { Button, Chip } from "@heroui/react";
+import { Button } from "@heroui/react";
 import {
   IconStar,
   IconCheckCircle,
@@ -11,7 +11,21 @@ import {
   IconMapPin,
   IconCar,
   IconLoader,
+  IconClock,
+  IconSparkles,
+  IconSmile,
 } from "@/constants/icons";
+
+const ASPECTS = [
+  { key: "punctuality" as const, label: "Punctuality", icon: IconClock    },
+  { key: "cleanliness" as const, label: "Cleanliness", icon: IconSparkles },
+  { key: "behavior"    as const, label: "Behavior",    icon: IconSmile    },
+  { key: "driving"     as const, label: "Driving",     icon: IconCar      },
+] as const;
+
+type AspectKey = (typeof ASPECTS)[number]["key"];
+
+const ASPECT_LABEL = ["", "Poor", "Fair", "Good", "Great", "Excellent!"];
 
 const TAG_OPTIONS = [
   "Great Driver",
@@ -93,14 +107,55 @@ function StarPicker({
   );
 }
 
+function MiniStarPicker({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  const [hover, setHover] = useState(0);
+  const active = hover || value;
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((s) => (
+        <button
+          key={s}
+          type="button"
+          onMouseEnter={() => setHover(s)}
+          onMouseLeave={() => setHover(0)}
+          onClick={() => onChange(s)}
+          className="focus:outline-none transition-transform hover:scale-110 active:scale-95"
+        >
+          <IconStar
+            size={22}
+            className={`transition-colors ${
+              active >= s ? "text-warning fill-warning" : "text-default-200"
+            }`}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function RatingModal() {
   const { ratingRide, closeRatingModal } = useDashboard();
   const submitReview = useSubmitReview();
 
   const [stars, setStars]         = useState(0);
+  const [aspects, setAspects]     = useState<Record<AspectKey, number>>({
+    punctuality: 0,
+    cleanliness: 0,
+    behavior:    0,
+    driving:     0,
+  });
   const [tags, setTags]           = useState<string[]>([]);
   const [comment, setComment]     = useState("");
   const [submitted, setSubmitted] = useState(false);
+
+  const setAspect = (key: AspectKey, value: number) =>
+    setAspects((prev) => ({ ...prev, [key]: value }));
 
   if (!ratingRide) return null;
 
@@ -110,9 +165,13 @@ export function RatingModal() {
     const fullComment = [tagStr, comment.trim()].filter(Boolean).join(". ") || undefined;
 
     await submitReview.mutateAsync({
-      bookingId: ratingRide.id,
-      rating:    stars,
-      comment:   fullComment,
+      bookingId:         ratingRide.id,
+      rating:            stars,
+      comment:           fullComment,
+      ratingPunctuality: aspects.punctuality || undefined,
+      ratingCleanliness: aspects.cleanliness || undefined,
+      ratingBehavior:    aspects.behavior    || undefined,
+      ratingDriving:     aspects.driving     || undefined,
     });
 
     setSubmitted(true);
@@ -191,6 +250,36 @@ export function RatingModal() {
                 <StarPicker value={stars} onChange={setStars} />
               </div>
 
+              {/* ── Aspect ratings ── */}
+              {stars > 0 && (
+                <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 px-4 py-3 space-y-3">
+                  <p className="text-xs font-semibold text-default-500 uppercase tracking-wide">
+                    Rate each aspect{" "}
+                    <span className="normal-case font-normal">(optional)</span>
+                  </p>
+                  {ASPECTS.map(({ key, label, icon: Icon }) => (
+                    <div key={key} className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-1.5 w-28 shrink-0">
+                        <Icon size={14} className="text-default-400 shrink-0" />
+                        <span className="text-sm font-medium text-foreground">{label}</span>
+                      </div>
+                      <MiniStarPicker
+                        value={aspects[key]}
+                        onChange={(v) => setAspect(key, v)}
+                      />
+                      <span className={`text-xs font-bold w-16 text-right shrink-0 ${
+                        aspects[key] >= 4 ? "text-success"
+                          : aspects[key] === 3 ? "text-warning"
+                          : aspects[key] > 0 ? "text-danger"
+                          : "text-transparent"
+                      }`}>
+                        {ASPECT_LABEL[aspects[key]] ?? ""}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* ── Tags ── */}
               {stars > 0 && (
                 <div>
@@ -199,17 +288,23 @@ export function RatingModal() {
                     <span className="normal-case font-normal">(optional)</span>
                   </p>
                   <div className="flex flex-wrap gap-1.5">
-                    {TAG_OPTIONS.map((tag) => (
-                      <Chip
-                        key={tag}
-                        variant={tags.includes(tag) ? "primary" : "soft"}
-                        size="sm"
-                        className="cursor-pointer select-none"
-                        onClick={() => toggleTag(tag)}
-                      >
-                        {tag}
-                      </Chip>
-                    ))}
+                    {TAG_OPTIONS.map((tag) => {
+                      const selected = tags.includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => toggleTag(tag)}
+                          className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors select-none
+                            ${selected
+                              ? "bg-primary text-white border-primary"
+                              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-primary hover:text-primary"
+                            }`}
+                        >
+                          {tag}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}

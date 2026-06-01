@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Users, Briefcase, Wind, Fuel, Check, ArrowRight, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useFleet, useFleetCar } from "@/hooks/useFleet";
+import { useFleet } from "@/hooks/useFleet";
 import { useBooking } from "@/context/BookingContext";
 import type { FleetCategory } from "@/types/fleet.types";
 
@@ -19,7 +19,8 @@ export function FleetList() {
   const [selectedCarId,  setSelectedCarId]  = useState<string | null>(null);
 
   const { data: fleet = [], isLoading } = useFleet();
-  const { data: selectedCar, isLoading: carLoading } = useFleetCar(selectedCarId ?? "");
+  const selectedCar = fleet.find((c) => c.id === selectedCarId) ?? null;
+  const carLoading = isLoading;
   const { openBooking } = useBooking();
 
   // Sync category if URL param changes (e.g. browser back/forward)
@@ -160,7 +161,7 @@ export function FleetList() {
                     <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Image */}
                       <img
-                        src={selectedCar.image}
+                        src={selectedCar.image ?? undefined}
                         alt={selectedCar.name}
                         className="w-full h-52 object-cover rounded-xl shadow-sm"
                       />

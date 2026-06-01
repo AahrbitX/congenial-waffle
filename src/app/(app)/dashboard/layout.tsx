@@ -1,7 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Surface } from "@heroui/react";
 
+import { authClient } from "@/lib/auth-client";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { DashboardProvider, useDashboard } from "@/context/DashboardContext";
 import { RatingModal } from "@/components/dashboard/RatingModal";
@@ -12,6 +15,20 @@ import { NotificationPanel } from "@/components/dashboard/NotificationPanel";
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
   const { bookOpen, closeBookModal } = useDashboard();
+  const router = useRouter();
+  const { data: session, isPending } = authClient.useSession();
+
+  const role = (session?.user as any)?.role as string | undefined;
+
+  useEffect(() => {
+    if (isPending) return;
+    if (!role) { router.replace("/"); return; }
+    if (role === "admin") { router.replace("/admin"); return; }
+    if (role !== "user") { router.replace("/"); }
+  }, [role, isPending]);
+
+  // Only block when role is confirmed wrong — avoids SSR/client hydration mismatch
+  if (!isPending && role && role !== "user") return null;
 
   return (
     <div className="h-screen overflow-hidden flex">

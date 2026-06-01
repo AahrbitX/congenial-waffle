@@ -50,4 +50,6 @@ export {
   TicketPlus       as IconTicket,
   Circle           as IconCircle,
   Lock             as IconLock,
+  Sparkles         as IconSparkles,
+  Smile            as IconSmile,
 } from "lucide-react";

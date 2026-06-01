@@ -51,27 +51,32 @@ export function PayToDriverModal({ tx, amountDue, isBalance, onClose }: PayToDri
   // Step 1: On mount, resolve the payment ID (create balance record if needed),
   // then send the driver their code. No status change — just the notification.
   useEffect(() => {
+    let cancelled = false;
+
     async function init() {
       try {
         let paymentId = activePaymentId;
 
         if (isBalance) {
           const res = await createBalance.mutateAsync(tx.id);
+          if (cancelled) return;
           paymentId = res.paymentId;
           setActivePaymentId(paymentId);
-          // Balance payment starts as cash_pending already
           setCashMarked(true);
         }
 
         const { driverAssigned: assigned } = await notify.mutateAsync(paymentId!);
+        if (cancelled) return;
         setDriverAssigned(assigned);
         setNotified(assigned);
       } catch (err: any) {
+        if (cancelled) return;
         setErrorMsg(err?.message ?? "Could not contact server. Please try again.");
       }
     }
 
     init();
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

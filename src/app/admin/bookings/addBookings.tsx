@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronLeft, Plus } from "lucide-react";
 import {
   cn,
-  Button,
   Description,
   Modal,
   ModalBackdrop,
@@ -15,90 +14,119 @@ import {
   FieldError,
   ComboBox,
   ListBox,
+  Select,
   TextArea,
   toast,
 } from "@heroui/react";
+import { Button } from "@/components/ui/Button";
 import CustomRadioGroup from "@/components/form/customRadioGroup";
-import Summary from "@/components/data/summary";
+import { LocationSearchInput } from "@/components/form/LocationSearchInput";
 import { useMutation } from "@tanstack/react-query";
 import { request } from "@/lib/api-client";
 import { queryClient } from "@/lib/query-client";
+import { useVehicles } from "@/hooks/useBooking";
+import { formatFare, getVehicleFare } from "@/data/booking.mock";
+import { toBackendVehicleType } from "@/api/booking.api";
+import { getRouteDistance } from "@/utils/geocoding";
+import type { Vehicle } from "@/types/booking.types";
 
 type BookingFormData = {
-  customerName: string;
+  customerName:  string;
   customerPhone: string;
-  bookingFor: string;
-
-  pickup: string;
-  pickupZone: string;
-
-  drop: string;
-  dropZone: string;
-
-  tripDate: string;
-  tripTime: string;
-  vehicleType: string;
+  bookingFor:    string;
+  pickup:        string;
+  pickupZone:    string;
+  pickupLat:     string;
+  pickupLng:     string;
+  drop:          string;
+  dropZone:      string;
+  dropLat:       string;
+  dropLng:       string;
+  tripDate:      string;
+  tripTime:      string;
+  vehicleType:   string;
   seatsRequired: string;
-  acPreference: string;
-
-  assignDriver: string;
-  notes: string;
+  acPreference:  string;
+  totalFare:     string;
+  notes:         string;
 };
 
 const initialFormData: BookingFormData = {
-  customerName: "",
+  customerName:  "",
   customerPhone: "",
-  bookingFor: "self",
-
-  pickup: "",
-  pickupZone: "",
-
-  drop: "",
-  dropZone: "",
-
-  tripDate: "",
-  tripTime: "",
-
-  vehicleType: "sedan",
+  bookingFor:    "self",
+  pickup:        "",
+  pickupZone:    "",
+  pickupLat:     "",
+  pickupLng:     "",
+  drop:          "",
+  dropZone:      "",
+  dropLat:       "",
+  dropLng:       "",
+  tripDate:      "",
+  tripTime:      "",
+  vehicleType:   "",
   seatsRequired: "4",
-  acPreference: "ac",
-
-  assignDriver: "nil",
-  notes: "",
+  acPreference:  "ac",
+  totalFare:     "",
+  notes:         "",
 };
 
 function AddBookings({ className }: { className?: string }) {
-  const [step, setStep] = useState<number>(1);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [step, setStep]         = useState<number>(1);
+  const [isOpen, setIsOpen]     = useState<boolean>(false);
   const [formData, setFormData] = useState<BookingFormData>(initialFormData);
+  const [distanceKm, setDistanceKm] = useState<number | null>(null);
+  const { data: vehicles = [] }  = useVehicles();
 
-  const updateField = (field: keyof BookingFormData, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  // Recalculate road distance whenever both sets of coordinates change
+  useEffect(() => {
+    const pLat = Number(formData.pickupLat);
+    const pLng = Number(formData.pickupLng);
+    const dLat = Number(formData.dropLat);
+    const dLng = Number(formData.dropLng);
+    if (!pLat || !pLng || !dLat || !dLng) { setDistanceKm(null); return; }
+    getRouteDistance(pLat, pLng, dLat, dLng).then(setDistanceKm);
+  }, [formData.pickupLat, formData.pickupLng, formData.dropLat, formData.dropLng]);
+
+  const updateField = (field: keyof BookingFormData, value: string) =>
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
+  // Auto-fill totalFare when vehicle changes (use defaultFare as starting point)
+  const handleVehicleChange = (value: string) => {
+    updateField("vehicleType", value);
+    const vehicle = vehicles.find((v) => v.type === value);
+    if (vehicle && !formData.totalFare) {
+      const fare = getVehicleFare(vehicle);
+      updateField("totalFare", String(fare.amount));
+    }
   };
 
   const mutation = useMutation({
-    mutationFn: async (formData: BookingFormData) => {
-      const payload = {
-        customerName: formData.customerName,
-        customerPhone: formData.customerPhone,
-        source: "admin",
-        pickupName: formData.pickup, // Location Address
-        pickupZone: formData.pickupZone, // Location Pincode
-        dropName: formData.drop, // Location Address
-        dropZone: formData.dropZone, // Location Pincode
-        journeyDate: formData.tripDate,
-        journeyTime: formData.tripTime,
-        members: Number(formData.seatsRequired),
-        vehicleType: formData.vehicleType.toLowerCase(),
-        ac: formData.acPreference === "ac",
-
-        totalFare: "0.00",
+    mutationFn: async (data: BookingFormData) => {
+      const payload: Record<string, unknown> = {
+        customerName:  data.customerName,
+        customerPhone: data.customerPhone,
+        source:        "admin",
+        pickupName:    data.pickup,
+        pickupZone:    data.pickupZone,
+        dropName:      data.drop,
+        dropZone:      data.dropZone,
+        journeyDate:   data.tripDate,
+        journeyTime:   data.tripTime,
+        members:       Number(data.seatsRequired),
+        vehicleType:   toBackendVehicleType(data.vehicleType),
+        ac:            data.acPreference === "ac",
+        totalFare:     data.totalFare || "0.00",
       };
-
-      // Using your existing request helper
+      if (data.pickupLat && data.pickupLng) {
+        payload.pickupLat = Number(data.pickupLat);
+        payload.pickupLng = Number(data.pickupLng);
+      }
+      if (data.dropLat && data.dropLng) {
+        payload.dropLat = Number(data.dropLat);
+        payload.dropLng = Number(data.dropLng);
+      }
       return request("/api/bookings/create", {
         method: "POST",
         body: JSON.stringify(payload),
@@ -107,24 +135,27 @@ function AddBookings({ className }: { className?: string }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
       setIsOpen(false);
-      toast.success("New Booking Created");
+      setFormData(initialFormData);
+      setStep(1);
+      toast.success("Booking created — cash payment marked collected");
     },
     onError: () => {
-      toast.danger("Failed to create new Booking");
+      toast.danger("Failed to create booking");
     },
   });
 
-  const handleSubmit = () => {
-    mutation.mutate(formData);
-  };
+  const canProceedStep1 =
+    formData.customerName.trim() &&
+    formData.customerPhone.trim() &&
+    formData.pickup.trim() &&
+    formData.drop.trim();
+
+  const canProceedStep2 =
+    formData.tripDate && formData.tripTime && formData.vehicleType;
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={setIsOpen}>
-      <Button
-        variant="primary"
-        className={cn("", className)}
-        onPress={() => setIsOpen(true)}
-      >
+    <Modal isOpen={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) { setFormData(initialFormData); setStep(1); } }}>
+      <Button variant="primary" className={cn("", className)} onPress={() => setIsOpen(true)}>
         <Plus size={16} />
         Add Booking
       </Button>
@@ -136,64 +167,64 @@ function AddBookings({ className }: { className?: string }) {
 
             <Modal.Header className="gap-1">
               <Modal.Heading>Add New Booking</Modal.Heading>
-
               <Description>
                 Step {step} of 3 —{" "}
-                {step === 1
-                  ? "Passenger Info"
-                  : step === 2
-                    ? "Trip Details"
-                    : "Preferences"}
+                {step === 1 ? "Passenger & Route" : step === 2 ? "Vehicle & Schedule" : "Fare & Confirm"}
               </Description>
             </Modal.Header>
 
             <Separator className="my-4" />
 
-            <CreateBookingForm
-              step={step}
-              data={formData}
-              onChange={updateField}
-            />
+            <div className="overflow-y-auto max-h-[60vh] space-y-4 pr-1 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              {step === 1 && <StepOne data={formData} onChange={updateField} />}
+              {step === 2 && (
+                <StepTwo
+                  data={formData}
+                  vehicles={vehicles}
+                  onChange={updateField}
+                  onVehicleChange={handleVehicleChange}
+                />
+              )}
+              {step === 3 && (
+                <StepThree
+                  data={formData}
+                  vehicles={vehicles}
+                  distanceKm={distanceKm}
+                  onChange={updateField}
+                />
+              )}
+            </div>
 
             <Separator className="my-4" />
 
             <Modal.Footer>
               {step === 1 && (
-                <Button fullWidth onPress={() => setStep(2)}>
-                  Next : Trip Details
+                <Button fullWidth isDisabled={!canProceedStep1} onPress={() => setStep(2)}>
+                  Next: Vehicle & Schedule
                 </Button>
               )}
-
               {step === 2 && (
                 <>
-                  <Button
-                    variant="secondary"
-                    fullWidth
-                    onPress={() => setStep(1)}
-                  >
-                    <ChevronLeft size={16} />
-                    Back
+                  <Button variant="secondary" fullWidth onPress={() => setStep(1)}>
+                    <ChevronLeft size={16} /> Back
                   </Button>
-
-                  <Button fullWidth onPress={() => setStep(3)}>
-                    Next : Preferences
+                  <Button fullWidth isDisabled={!canProceedStep2} onPress={() => setStep(3)}>
+                    Next: Fare & Confirm
                   </Button>
                 </>
               )}
-
               {step === 3 && (
                 <>
-                  <Button
-                    variant="secondary"
-                    fullWidth
-                    onPress={() => setStep(2)}
-                  >
-                    <ChevronLeft size={16} />
-                    Back
+                  <Button variant="secondary" fullWidth onPress={() => setStep(2)}>
+                    <ChevronLeft size={16} /> Back
                   </Button>
-
-                  <Button fullWidth onPress={handleSubmit}>
-                    Confirm and Create Booking
+                  <Button
+                    fullWidth
+                    isDisabled={mutation.isPending || !formData.totalFare}
+                    isLoading={mutation.isPending}
+                    onPress={() => mutation.mutate(formData)}
+                  >
+                    Confirm & Create Booking
                   </Button>
                 </>
               )}
@@ -205,198 +236,160 @@ function AddBookings({ className }: { className?: string }) {
   );
 }
 
-interface CreateBookingFormProps {
-  step: number;
+/* ── Step 1: Passenger & Route ───────────────────────────────────────────── */
+interface StepProps {
   data: BookingFormData;
   onChange: (field: keyof BookingFormData, value: string) => void;
 }
 
-function CreateBookingForm(props: CreateBookingFormProps) {
-  const { step, data, onChange } = props;
-
-  return (
-    <div className="space-y-4 min-h-[260px]">
-      {step === 1 && (
-        <>
-          <CreateBookingStepOne data={data} onChange={onChange} />
-        </>
-      )}
-
-      {step === 2 && (
-        <>
-          <CreateBookingStepTwo data={data} onChange={onChange} />
-        </>
-      )}
-
-      {step === 3 && (
-        <>
-          <CreateBookingStepThree data={data} onChange={onChange} />
-        </>
-      )}
-    </div>
-  );
-}
-
-interface BookingStepProps {
-  data: BookingFormData;
-  onChange: (field: keyof BookingFormData, value: string) => void;
-}
-
-function CreateBookingStepOne(props: BookingStepProps) {
-  const { data, onChange } = props;
-
+function StepOne({ data, onChange }: StepProps) {
   return (
     <div className="grid grid-cols-2 gap-3">
       <TextField isRequired name="customerName">
-        <Label id="customerName">Passenger Name</Label>
-        <Input
-          variant="secondary"
-          value={data.customerName}
-          onChange={(e) => onChange("customerName", e.target.value)}
-          placeholder="Passenger Name"
-        />
+        <Label>Passenger Name</Label>
+        <Input variant="secondary" value={data.customerName}
+          onChange={(e) => onChange("customerName", e.target.value)} placeholder="Full name" />
         <FieldError />
       </TextField>
 
       <TextField isRequired name="customerPhone">
-        <Label id="phone">Mobile Number</Label>
-        <Input
-          variant="secondary"
-          value={data.customerPhone}
-          onChange={(e) => onChange("customerPhone", e.target.value)}
-          placeholder="9876543210"
-        />
+        <Label>Mobile Number</Label>
+        <Input variant="secondary" value={data.customerPhone}
+          onChange={(e) => onChange("customerPhone", e.target.value)} placeholder="9876543210" />
         <FieldError />
       </TextField>
 
-      <TextField isRequired name="bookingFor" className={"col-span-2"}>
+      <TextField name="bookingFor" className="col-span-2">
         <Label>Booking For</Label>
         <CustomRadioGroup
           value={data.bookingFor}
           options={[
-            { label: "self", value: "self" },
-            { label: "other (family)", value: "other (family)" },
-            { label: "corporate", value: "corporate" },
-            { label: "guest", value: "guest" },
+            { label: "Self", value: "self" },
+            { label: "Family", value: "other (family)" },
+            { label: "Corporate", value: "corporate" },
+            { label: "Guest", value: "guest" },
           ]}
-          onValueChange={(value) => onChange("bookingFor", value)}
+          onValueChange={(v) => onChange("bookingFor", v)}
         />
-        <FieldError />
       </TextField>
 
-      <TextField isRequired name="pickup">
-        <Label id="pickup">Pickup Location</Label>
-        <Input
-          variant="secondary"
-          value={data.pickup}
-          onChange={(e) => onChange("pickup", e.target.value)}
-          placeholder="Enter pickup address"
-        />
-        <FieldError />
-      </TextField>
-      <TextField isRequired name="pickupZone">
-        <Label id="pickup">Pickup Zone</Label>
-        <Input
-          variant="secondary"
-          value={data.pickupZone}
-          onChange={(e) => onChange("pickupZone", e.target.value)}
-          placeholder="Pickup Location Pincode"
-        />
-        <FieldError />
-      </TextField>
+      <LocationSearchInput
+        label="Pickup Location"
+        placeholder="Search pickup address"
+        value={data.pickup}
+        required
+        className="col-span-2"
+        onSelect={(r) => {
+          onChange("pickup",    r.name);
+          onChange("pickupZone", r.zone);
+          onChange("pickupLat",  String(r.lat));
+          onChange("pickupLng",  String(r.lng));
+        }}
+        onClear={() => {
+          onChange("pickup",    "");
+          onChange("pickupZone", "");
+          onChange("pickupLat",  "");
+          onChange("pickupLng",  "");
+        }}
+      />
 
-      <TextField isRequired name="drop">
-        <Label id="drop">Drop Location</Label>
-        <Input
-          variant="secondary"
-          value={data.drop}
-          onChange={(e) => onChange("drop", e.target.value)}
-          placeholder="Enter drop address"
-        />
-        <FieldError />
-      </TextField>
-      <TextField isRequired name="dropZone">
-        <Label id="drop">Drop Zone</Label>
-        <Input
-          variant="secondary"
-          value={data.dropZone}
-          onChange={(e) => onChange("dropZone", e.target.value)}
-          placeholder="Drop Location Pincode"
-        />
-        <FieldError />
-      </TextField>
+      <LocationSearchInput
+        label="Drop Location"
+        placeholder="Search drop address"
+        value={data.drop}
+        required
+        className="col-span-2"
+        onSelect={(r) => {
+          onChange("drop",    r.name);
+          onChange("dropZone", r.zone);
+          onChange("dropLat",  String(r.lat));
+          onChange("dropLng",  String(r.lng));
+        }}
+        onClear={() => {
+          onChange("drop",    "");
+          onChange("dropZone", "");
+          onChange("dropLat",  "");
+          onChange("dropLng",  "");
+        }}
+      />
     </div>
   );
 }
 
-function CreateBookingStepTwo(props: BookingStepProps) {
-  const { data, onChange } = props;
+/* ── Step 2: Vehicle & Schedule ──────────────────────────────────────────── */
+interface StepTwoProps extends StepProps {
+  vehicles: Vehicle[];
+  onVehicleChange: (value: string) => void;
+}
+
+function StepTwo({ data, vehicles, onChange, onVehicleChange }: StepTwoProps) {
+  const acBool           = data.acPreference === "ac";
+  const filteredVehicles = vehicles.filter((v) => v.ac === acBool);
+  const currentValid     = filteredVehicles.some((v) => v.type === data.vehicleType);
 
   return (
     <div className="grid grid-cols-2 gap-4">
       <TextField isRequired name="tripDate">
-        <Label id="tripDate">Ride Date</Label>
-        <Input
-          type="date"
-          variant="secondary"
-          value={data.tripDate}
-          onChange={(e) => onChange("tripDate", e.target.value)}
-        />
+        <Label>Ride Date</Label>
+        <Input type="date" variant="secondary" value={data.tripDate}
+          onChange={(e) => onChange("tripDate", e.target.value)} />
         <FieldError />
       </TextField>
 
       <TextField isRequired name="tripTime">
-        <Label id="tripTime">Ride Time</Label>
-        <Input
-          type="time"
-          variant="secondary"
-          value={data.tripTime}
-          onChange={(e) => onChange("tripTime", e.target.value)}
-        />
+        <Label>Ride Time</Label>
+        <Input type="time" variant="secondary" value={data.tripTime}
+          onChange={(e) => onChange("tripTime", e.target.value)} />
         <FieldError />
       </TextField>
 
-      <TextField isRequired name="vehicleType" className={"col-span-2"}>
-        <Label id="vehicleType">Vehicle Type</Label>
-        <CustomRadioGroup
-          value={data.vehicleType}
-          options={[
-            { label: "Sedan", value: "sedan" },
-            { label: "SUV", value: "suv" },
-            { label: "Minivan", value: "minivan" },
-          ]}
-          onValueChange={(value) => onChange("vehicleType", value)}
-        />
-        <FieldError />
-      </TextField>
-
-      <TextField isRequired name="acPreference">
-        <Label id="acPreference">AC Preference</Label>
+      <TextField name="acPreference" className="col-span-2">
+        <Label>AC Preference</Label>
         <CustomRadioGroup
           value={data.acPreference}
-          options={[
-            { label: "AC", value: "ac" },
-            { label: "Non AC", value: "non-ac" },
-          ]}
-          onValueChange={(value) => onChange("acPreference", value)}
+          options={[{ label: "AC", value: "ac" }, { label: "Non-AC", value: "non-ac" }]}
+          onValueChange={(v) => { onChange("acPreference", v); onChange("vehicleType", ""); onChange("totalFare", ""); }}
         />
-        <FieldError />
       </TextField>
 
-      <TextField isRequired name="seatsRequired" className={"col-span-2"}>
-        <Label id="seatsRequired">Seats Required</Label>
+      <div className="col-span-2 flex flex-col gap-1.5">
+        <Select
+          isRequired
+          name="vehicleType"
+          variant="secondary"
+          placeholder="Select vehicle type"
+          selectedKey={currentValid ? data.vehicleType : null}
+          onSelectionChange={(key) => onVehicleChange(String(key))}
+          isDisabled={vehicles.length === 0}
+        >
+          <Label>Vehicle Type</Label>
+          <Select.Trigger>
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
+          <Select.Popover>
+            <ListBox>
+              {filteredVehicles.map((v) => (
+                <ListBox.Item key={v.type} id={v.type} textValue={v.type}>
+                  <span className="flex items-center justify-between w-full gap-4">
+                    <span>{v.type}</span>
+                    <span className="text-xs text-text-tertiary">{formatFare(getVehicleFare(v))}</span>
+                  </span>
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              ))}
+            </ListBox>
+          </Select.Popover>
+          <FieldError />
+        </Select>
+      </div>
+
+      <TextField isRequired name="seatsRequired" className="col-span-2">
+        <Label>Seats Required</Label>
         <CustomRadioGroup
           value={data.seatsRequired}
-          options={[
-            { label: "1", value: "1" },
-            { label: "2", value: "2" },
-            { label: "3", value: "3" },
-            { label: "4", value: "4" },
-            { label: "5", value: "5" },
-            { label: "6", value: "6" },
-            { label: "7", value: "7" },
-          ]}
-          onValueChange={(value) => onChange("seatsRequired", value)}
+          options={["1","2","3","4","5","6","7"].map((n) => ({ label: n, value: n }))}
+          onValueChange={(v) => onChange("seatsRequired", v)}
         />
         <FieldError />
       </TextField>
@@ -404,28 +397,93 @@ function CreateBookingStepTwo(props: BookingStepProps) {
   );
 }
 
-function CreateBookingStepThree(props: BookingStepProps) {
-  const { data, onChange } = props;
+/* ── Step 3: Fare & Confirm ──────────────────────────────────────────────── */
+interface StepThreeProps extends StepProps {
+  vehicles:    Vehicle[];
+  distanceKm:  number | null;
+}
+
+function StepThree({ data, vehicles, distanceKm, onChange }: StepThreeProps) {
+  const vehicle   = vehicles.find((v) => v.type === data.vehicleType);
+  const baseFare  = vehicle ? getVehicleFare(vehicle) : null;
+  const fareHint  = baseFare ? formatFare(baseFare) : null;
+  const suggestedFare =
+    distanceKm && baseFare?.unit === "per km"
+      ? Math.ceil(distanceKm * baseFare.amount)
+      : null;
 
   return (
-    <div className="space-y-4">
-      <TextField name="assignDriver">
-        <AssignDriverForBookingForm />
-      </TextField>
+    <div className="space-y-5">
+      {/* Booking summary */}
+      <div className="rounded-xl border border-border bg-surface-muted/40 p-4 space-y-2 text-sm">
+        <p className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">Booking Summary</p>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+          <span className="text-text-secondary">Passenger</span>
+          <span className="font-medium text-text-primary">{data.customerName} · {data.customerPhone}</span>
+          <span className="text-text-secondary">Route</span>
+          <span className="font-medium text-text-primary truncate">{data.pickup} → {data.drop}</span>
+          <span className="text-text-secondary">Date & Time</span>
+          <span className="font-medium text-text-primary">{data.tripDate} at {data.tripTime}</span>
+          <span className="text-text-secondary">Vehicle</span>
+          <span className="font-medium text-text-primary">{data.vehicleType || "—"}</span>
+          <span className="text-text-secondary">Seats</span>
+          <span className="font-medium text-text-primary">{data.seatsRequired}</span>
+          {distanceKm !== null && (
+            <>
+              <span className="text-text-secondary">Distance</span>
+              <span className="font-medium text-text-primary">{distanceKm} km (road)</span>
+            </>
+          )}
+        </div>
+      </div>
 
+      {/* Fare entry */}
+      <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-4 space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">Total Fare (Cash)</p>
+          <div className="flex items-center gap-2">
+            {suggestedFare && (
+              <button
+                type="button"
+                onClick={() => onChange("totalFare", String(suggestedFare))}
+                className="text-[11px] text-primary underline underline-offset-2 hover:no-underline"
+              >
+                Use ₹{suggestedFare} ({distanceKm} km × {baseFare?.amount}/km)
+              </button>
+            )}
+            {fareHint && !suggestedFare && (
+              <span className="text-[11px] text-text-tertiary">Base rate: {fareHint}</span>
+            )}
+          </div>
+        </div>
+        <TextField isRequired name="totalFare">
+          <div className="relative">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base font-bold text-text-secondary pointer-events-none">₹</span>
+            <Input
+              variant="secondary"
+              type="number"
+              min="0"
+              step="0.01"
+              value={data.totalFare}
+              onChange={(e) => onChange("totalFare", e.target.value)}
+              placeholder="Enter total fare"
+              className="pl-8"
+            />
+          </div>
+          <FieldError />
+        </TextField>
+        <p className="text-[11px] text-text-tertiary">
+          Payment will be collected in cash by the driver. A cash-pending record will be created automatically.
+        </p>
+      </div>
+
+      {/* Notes */}
       <TextField name="notes">
-        <Label id="notes">Special Instructions / Notes</Label>
-        <TextArea
-          variant="secondary"
-          value={data.notes}
-          rows={3}
+        <Label>Special Instructions</Label>
+        <TextArea variant="secondary" value={data.notes} rows={2}
           onChange={(e) => onChange("notes", e.target.value)}
-          placeholder="Passenger is elderly..."
-        />
-        <FieldError />
+          placeholder="e.g. Passenger is elderly, carry wheelchair…" />
       </TextField>
-
-      <Summary data={data} size="compact" />
     </div>
   );
 }

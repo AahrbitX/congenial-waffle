@@ -2,7 +2,9 @@
 
 import { Card, Chip, Separator } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
-import { useAdminVerifyPayment } from "@/hooks/useTransactions";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { request } from "@/lib/api-client";
+import { toast } from "@heroui/react";
 import {
   IconCheckCircle,
   IconXCircle,
@@ -46,10 +48,24 @@ function fmt(iso: string | null) {
 
 interface PaymentDetailsProps {
   payment: Payment;
+  bookingId: string;
 }
 
-export default function PaymentDetails({ payment }: PaymentDetailsProps) {
-  const adminVerify = useAdminVerifyPayment();
+export default function PaymentDetails({ payment, bookingId }: PaymentDetailsProps) {
+  const qc = useQueryClient();
+
+  const adminVerify = useMutation({
+    mutationFn: ({ paymentId, approved }: { paymentId: string; approved: boolean }) =>
+      request(`/api/payments/${paymentId}/admin-verify`, {
+        method: "PATCH",
+        body: JSON.stringify({ approved }),
+      }),
+    onSuccess: (_data, { approved }) => {
+      qc.invalidateQueries({ queryKey: ["booking", bookingId] });
+      toast.success(approved ? "Payment approved" : "Payment disputed");
+    },
+    onError: () => toast.danger("Action failed"),
+  });
 
   const status = payment.status ?? "created";
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.created;
@@ -111,7 +127,7 @@ export default function PaymentDetails({ payment }: PaymentDetailsProps) {
                 {payment.method === "cash" ? "Cash Payment" : "Online Payment"}
               </p>
               <p className="text-xs text-text-tertiary">
-                {payment.mode === "partial" ? "Partial" : "Full"} · {payment.paidAt ? `Paid ${fmt(payment.paidAt)}` : "Not paid yet"}
+                {payment.mode === "partial" ? "Partial" : payment.mode === "balance" ? "Balance" : "Full"} · {payment.paidAt ? `Paid ${fmt(payment.paidAt)}` : payment.cashVerifiedAt ? `Cash collected ${fmt(payment.cashVerifiedAt)}` : "Not paid yet"}
               </p>
             </div>
           </div>

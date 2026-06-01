@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getRides, getRideById, endTrip, submitReview } from "@/api/rides.api";
+import { getRides, getRideById, endTrip, submitReview, SubmitReviewPayload } from "@/api/rides.api";
 import { request } from "@/lib/api-client";
 
 export const RIDES_KEY = ["rides"] as const;
@@ -40,8 +40,7 @@ export function useEndTrip() {
 export function useSubmitReview() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ bookingId, rating, comment }: { bookingId: string; rating: number; comment?: string }) =>
-      submitReview(bookingId, rating, comment),
+    mutationFn: (payload: SubmitReviewPayload) => submitReview(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: RIDES_KEY });
     },
