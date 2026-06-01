@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Card, Chip, Separator, Skeleton, toast } from "@heroui/react";
-import { Star, Archive, Forward, Flag, Send, X, Car, ExternalLink } from "lucide-react";
+import { Star, Archive, Forward, Flag, Car, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { request } from "@/lib/api-client";
@@ -112,8 +112,6 @@ export default function ReviewList({
 }) {
   const qc = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [replyOpen, setReplyOpen]   = useState(false);
-  const [replyText, setReplyText]   = useState("");
 
   const flagMutation = useMutation({
     mutationFn: (id: string) => request(`/api/reviews/${id}/flag`, { method: "PATCH" }),
@@ -128,8 +126,6 @@ export default function ReviewList({
 
   function selectRow(r: AdminReview) {
     setSelectedId(r.id);
-    setReplyOpen(false);
-    setReplyText("");
     if (r.unread) readMutation.mutate(r.id);
   }
 
@@ -402,63 +398,15 @@ export default function ReviewList({
               </div>
             </div>
 
-            {/* Reply box */}
-            {!replyOpen ? (
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  onClick={() => setReplyOpen(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-white text-[13px] font-bold hover:opacity-90 transition-opacity"
-                >
-                  <Send size={13} />
-                  Reply to {selected.customerName.split(" ")[0]}
-                </button>
-                <Link
-                  href={`/admin/bookings/${selected.bookingId}`}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border text-[13px] font-semibold text-text-secondary hover:bg-surface-muted transition-colors"
-                >
-                  <Car size={13} />
-                  View trip {selected.bookingRef}
-                </Link>
-              </div>
-            ) : (
-              <div className="border border-border rounded-xl overflow-hidden">
-                <div className="bg-surface-muted px-3.5 py-2.5 border-b border-border text-[12px] text-text-secondary">
-                  Replying to{" "}
-                  <strong className="text-text-primary">{selected.customerName}</strong>{" "}
-                  regarding trip{" "}
-                  <strong className="text-primary">{selected.bookingRef}</strong>
-                </div>
-                <textarea
-                  autoFocus
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="Write your reply…"
-                  className="w-full min-h-[100px] border-none outline-none px-4 py-3.5 text-[13px] text-text-primary bg-surface resize-none"
-                />
-                <div className="px-3.5 py-2.5 border-t border-border flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      toast.success("Reply sent");
-                      setReplyOpen(false);
-                      setReplyText("");
-                    }}
-                    className="flex items-center gap-1.5 bg-primary text-white rounded-lg px-4 py-2 text-[12px] font-bold"
-                  >
-                    <Send size={11} />
-                    Send reply
-                  </button>
-                  <button
-                    onClick={() => { setReplyOpen(false); setReplyText(""); }}
-                    className="flex items-center gap-1 text-text-tertiary px-3 py-2 text-[12px] font-semibold rounded-lg hover:bg-surface-muted"
-                  >
-                    <X size={12} />
-                    Cancel
-                  </button>
-                  <div className="flex-1" />
-                  <span className="text-[11px] text-text-tertiary">Sent via Mohan Cabs · SMS</span>
-                </div>
-              </div>
-            )}
+            <div className="flex gap-2 flex-wrap">
+              <Link
+                href={`/admin/bookings/${selected.bookingId}`}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border text-[13px] font-semibold text-text-secondary hover:bg-surface-muted transition-colors"
+              >
+                <Car size={13} />
+                View trip {selected.bookingRef}
+              </Link>
+            </div>
           </div>
         </Card>
       ) : (

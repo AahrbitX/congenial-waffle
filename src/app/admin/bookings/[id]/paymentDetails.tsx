@@ -101,7 +101,7 @@ export default function PaymentDetails({ payment, bookingId }: PaymentDetailsPro
       qc.invalidateQueries({ queryKey: ["booking", bookingId] });
       toast.success(approved ? "Payment approved" : "Payment disputed");
     },
-    onError: () => toast.danger("Action failed"),
+    onError: () => toast("Action failed", { variant: "danger" }),
   });
 
   const status = payment.status ?? "created";

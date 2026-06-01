@@ -470,18 +470,6 @@ export function RideDetail({ id }: RideDetailProps) {
             </Button>
           ))}
 
-        {/* ── Raise a Ticket ── */}
-        <div className="px-2">
-          <Button
-            onPress={() => {
-              openTicketModal(ride);
-            }}
-            fullWidth
-            variant="danger-soft"
-          >
-            <IconTicket size={16} /> Raise a Ticket
-          </Button>
-        </div>
       </div>
     </div>
   );

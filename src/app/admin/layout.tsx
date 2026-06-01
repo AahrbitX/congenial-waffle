@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { buttonVariants } from "@heroui/styles";
@@ -9,6 +9,8 @@ import {
   BadgeIndianRupee,
   CalendarCheck,
   Car,
+  ChevronLeft,
+  ChevronRight,
   Home,
   LayoutDashboard,
   Settings,
@@ -21,40 +23,56 @@ import { MobileFloatingNav } from "@/components/ui/MobileFloatingNav";
 import UserDropdown from "@/components/nav/userDropdown";
 
 const navLinks = [
-  { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { name: "Bookings", href: "/admin/bookings", icon: CalendarCheck },
+  { name: "Dashboard",   href: "/admin",             icon: LayoutDashboard },
+  { name: "Bookings",    href: "/admin/bookings",    icon: CalendarCheck },
   { name: "Dispatchers", href: "/admin/dispatchers", icon: Users },
-  { name: "Users", href: "/admin/users", icon: User },
-  { name: "Drivers", href: "/admin/drivers", icon: Car },
-  { name: "Payments", href: "/admin/payments", icon: BadgeIndianRupee },
-  { name: "Reviews", href: "/admin/reviews", icon: Star },
-  { name: "Settings", href: "/admin/settings", icon: Settings },
+  { name: "Users",       href: "/admin/users",       icon: User },
+  { name: "Drivers",     href: "/admin/drivers",     icon: Car },
+  { name: "Payments",    href: "/admin/payments",    icon: BadgeIndianRupee },
+  { name: "Reviews",     href: "/admin/reviews",     icon: Star },
+  { name: "Settings",    href: "/admin/settings",    icon: Settings },
 ];
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathName = usePathname();
-  const router = useRouter();
+  const pathName   = usePathname();
+  const router     = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
   const role = (session?.user as any)?.role as string | undefined;
+
+  const hideSidebar = pathName === "/admin";
+
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("admin-sidebar-collapsed");
+    if (saved !== null) setCollapsed(saved === "true");
+  }, []);
+
+  const toggleCollapsed = () => {
+    setCollapsed((v) => {
+      const next = !v;
+      localStorage.setItem("admin-sidebar-collapsed", String(next));
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (isPending) return;
     if (role !== "admin") router.replace(role === "user" ? "/dashboard" : "/");
   }, [role, isPending]);
 
-  // Only block when role is confirmed wrong — avoids SSR/client hydration mismatch
-  // (Server renders with session from cookie; client starts with isPending=true, must match)
   if (!isPending && role !== "admin") return null;
 
   return (
     <div className="h-screen overflow-hidden">
-      <div className="grid w-full h-full grid-rows-[64px_1fr] md:grid-cols-[216px_1fr] bg-background rounded-2xl">
-        {/* Header */}
-        <div className="col-span-2 border-b border-divider p-4 flex items-center justify-between">
+      <div className="flex flex-col w-full h-full bg-background">
+
+        {/* ── Header ── */}
+        <div className="h-16 shrink-0 border-b border-divider px-4 flex items-center justify-between">
           <Link
             className={buttonVariants({ variant: "outline", isIconOnly: true })}
-            href={"/"}
+            href="/"
           >
             <Home size={12} />
           </Link>
@@ -62,45 +80,76 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
           <UserDropdown showDashboard={false} />
         </div>
 
-        {/* Sidebar (Desktop Only) */}
-        <div className="hidden md:flex flex-col border-r border-divider py-4 px-2">
-          <nav className="space-y-2 flex-1">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
+        {/* ── Body ── */}
+        <div className="flex flex-1 min-h-0">
 
-              const isActive =
-                pathName === link.href ||
-                (link.href !== "/admin" && pathName.startsWith(link.href));
+          {/* ── Sidebar (desktop) ── */}
+          <div
+            className={`relative hidden md:block shrink-0 transition-[width] duration-200 ${
+              collapsed ? "w-14" : "w-[216px]"
+            }`}
+          >
+            {/* Panel (overflow-hidden hides text during width transition) */}
+            <div className={`flex flex-col h-full border-r border-divider py-4 overflow-hidden ${
+              collapsed ? "px-1" : "px-2"
+            }`}>
+              {/* Nav links */}
+              <nav className="flex-1 flex flex-col gap-1">
+                {navLinks.map((link) => {
+                  const Icon = link.icon;
+                  const isActive =
+                    pathName === link.href ||
+                    (link.href !== "/admin" && pathName.startsWith(link.href));
 
-              return (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className={buttonVariants({
-                    variant: isActive ? "secondary" : "ghost",
-                    fullWidth: true,
-                    className: `flex items-center justify-start gap-2 px-3 py-2 rounded-lg ${
-                      isActive ? "bg-accent text-white" : ""
-                    }`,
-                  })}
-                >
-                  <Icon size={18} />
-                  {link.name}
-                </Link>
-              );
-            })}
-          </nav>
+                  return (
+                    <Link
+                      key={link.name}
+                      href={link.href}
+                      title={collapsed ? link.name : undefined}
+                      className={buttonVariants({
+                        variant:    isActive ? "secondary" : "ghost",
+                        isIconOnly: collapsed,
+                        fullWidth:  !collapsed,
+                        className: `${isActive ? "bg-accent text-white" : ""} ${
+                          collapsed
+                            ? "justify-center"
+                            : "justify-start gap-2 px-3 py-2"
+                        }`,
+                      })}
+                    >
+                      <Icon size={18} className="shrink-0" />
+                      {!collapsed && <span className="truncate">{link.name}</span>}
+                    </Link>
+                  );
+                })}
+              </nav>
 
-          <div className="pt-4 border-t border-divider mt-4">
-            <AddBookings className="w-full rounded-xl" />
+              {/* Add booking */}
+              <div className="mt-4 pt-4 border-t border-divider">
+                {collapsed ? (
+                  <AddBookings iconOnly className="w-full rounded-xl" />
+                ) : (
+                  <AddBookings className="w-full rounded-xl" />
+                )}
+              </div>
+            </div>
+
+            {/* Collapse toggle — sits on the right border at the top */}
+            <button
+              onClick={toggleCollapsed}
+              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              className="absolute -right-3 top-5 z-20 w-6 h-6 rounded-full bg-background border border-divider shadow-sm flex items-center justify-center text-muted hover:text-foreground transition-colors"
+            >
+              {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+            </button>
           </div>
-        </div>
 
-        {/* Main Content Area */}
-        <div className="min-h-0 overflow-hidden col-span-2 md:col-span-1">
-          <section className="h-full overflow-y-auto min-h-0">
-            {children}
-          </section>
+          {/* ── Main content ── */}
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <section className={`h-full overflow-y-auto min-h-0 ${hideSidebar ? "scrollbar-hide" : ""}`}>
+              {children}
+            </section>
+          </div>
         </div>
 
         <MobileFloatingNav />

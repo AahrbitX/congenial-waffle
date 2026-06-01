@@ -6,6 +6,7 @@ import {
   Button,
   Card,
   SearchField,
+  Skeleton,
   Surface,
 } from "@heroui/react";
 import {
@@ -29,6 +30,26 @@ type AdminPaymentsResponse = {
   };
   data: AdminPayment[];
 };
+
+function StatCardsSkeleton() {
+  return (
+    <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+      {[...Array(4)].map((_, i) => (
+        <Card key={i}>
+          <Card.Content className="p-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
+              <div className="space-y-1.5">
+                <Skeleton className="h-3 w-20 rounded" />
+                <Skeleton className="h-6 w-16 rounded" />
+              </div>
+            </div>
+          </Card.Content>
+        </Card>
+      ))}
+    </div>
+  );
+}
 
 export default function AdminPaymentsPage() {
   const [search, setSearch] = useState("");
@@ -102,7 +123,9 @@ export default function AdminPaymentsPage() {
       </div>
 
       {/* Stat Cards */}
-      {statCards.length > 0 && (
+      {isLoading ? (
+        <StatCardsSkeleton />
+      ) : statCards.length > 0 && (
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
           {statCards.map(({ label, value, icon: Icon, color, bg }) => (
             <Card key={label}>

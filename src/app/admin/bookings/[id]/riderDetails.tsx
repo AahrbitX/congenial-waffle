@@ -8,27 +8,28 @@ type Props = {
   rider: any;
 };
 
-export default function RiderDetails({ rider }: Props) {
-  const bookedAt = new Date(rider.bookedAt).toLocaleDateString("en-US", {
-    month: "short",
+function fmtDate(val: string | Date | null | undefined) {
+  if (!val) return "—";
+  return new Date(val).toLocaleDateString("en-IN", {
     day: "2-digit",
+    month: "short",
     year: "numeric",
   });
+}
 
-  console.log(rider);
-
+export default function RiderDetails({ rider }: Props) {
   const details = [
     {
       label: "Booked At",
-      value: bookedAt,
+      value: fmtDate(rider.bookedAt),
     },
     {
-      label: "Booked For",
-      value: rider.bookedFor,
+      label: "Journey Date",
+      value: fmtDate(rider.bookedFor),
     },
     {
       label: "Member Since",
-      value: rider.memberSince,
+      value: fmtDate(rider.memberSince),
     },
   ];
 

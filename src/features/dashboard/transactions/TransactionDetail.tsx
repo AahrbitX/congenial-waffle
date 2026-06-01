@@ -208,10 +208,7 @@ export function TransactionDetail({ id }: { id: string }) {
 
       {/* View ride link */}
       <div className="flex items-center justify-center gap-2 flex-col-reverse md:flex-row px-2 pb-6">
-        <Button fullWidth variant="danger">
-          Raise Ticket
-        </Button>
-        <Link
+<Link
           className={buttonVariants({ variant: "primary", fullWidth: true })}
           href={`/dashboard/rides/${tx.bookingId}`}
         >

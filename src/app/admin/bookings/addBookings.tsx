@@ -72,7 +72,7 @@ const initialFormData: BookingFormData = {
   notes:         "",
 };
 
-function AddBookings({ className }: { className?: string }) {
+function AddBookings({ className, iconOnly }: { className?: string; iconOnly?: boolean }) {
   const [step, setStep]         = useState<number>(1);
   const [isOpen, setIsOpen]     = useState<boolean>(false);
   const [formData, setFormData] = useState<BookingFormData>(initialFormData);
@@ -155,9 +155,15 @@ function AddBookings({ className }: { className?: string }) {
 
   return (
     <Modal isOpen={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) { setFormData(initialFormData); setStep(1); } }}>
-      <Button size="sm" variant="primary" className={cn("", className)} onPress={() => setIsOpen(true)}>
+      <Button
+        size="sm"
+        variant="primary"
+        isIconOnly={iconOnly}
+        className={cn("", className)}
+        onPress={() => setIsOpen(true)}
+      >
         <Plus size={16} />
-        Add Booking
+        {!iconOnly && "Add Booking"}
       </Button>
 
       <ModalBackdrop>

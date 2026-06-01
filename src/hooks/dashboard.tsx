@@ -29,13 +29,23 @@ export const useDashboardRides = (params?: Params) => {
   });
 };
 
+type DashboardChartsResponse = {
+  dailyRides: { date: string; day: string; bookings: number; completed: number }[];
+  vehicleStats: { vehicle: string; bookings: number; completed: number }[];
+  summary: {
+    totalBookings: number;
+    completed: number;
+    pending: number;
+    todayBookings: number;
+    totalRevenue: string;
+  };
+};
+
 export const useDashboardCharts = () => {
   return useQuery({
     queryKey: ["dashboard", "charts"],
-
-    queryFn: () => {
-      return request<any>("/api/reports/dashboard/charts");
-    },
+    queryFn: () => request<DashboardChartsResponse>("/api/reports/dashboard/charts"),
     refetchOnWindowFocus: false,
+    refetchInterval: 60_000, // refresh every minute
   });
 };

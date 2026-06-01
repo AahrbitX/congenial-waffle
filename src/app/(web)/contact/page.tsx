@@ -349,25 +349,7 @@ export default function ContactPage() {
 
       {/* Ticket form + FAQ */}
       <section className="py-20 px-8 sm:px-16 bg-white">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16">
-          {/* Support ticket */}
-          <div>
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                <MessageSquare size={18} className="text-blue-500" />
-              </div>
-              <div>
-                <p className="text-[11px] font-bold tracking-widest text-gray-400 uppercase">
-                  Support Ticket
-                </p>
-                <h2 className="text-[1.4rem] font-black text-[#0f0f0f] tracking-tight">
-                  Raise a Request
-                </h2>
-              </div>
-            </div>
-            <TicketForm />
-          </div>
-
+        <div className="max-w-4xl mx-auto grid grid-cols-1 gap-16">
           {/* FAQ */}
           <div>
             <div className="flex items-center gap-3 mb-8">

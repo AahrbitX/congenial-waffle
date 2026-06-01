@@ -74,7 +74,7 @@ export default function DriverDetails({ driver }: Props) {
   return (
     <Card className="gap-2">
       <Card.Header>
-        <Card.Title>Rider Details</Card.Title>
+        <Card.Title>Driver Details</Card.Title>
       </Card.Header>
       <Separator />
 

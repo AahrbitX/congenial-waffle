@@ -23,6 +23,7 @@ import { request } from "@/lib/api-client";
 
 interface TripDetailsProps {
   tripId: string;
+  pageLoading?: boolean;
 }
 
 type DispatcherTrip = {
@@ -44,7 +45,7 @@ type DispatcherTrip = {
   dropZone: string;
 };
 
-export default function TripDetails({ tripId }: TripDetailsProps) {
+export default function TripDetails({ tripId, pageLoading }: TripDetailsProps) {
   const { data, isLoading, isError } = useQuery<DispatcherTrip>({
     queryKey: ["dispatcher-trip", tripId],
     queryFn: async () => {
@@ -57,13 +58,12 @@ export default function TripDetails({ tripId }: TripDetailsProps) {
   });
 
   if (!tripId) {
+    if (pageLoading) return <TripDetailsSkeleton />;
     return (
       <div className="h-full flex items-center justify-center px-6 text-center text-default-400">
         <div className="space-y-2">
           <p className="text-lg font-semibold">Select a Trip</p>
-          <p className="text-sm">
-            Choose a trip from the queue to view ride details
-          </p>
+          <p className="text-sm">Choose a trip from the queue to view ride details</p>
         </div>
       </div>
     );

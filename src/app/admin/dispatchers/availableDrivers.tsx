@@ -48,9 +48,10 @@ type Filters = {
 
 type Props = {
   tripId: string;
+  pageLoading?: boolean;
 };
 
-export default function AvailableDrivers({ tripId }: Props) {
+export default function AvailableDrivers({ tripId, pageLoading }: Props) {
   const queryClient = useQueryClient();
 
   const [filters, setFilters] = useState<Filters>({});
@@ -110,13 +111,12 @@ export default function AvailableDrivers({ tripId }: Props) {
   });
 
   if (!tripId) {
+    if (pageLoading) return <DriversPanelSkeleton />;
     return (
       <div className="h-full flex items-center justify-center px-6 text-center text-default-400">
         <div className="space-y-2">
           <p className="text-lg font-semibold">Select a Trip</p>
-          <p className="text-sm">
-            Choose a trip from the queue to view assign driver.
-          </p>
+          <p className="text-sm">Choose a trip from the queue to assign a driver.</p>
         </div>
       </div>
     );
@@ -407,6 +407,31 @@ function SelectChip({
     >
       {label}
     </Chip>
+  );
+}
+
+function DriversPanelSkeleton() {
+  return (
+    <div className="flex flex-col h-full bg-content1 overflow-hidden">
+      <div className="p-4 border-b border-divider flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-5 w-28 rounded" />
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-16 rounded" />
+            <Skeleton className="h-8 w-20 rounded-lg" />
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Skeleton className="h-9 flex-1 rounded-lg" />
+          <Skeleton className="h-9 w-20 rounded-lg" />
+        </div>
+      </div>
+      <Surface variant="tertiary" className="flex-1 p-3 flex flex-col gap-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <DriverCardSkeleton key={i} />
+        ))}
+      </Surface>
+    </div>
   );
 }
 
