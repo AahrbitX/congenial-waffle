@@ -58,7 +58,7 @@ export function FleetDetail({ id }: FleetDetailProps) {
           {/* Image */}
           <div>
             <img
-              src={car.image}
+              src={car.image ?? undefined}
               alt={car.name}
               className="w-full h-64 sm:h-80 object-cover rounded-2xl shadow-md"
             />

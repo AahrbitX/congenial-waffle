@@ -76,7 +76,7 @@ export function FleetList() {
                   className="text-left bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 group"
                 >
                   <img
-                    src={car.image}
+                    src={car.image ?? undefined}
                     alt={car.name}
                     className="w-full h-40 object-cover rounded-xl mb-4 group-hover:scale-[1.02] transition-transform duration-200"
                   />

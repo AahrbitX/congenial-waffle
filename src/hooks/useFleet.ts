@@ -13,6 +13,14 @@ export function useFleet() {
   return useQuery({ queryKey: FLEET_KEY, queryFn: getFleet });
 }
 
+export function useFleetCar(id: string) {
+  return useQuery({
+    queryKey: [...FLEET_KEY, id],
+    queryFn: getFleet,
+    select: (vehicles) => vehicles.find((v) => v.id === id),
+  });
+}
+
 export function useCreateFleetVehicle() {
   const qc = useQueryClient();
   return useMutation({

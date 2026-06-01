@@ -323,7 +323,7 @@ export default function ReviewList({
                 style={{ borderLeftWidth: 3, borderLeftColor: "var(--color-primary)" }}
               >
                 <p className="text-[11px] font-bold text-text-tertiary uppercase tracking-widest mb-2">Rider Comment</p>
-                <p className="text-[14px] text-text-primary leading-relaxed">"{selected.comment}"</p>
+                <p className="text-[14px] text-text-primary leading-relaxed">&quot;{selected.comment}&quot;</p>
               </div>
             ) : (
               <p className="text-sm text-text-tertiary italic">No comment left.</p>

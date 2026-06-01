@@ -152,7 +152,7 @@ export default function FleetSettings({ isLoading }: Props) {
       }
       setModalOpen(false);
     } catch {
-      toast.error("Failed to save vehicle");
+      toast("Failed to save vehicle", { variant: "danger" });
     }
   };
 
@@ -162,7 +162,7 @@ export default function FleetSettings({ isLoading }: Props) {
       setDeleteConfirm(null);
       toast.success("Vehicle removed");
     } catch {
-      toast.error("Failed to delete vehicle");
+      toast("Failed to delete vehicle", { variant: "danger" });
     }
   };
 
@@ -196,7 +196,7 @@ export default function FleetSettings({ isLoading }: Props) {
                 <IconCar size={28} className="text-text-tertiary" />
               </div>
               <p className="text-sm font-semibold text-text-secondary">No vehicles yet</p>
-              <p className="text-xs text-text-tertiary mt-1">Click "Add Vehicle" to add your first fleet vehicle.</p>
+              <p className="text-xs text-text-tertiary mt-1">Click &quot;Add Vehicle&quot; to add your first fleet vehicle.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

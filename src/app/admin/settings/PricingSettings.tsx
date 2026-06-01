@@ -225,7 +225,7 @@ export default function PricingSettings({ isLoading }: Props) {
       toast.success(`Pricing updated for ${v.type}`);
       setTimeout(() => setSaved(false), 2000);
     } catch {
-      toast.error("Failed to save pricing");
+      toast("Failed to save pricing", { variant: "danger" });
     }
   };
 
