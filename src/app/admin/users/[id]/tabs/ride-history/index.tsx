@@ -6,10 +6,10 @@ import { Chip, Skeleton, Tabs } from "@heroui/react";
 import { request } from "@/lib/api-client";
 import { IconCar } from "@/constants/icons";
 
-const STATUS_COLOR: Record<string, "success" | "warning" | "danger" | "default" | "primary"> = {
+const STATUS_COLOR: Record<string, "success" | "warning" | "danger" | "default" | "accent"> = {
   completed: "success",
-  ongoing:   "primary",
-  confirmed: "primary",
+  ongoing:   "accent",
+  confirmed: "accent",
   pending:   "warning",
   cancelled: "danger",
 };

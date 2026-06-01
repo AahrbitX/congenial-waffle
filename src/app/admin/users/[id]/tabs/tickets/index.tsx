@@ -5,9 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Chip, Tabs } from "@heroui/react";
 import { request } from "@/lib/api-client";
 
-const STATUS_COLOR: Record<string, "success" | "warning" | "danger" | "default" | "primary"> = {
+const STATUS_COLOR: Record<string, "success" | "warning" | "danger" | "default" | "accent"> = {
   open:        "warning",
-  in_progress: "primary",
+  in_progress: "accent",
   resolved:    "success",
   closed:      "default",
 };
