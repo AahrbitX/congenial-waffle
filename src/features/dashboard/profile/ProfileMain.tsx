@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Avatar, Card, Input, Label, ListBox, Select } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
@@ -22,6 +22,7 @@ import {
 } from "@/constants/icons";
 import { Edit, Save } from "lucide-react";
 import { PasswordModal } from "./PasswordModal";
+import { request } from "@/lib/api-client";
 
 const MENU_ITEMS = [
   {
@@ -75,9 +76,15 @@ export function ProfileMain() {
   const [name, setName] = useState(user?.name ?? "");
   const [gender, setGender] = useState<
     "male" | "female" | "other" | "prefer_not_to_say" | ""
-  >("");
+  >((user as any)?.gender ?? "");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+
+  // Sync state once session loads (session is async)
+  useEffect(() => {
+    if (user?.name) setName(user.name);
+    if ((user as any)?.gender) setGender((user as any).gender);
+  }, [user?.id]);
 
   const [showSignOut, setShowSignOut] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -87,11 +94,15 @@ export function ProfileMain() {
   async function handleSave() {
     setSaving(true);
     setSaveError("");
-    const { error } = await authClient.updateUser({ name } as any);
-    if (error) {
-      setSaveError(error.message || "Failed to save.");
-    } else {
+    try {
+      await request("/api/users/me", {
+        method: "PATCH",
+        body: JSON.stringify({ name, gender: gender || undefined }),
+      });
+      await authClient.getSession();
       setEditing(false);
+    } catch {
+      setSaveError("Failed to save. Please try again.");
     }
     setSaving(false);
   }
@@ -151,6 +162,7 @@ export function ProfileMain() {
                 onPress={() => {
                   if (editing) {
                     setName(user?.name ?? "");
+                    setGender((user as any)?.gender ?? "");
                     setSaveError("");
                   }
                   setEditing((v) => !v);
