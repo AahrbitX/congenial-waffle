@@ -18,9 +18,11 @@ import {
   User,
   Users,
 } from "lucide-react";
+import Image from "next/image";
 import AddBookings from "./bookings/addBookings";
 import { MobileFloatingNav } from "@/components/ui/MobileFloatingNav";
 import UserDropdown from "@/components/nav/userDropdown";
+import { ASSETS } from "@/constants/assets";
 
 const navLinks = [
   { name: "Dashboard",   href: "/admin",             icon: LayoutDashboard },
@@ -76,7 +78,10 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
           >
             <Home size={12} />
           </Link>
-          <p className="font-semibold text-xl ml-2">Mohan Cabs</p>
+          <div className="flex items-center gap-2 ml-2">
+            <Image src={ASSETS.logos.minimal.src} alt={ASSETS.logos.minimal.alt} width={30} height={30} />
+            <Image src={ASSETS.logos.darkFullName.src} alt={ASSETS.logos.darkFullName.alt} width={110} height={28} className="object-contain" />
+          </div>
           <UserDropdown showDashboard={false} />
         </div>
 

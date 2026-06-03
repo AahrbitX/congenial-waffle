@@ -196,6 +196,7 @@ export function BookRideModal({
   // Step 3 payment
   const [payProcessing, setPayProcessing] = useState(false);
   const [payMode, setPayMode] = useState<"full" | "partial" | null>(null);
+  const [verifying, setVerifying] = useState(false);
   // Temporarily hides our modal while Razorpay checkout is active (removes focus trap)
   const [rzpActive, setRzpActive] = useState(false);
 
@@ -211,6 +212,7 @@ export function BookRideModal({
     setDistLoading(false);
     setPayProcessing(false);
     setPayMode(null);
+    setVerifying(false);
     setConfirmed(false);
     setRzpActive(false);
   }, [initialData]);
@@ -322,6 +324,7 @@ export function BookRideModal({
     setDistanceKm(null);
     setPayProcessing(false);
     setPayMode(null);
+    setVerifying(false);
     setConfirmed(false);
     setRzpActive(false);
     onClose();
@@ -449,6 +452,9 @@ export function BookRideModal({
         razorpay_payment_id: string;
         razorpay_signature: string;
       }) => {
+        // Show verifying loader while we confirm with backend
+        setRzpActive(false);
+        setVerifying(true);
         try {
           await verifyPayment(
             bookingId,
@@ -456,15 +462,14 @@ export function BookRideModal({
             response.razorpay_payment_id,
             response.razorpay_signature,
           );
-          // Re-show our modal to display the confirmation screen
-          setRzpActive(false);
+          setVerifying(false);
           setConfirmed(true);
           setTimeout(() => {
             handleClose();
             onBooked();
-          }, 1800);
+          }, 2800);
         } catch {
-          setRzpActive(false);
+          setVerifying(false);
           setError("Payment verification failed. Please contact support.");
         }
       },
@@ -488,7 +493,7 @@ export function BookRideModal({
     rzp.open();
   }
 
-  if (!isOpen && !confirmed) return null;
+  if (!isOpen && !confirmed && !verifying) return null;
 
   const stepLabel = isInquiry
     ? "Send Enquiry"
@@ -500,7 +505,7 @@ export function BookRideModal({
 
   return (
     <Modal
-      isOpen={(isOpen || confirmed) && !rzpActive}
+      isOpen={(isOpen || confirmed || verifying) && !rzpActive}
       onOpenChange={(open) => {
         if (!open) handleClose();
       }}
@@ -509,26 +514,86 @@ export function BookRideModal({
         <Modal.Container>
           <Modal.Dialog>
             <div className="w-full max-w-lg max-h-[90vh] flex flex-col">
-              {/* ── Confirmation ──────────────────────────────────────────── */}
-              {confirmed ? (
-                <div className="flex flex-col items-center justify-center py-14 px-8 gap-4">
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center">
-                    <IconCheckCircle
-                      size={32}
-                      className="text-[var(--color-success)]"
-                    />
+              {/* ── Verifying payment loader ───────────────────────────── */}
+              {verifying ? (
+                <div className="flex flex-col items-center justify-center py-14 px-8 gap-5 text-center">
+                  <div className="relative w-20 h-20">
+                    <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+                      <IconLoader size={32} className="text-primary animate-spin" />
+                    </div>
+                    <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping" />
                   </div>
-                  <p className="text-[20px] font-black text-primary">
-                    {isInquiry ? "Enquiry Sent!" : "Ride Booked!"}
-                  </p>
-                  <p className="text-[13px] text-[var(--color-text-tertiary)]">
-                    {isInquiry
-                      ? "We'll get back to you shortly."
-                      : "Looking for a driver nearby…"}
-                  </p>
-                  {!isInquiry && form.pickup && (
-                    <div className="bg-[var(--color-primary-light)] text-primary text-[13px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5">
-                      <IconMapPin size={13} /> {form.pickup}
+                  <div>
+                    <p className="text-lg font-bold text-primary">Confirming Payment…</p>
+                    <p className="text-sm text-muted mt-1">Please wait, do not close this window</p>
+                  </div>
+                </div>
+              ) : confirmed ? (
+                /* ── Confirmation ────────────────────────────────────────── */
+                <div className="flex flex-col items-center py-10 px-6 gap-5 text-center">
+                  {/* Animated success icon */}
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-full bg-success/10 flex items-center justify-center">
+                      <div className="w-14 h-14 rounded-full bg-success/20 flex items-center justify-center">
+                        <IconCheckCircle size={34} className="text-success" />
+                      </div>
+                    </div>
+                    <div className="absolute inset-0 rounded-full border-2 border-success/30 animate-ping" />
+                  </div>
+
+                  <div>
+                    <p className="text-2xl font-black text-primary">
+                      {isInquiry ? "Enquiry Sent!" : "Ride Booked!"}
+                    </p>
+                    <p className="text-sm text-muted mt-1">
+                      {isInquiry
+                        ? "We'll get back to you shortly."
+                        : "We're finding you the perfect driver"}
+                    </p>
+                  </div>
+
+                  {/* Route card */}
+                  {!isInquiry && (form.pickup || form.destination) && (
+                    <div className="w-full bg-[var(--color-surface-secondary)] rounded-2xl p-4 text-left space-y-2">
+                      {form.pickup && (
+                        <div className="flex items-start gap-3">
+                          <div className="mt-1 w-2.5 h-2.5 rounded-full bg-primary shrink-0" />
+                          <div>
+                            <p className="text-[10px] text-muted font-semibold uppercase tracking-wide">Pickup</p>
+                            <p className="text-sm font-semibold text-primary leading-snug">{form.pickup}</p>
+                          </div>
+                        </div>
+                      )}
+                      {form.pickup && form.destination && (
+                        <div className="ml-1 border-l-2 border-dashed border-border h-3" />
+                      )}
+                      {form.destination && (
+                        <div className="flex items-start gap-3">
+                          <div className="mt-1 w-2.5 h-2.5 rounded bg-primary shrink-0" />
+                          <div>
+                            <p className="text-[10px] text-muted font-semibold uppercase tracking-wide">Drop</p>
+                            <p className="text-sm font-semibold text-primary leading-snug">{form.destination}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Date + Vehicle pill row */}
+                  {!isInquiry && (form.date || vehicle) && (
+                    <div className="flex gap-2 flex-wrap justify-center">
+                      {form.date && (
+                        <span className="flex items-center gap-1.5 bg-[var(--color-primary-light)] text-primary text-xs font-semibold px-3 py-1.5 rounded-full">
+                          <IconCalendar size={12} />
+                          {form.date}{form.time ? ` · ${form.time}` : ""}
+                        </span>
+                      )}
+                      {vehicle && (
+                        <span className="flex items-center gap-1.5 bg-[var(--color-surface-secondary)] text-muted text-xs font-semibold px-3 py-1.5 rounded-full border border-border">
+                          <IconCar size={12} />
+                          {vehicle}
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>

@@ -80,11 +80,11 @@ export function ProfileMain() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
-  // Sync state once session loads (session is async)
+  // Sync state once session loads (session is async) or when session data changes
   useEffect(() => {
     if (user?.name) setName(user.name);
-    if ((user as any)?.gender) setGender((user as any).gender);
-  }, [user?.id]);
+    setGender((user as any)?.gender ?? "");
+  }, [user?.name, (user as any)?.gender]);
 
   const [showSignOut, setShowSignOut] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);

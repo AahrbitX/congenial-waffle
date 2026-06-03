@@ -1,7 +1,16 @@
+"use client";
+
 import Link from "next/link";
-import { Car, Mail, Phone } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 import Image from "next/image";
 import { ASSETS } from "@/constants/assets";
+import { FaXTwitter, FaFacebook, FaInstagram } from "react-icons/fa6";
+
+const SOCIAL_LINKS = [
+  { name: "X (Twitter)", href: "#", icon: FaXTwitter },
+  { name: "Facebook",    href: "#", icon: FaFacebook },
+  { name: "Instagram",   href: "#", icon: FaInstagram },
+];
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -19,6 +28,7 @@ export default function Footer() {
       links: [
         { name: "About Us", href: "/about" },
         { name: "Careers", href: "/careers" },
+        { name: "Terms & Conditions", href: "/terms" },
         { name: "Privacy Policy", href: "/privacy" },
       ],
     },
@@ -59,25 +69,17 @@ export default function Footer() {
               Premium transportation services tailored for your comfort.
               Reliable, safe, and always on time—wherever you need to go.
             </p>
-            <div className="flex gap-4">
-              <Link
-                href="#"
-                className="p-2 rounded-full bg-border/40 hover:text-primary transition-colors"
-              >
-                X
-              </Link>
-              <Link
-                href="#"
-                className="p-2 rounded-full bg-border/40 hover:text-primary transition-colors"
-              >
-                Facebook
-              </Link>
-              <Link
-                href="#"
-                className="p-2 rounded-full bg-border/40 hover:text-primary transition-colors"
-              >
-                Instagram
-              </Link>
+            <div className="flex gap-3">
+              {SOCIAL_LINKS.map(({ name, href, icon: Icon }) => (
+                <Link
+                  key={name}
+                  href={href}
+                  aria-label={name}
+                  className="p-2 rounded-full bg-border/40 hover:text-primary transition-colors"
+                >
+                  <Icon size={16} />
+                </Link>
+              ))}
             </div>
           </div>
 
