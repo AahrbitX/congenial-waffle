@@ -13,7 +13,7 @@ import { request } from "@/lib/api-client";
 function AdminUsersPage() {
   const [page, setPage] = React.useState(1);
 
-  const { data: usersData, isLoading } = useQuery<PaginatedResponse<User>>({
+  const { data: usersData, isLoading, refetch } = useQuery<PaginatedResponse<User>>({
     queryKey: ["users"],
     queryFn: async () => {
       return request(`/api/users?page=${page}`, {
@@ -29,8 +29,8 @@ function AdminUsersPage() {
       <div className="flex items-center justify-between my-0">
         <div className="flex items-center justify-center gap-2">
           <h1 className="text-2xl font-bold">Users</h1>
-          <Button isIconOnly variant="ghost" name="refresh">
-            <RefreshCcw />
+          <Button isIconOnly variant="ghost" onPress={() => refetch()}>
+            <RefreshCcw size={16} />
           </Button>
         </div>
         <Button variant="secondary">

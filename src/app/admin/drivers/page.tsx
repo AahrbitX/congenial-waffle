@@ -16,7 +16,7 @@ function AdminDriversPage() {
   const [page, setPage] = React.useState(1);
   const limit = 10;
 
-  const { data: driversData, isLoading } = useQuery<PaginatedResponse<Driver>>({
+  const { data: driversData, isLoading, refetch } = useQuery<PaginatedResponse<Driver>>({
     queryKey: ["drivers"],
     queryFn: async () => {
       return request(`/api/drivers?page=${page}&limit=${limit}`, {
@@ -30,6 +30,9 @@ function AdminDriversPage() {
       <div className="flex items-center justify-between my-0">
         <div className="flex items-center justify-center gap-2">
           <h1 className="text-xl font-bold">Drivers</h1>
+          <Button isIconOnly variant="ghost" size="sm" onPress={() => refetch()}>
+            <RefreshCcw size={16} />
+          </Button>
         </div>
         <div className="flex items-center justify-center gap-2">
           <Button variant="secondary" size="sm">

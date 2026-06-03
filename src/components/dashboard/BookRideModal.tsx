@@ -52,11 +52,9 @@ import {
   IconLocate,
 } from "@/constants/icons";
 import {
-  ComboBox,
   FieldError,
   Input,
   Label,
-  ListBox,
   Modal,
   Tab,
   Tabs,
@@ -198,6 +196,8 @@ export function BookRideModal({
   // Step 3 payment
   const [payProcessing, setPayProcessing] = useState(false);
   const [payMode, setPayMode] = useState<"full" | "partial" | null>(null);
+  // Temporarily hides our modal while Razorpay checkout is active (removes focus trap)
+  const [rzpActive, setRzpActive] = useState(false);
 
   // Re-seed when modal reopens with new data
   useEffect(() => {
@@ -212,6 +212,7 @@ export function BookRideModal({
     setPayProcessing(false);
     setPayMode(null);
     setConfirmed(false);
+    setRzpActive(false);
   }, [initialData]);
 
   const { data: allVehicles = [] } = useVehicles();
@@ -322,6 +323,7 @@ export function BookRideModal({
     setPayProcessing(false);
     setPayMode(null);
     setConfirmed(false);
+    setRzpActive(false);
     onClose();
   }
 
@@ -430,6 +432,10 @@ export function BookRideModal({
     }
 
     // 3. Open Razorpay checkout
+    // Close our modal first to remove its focus trap — Razorpay's iframe needs free focus
+    setRzpActive(true);
+    setPayProcessing(false);
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rzp = new (window as any).Razorpay({
       key: orderData.keyId,
@@ -450,22 +456,25 @@ export function BookRideModal({
             response.razorpay_payment_id,
             response.razorpay_signature,
           );
-          // bookingId is a local variable — no stale closure risk
+          // Re-show our modal to display the confirmation screen
+          setRzpActive(false);
           setConfirmed(true);
           setTimeout(() => {
             handleClose();
             onBooked();
           }, 1800);
         } catch {
+          setRzpActive(false);
           setError("Payment verification failed. Please contact support.");
         }
       },
       modal: {
         ondismiss: () => {
-          // Cancel the booking immediately and close — bookingId is a local variable, no stale closure
+          // Cancel the booking and close
           cancelBooking(bookingId)
             .then(() => qc.invalidateQueries({ queryKey: ["my-transactions"] }))
             .catch(() => {});
+          setRzpActive(false);
           setPayProcessing(false);
           setPayMode(null);
           handleClose();
@@ -477,10 +486,9 @@ export function BookRideModal({
       },
     });
     rzp.open();
-    setPayProcessing(false);
   }
 
-  if (!isOpen) return null;
+  if (!isOpen && !confirmed) return null;
 
   const stepLabel = isInquiry
     ? "Send Enquiry"
@@ -492,7 +500,7 @@ export function BookRideModal({
 
   return (
     <Modal
-      isOpen={isOpen}
+      isOpen={(isOpen || confirmed) && !rzpActive}
       onOpenChange={(open) => {
         if (!open) handleClose();
       }}
@@ -1449,65 +1457,42 @@ function LocationInput({
   placeholder: string;
   highlight: boolean;
 }) {
-  const [showMap, setShowMap] = useState(false);
-  const [suggestions, setSuggestions] = useState<GeoResult[]>([]);
-  const [loadingSug, setLoadingSug] = useState(false);
-  const [locating, setLocating] = useState(false);
+  const [showMap,      setShowMap]      = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [suggestions,  setSuggestions]  = useState<GeoResult[]>([]);
+  const [loadingSug,   setLoadingSug]   = useState(false);
+  const [locating,     setLocating]     = useState(false);
+  // Fixed-position coords so dropdown escapes the Modal's overflow-y-auto container
+  const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null);
 
+  const inputRef    = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const { data: rides } = useRides();
 
   const recentPlaces = useMemo(() => {
     if (!rides) return [];
-
     const seen = new Set<string>();
     const places: string[] = [];
-
     for (const r of rides) {
-      if (r.from && !seen.has(r.from)) {
-        seen.add(r.from);
-        places.push(r.from);
-      }
-      if (r.to && !seen.has(r.to)) {
-        seen.add(r.to);
-        places.push(r.to);
-      }
+      if (r.from && !seen.has(r.from)) { seen.add(r.from); places.push(r.from); }
+      if (r.to   && !seen.has(r.to))   { seen.add(r.to);   places.push(r.to);   }
     }
-
     return places.slice(0, 5);
   }, [rides]);
 
-  const items = useMemo(() => {
-    if (!value.trim()) {
-      return recentPlaces.map((place) => ({
-        id: place,
-        label: place,
-        lat: null,
-        lng: null,
-      }));
+  const openDropdown = () => {
+    if (inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      setDropdownRect({ top: rect.bottom + 4, left: rect.left, width: rect.width });
     }
+    setShowDropdown(true);
+  };
 
-    return suggestions.map((s) => ({
-      id: s.name,
-      label: s.name,
-      lat: s.lat,
-      lng: s.lng,
-    }));
-  }, [value, recentPlaces, suggestions]);
-
-  const handleChange = (val: string) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
     onChange(val, null, null);
-
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    if (!val.trim()) {
-      setSuggestions([]);
-      return;
-    }
-
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!val.trim()) { setSuggestions([]); return; }
     debounceRef.current = setTimeout(async () => {
       try {
         setLoadingSug(true);
@@ -1519,121 +1504,131 @@ function LocationInput({
     }, 350);
   };
 
+  const handleSelectRecent = (place: string) => {
+    onChange(place, null, null);
+    setSuggestions([]);
+    setShowDropdown(false);
+  };
+
+  const handleSelectSuggestion = (s: GeoResult) => {
+    onChange(s.name, s.lat, s.lng);
+    setSuggestions([]);
+    setShowDropdown(false);
+  };
+
   const handleLocate = () => {
     if (!navigator.geolocation) return;
-
     setLocating(true);
-
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
         try {
           const addr = await reverseGeocode(coords.latitude, coords.longitude);
           onChange(addr, coords.latitude, coords.longitude);
-        } finally {
-          setLocating(false);
-        }
+        } finally { setLocating(false); }
       },
       () => setLocating(false),
-      {
-        timeout: 8000,
-      },
+      { timeout: 8000 },
     );
   };
+
+  const showingRecent      = !value.trim() && recentPlaces.length > 0;
+  const showingSuggestions = !!value.trim() && (suggestions.length > 0 || loadingSug);
+  const dropdownVisible    = showDropdown && (showingRecent || showingSuggestions);
 
   return (
     <div>
       <Label className="block mb-1">{label}</Label>
-      <div
-        className={`relative ${
-          highlight ? "ring-1 ring-danger rounded-xl" : ""
-        }`}
-      >
-        <ComboBox
-          className="w-full"
-          onInputChange={handleChange}
-          onSelectionChange={(key) => {
-            const location = items.find((item) => item.id === key);
-            if (!location) return;
-            onChange(location?.label, location?.lat, location?.lng);
-          }}
-        >
-          <ComboBox.InputGroup>
-            <div className="relative w-full">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 z-20">
-                <div className={`w-2.5 h-2.5 ${dotClass}`} />
-              </div>
+      <div className={`relative ${highlight ? "ring-1 ring-danger rounded-xl" : ""}`}>
+        <div className="relative">
+          {/* Dot indicator */}
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
+            <div className={`w-2.5 h-2.5 ${dotClass}`} />
+          </div>
 
-              <Input
-                fullWidth
-                value={value}
-                variant="secondary"
-                placeholder={placeholder}
-                className="pl-8 pr-20"
-              />
+          <input
+            ref={inputRef}
+            type="text"
+            value={value}
+            onChange={handleInputChange}
+            onFocus={openDropdown}
+            onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
+            placeholder={placeholder}
+            className="w-full pl-8 pr-16 px-3 py-2 text-sm rounded-xl border border-border bg-background text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/30"
+          />
 
-              <button
-                type="button"
-                onClick={handleLocate}
-                disabled={locating}
-                title="Use current location"
-                className="absolute right-13 top-1/2 -translate-y-1/2 z-20 p-1 rounded-lg text-muted hover:text-primary disabled:opacity-50"
-              >
-                {locating ? (
-                  <IconLoader size={14} className="animate-spin" />
-                ) : (
-                  <IconLocate size={14} />
-                )}
-              </button>
+          {/* Current location */}
+          <button
+            type="button"
+            onClick={handleLocate}
+            disabled={locating}
+            title="Use current location"
+            className="absolute right-9 top-1/2 -translate-y-1/2 p-1 rounded-lg text-muted hover:text-primary disabled:opacity-50"
+          >
+            {locating
+              ? <IconLoader size={14} className="animate-spin" />
+              : <IconLocate size={14} />}
+          </button>
 
-              <button
-                type="button"
-                onClick={() => setShowMap((v) => !v)}
-                title="Pin on map"
-                className={`absolute right-7 top-1/2 -translate-y-1/2 z-20 p-1 rounded-lg ${
-                  showMap ? "text-primary" : "text-muted"
-                }`}
-              >
-                <IconMapPin size={15} />
-              </button>
-            </div>
+          {/* Map pin */}
+          <button
+            type="button"
+            onClick={() => setShowMap((v) => !v)}
+            title="Pin on map"
+            className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-colors ${
+              showMap ? "text-primary" : "text-muted hover:text-primary"
+            }`}
+          >
+            <IconMapPin size={15} />
+          </button>
 
-            <ComboBox.Trigger />
-          </ComboBox.InputGroup>
-
-          <ComboBox.Popover>
-            <ListBox>
-              {loadingSug && (
-                <ListBox.Item id="loading" isDisabled>
-                  <div className="flex items-center gap-2">
-                    <IconLoader size={13} className="animate-spin" />
-                    Searching...
-                  </div>
-                </ListBox.Item>
+          {/* Dropdown — fixed position so it escapes Modal's overflow-y-auto */}
+          {dropdownVisible && dropdownRect && (
+            <div
+              style={{ position: "fixed", top: dropdownRect.top, left: dropdownRect.left, width: dropdownRect.width, zIndex: 9999 }}
+              className="bg-background border border-border rounded-xl shadow-xl overflow-hidden max-h-56 overflow-y-auto"
+            >
+              {showingRecent && (
+                <>
+                  <p className="px-3 pt-2.5 pb-1 text-[10px] font-bold tracking-widest text-muted uppercase">Recent</p>
+                  {recentPlaces.map((place) => (
+                    <button
+                      key={place}
+                      type="button"
+                      onMouseDown={() => handleSelectRecent(place)}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-border/30 transition-colors"
+                    >
+                      <IconClock size={13} className="shrink-0 text-muted" />
+                      <span className="truncate">{place}</span>
+                    </button>
+                  ))}
+                </>
               )}
-
-              {!loadingSug &&
-                items.map((item) => (
-                  <ListBox.Item
-                    key={item.id}
-                    id={item.id}
-                    textValue={item.label}
-                  >
-                    <div className="flex items-start gap-2">
-                      {!value.trim() ? (
-                        <IconClock size={13} className="mt-0.5 text-muted" />
-                      ) : (
-                        <IconMapPin size={13} className="mt-0.5 text-primary" />
-                      )}
-
-                      <span>{item.label}</span>
+              {showingSuggestions && (
+                <>
+                  <p className="px-3 pt-2.5 pb-1 text-[10px] font-bold tracking-widest text-muted uppercase">Suggestions</p>
+                  {loadingSug ? (
+                    <div className="flex items-center gap-2 px-3 py-2.5 text-sm text-muted">
+                      <IconLoader size={13} className="animate-spin shrink-0" />
+                      Searching…
                     </div>
-
-                    <ListBox.ItemIndicator />
-                  </ListBox.Item>
-                ))}
-            </ListBox>
-          </ComboBox.Popover>
-        </ComboBox>
+                  ) : (
+                    suggestions.map((s) => (
+                      <button
+                        key={s.name}
+                        type="button"
+                        onMouseDown={() => handleSelectSuggestion(s)}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-border/30 transition-colors"
+                      >
+                        <IconMapPin size={13} className="shrink-0 text-primary" />
+                        <span className="truncate">{s.name}</span>
+                      </button>
+                    ))
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <AnimatePresence>
@@ -1642,17 +1637,13 @@ function LocationInput({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{
-              duration: 0.25,
-              ease: "easeInOut",
-            }}
-            className="overflow-hidden"
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="overflow-hidden mt-1"
           >
             <LocationPickerMap
               initialAddress={value}
               onConfirm={(addr, coords) => {
                 onChange(addr, coords?.lat, coords?.lng);
-
                 setShowMap(false);
               }}
               onCancel={() => setShowMap(false)}

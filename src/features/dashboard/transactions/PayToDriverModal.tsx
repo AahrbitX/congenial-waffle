@@ -6,7 +6,7 @@ import {
   useCreateBalancePayment,
   useNotifyDriver,
   useMarkCashPending,
-  useVerifyDriverCode,
+  useMyTransaction,
 } from "@/hooks/useTransactions";
 import {
   IconCar,
@@ -27,8 +27,6 @@ interface PayToDriverModalProps {
 export function PayToDriverModal({ tx, amountDue, isBalance, onClose }: PayToDriverModalProps) {
   const amount = amountDue ?? parseFloat(tx.amount);
 
-  // For balance-due rows we create a new payment record and operate on its ID.
-  // For regular pending rows we use tx.id directly.
   const [activePaymentId, setActivePaymentId] = useState<string | null>(
     isBalance ? null : tx.id,
   );
@@ -39,17 +37,28 @@ export function PayToDriverModal({ tx, amountDue, isBalance, onClose }: PayToDri
   const [cashMarked, setCashMarked]         = useState(
     !isBalance && tx.status === "cash_pending",
   );
-  const [code, setCode]                     = useState("");
   const [success, setSuccess]               = useState(false);
   const [errorMsg, setErrorMsg]             = useState("");
 
   const createBalance = useCreateBalancePayment();
   const notify        = useNotifyDriver();
   const markCash      = useMarkCashPending();
-  const verifyCode    = useVerifyDriverCode();
+
+  // Poll payment status every 5 s once notified; stop once success
+  const { data: polledTx } = useMyTransaction(
+    activePaymentId ?? "",
+    notified && !success ? 5000 : undefined,
+  );
+
+  // Auto-show success when driver confirms on their page
+  useEffect(() => {
+    if (polledTx?.status === "cash_collected") {
+      setSuccess(true);
+    }
+  }, [polledTx?.status]);
 
   // Step 1: On mount, resolve the payment ID (create balance record if needed),
-  // then send the driver their code. No status change — just the notification.
+  // mark as cash_pending, then send the customer their OTP via WhatsApp.
   useEffect(() => {
     let cancelled = false;
 
@@ -62,6 +71,12 @@ export function PayToDriverModal({ tx, amountDue, isBalance, onClose }: PayToDri
           if (cancelled) return;
           paymentId = res.paymentId;
           setActivePaymentId(paymentId);
+          setCashMarked(true);
+        }
+
+        if (!cashMarked) {
+          await markCash.mutateAsync(paymentId!);
+          if (cancelled) return;
           setCashMarked(true);
         }
 
@@ -92,24 +107,6 @@ export function PayToDriverModal({ tx, amountDue, isBalance, onClose }: PayToDri
     }
   }
 
-  // Step 2: On submit — mark as cash_pending (once) then verify the code.
-  async function handleConfirm() {
-    if (!activePaymentId) return;
-    setErrorMsg("");
-    try {
-      if (!cashMarked) {
-        await markCash.mutateAsync(activePaymentId);
-        setCashMarked(true);
-      }
-      await verifyCode.mutateAsync({ paymentId: activePaymentId, code: code.trim() });
-      setSuccess(true);
-    } catch (err: any) {
-      setErrorMsg(err?.message ?? "Invalid code. Please try again.");
-    }
-  }
-
-  const isSubmitting = createBalance.isPending || markCash.isPending || verifyCode.isPending;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
       <div className="bg-[var(--color-surface)] rounded-3xl shadow-2xl w-full max-w-sm p-6 space-y-5">
@@ -131,7 +128,7 @@ export function PayToDriverModal({ tx, amountDue, isBalance, onClose }: PayToDri
             </div>
             <p className="text-base font-bold text-text-primary">Payment Confirmed!</p>
             <p className="text-sm text-text-secondary">
-              Cash collection has been recorded. Admin will verify shortly.
+              Driver has confirmed cash collection. Admin will verify shortly.
             </p>
             <Button onPress={onClose} className="w-full mt-2">Done</Button>
           </div>
@@ -151,65 +148,61 @@ export function PayToDriverModal({ tx, amountDue, isBalance, onClose }: PayToDri
               </p>
             </div>
 
-            {/* Driver notification status */}
-            {(createBalance.isPending || notify.isPending) && (
+            {/* Loading state */}
+            {(createBalance.isPending || notify.isPending || markCash.isPending) && (
               <div className="flex items-center justify-center gap-2 text-sm text-text-secondary py-1">
                 <IconLoader size={14} className="animate-spin" />
-                {createBalance.isPending ? "Preparing payment…" : "Checking driver…"}
+                {createBalance.isPending ? "Preparing payment…" : "Sending OTP…"}
               </div>
             )}
+
+            {/* No driver assigned */}
             {!notify.isPending && !driverAssigned && (
               <div className="rounded-xl bg-surface-muted border border-border px-4 py-3 text-sm text-text-secondary text-center">
                 No driver assigned to this booking yet. The Pay to Driver option will be available once a driver is assigned.
               </div>
             )}
+
+            {/* OTP sent banner */}
             {notified && (
-              <div className="flex items-center justify-between rounded-xl bg-warning/10 border border-warning/30 px-4 py-3">
-                <p className="text-sm text-warning font-medium">Code sent to driver</p>
+              <div className="flex items-center justify-between rounded-xl bg-primary/10 border border-primary/30 px-4 py-3">
+                <p className="text-sm text-primary font-medium">OTP sent to your WhatsApp</p>
                 <button
                   onClick={handleResend}
                   disabled={notify.isPending}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-warning hover:text-warning/80 transition-colors disabled:opacity-50"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
                 >
                   {notify.isPending
                     ? <IconLoader size={12} className="animate-spin" />
                     : <IconShare size={12} />}
-                  {resendSent ? "Sent!" : "Resend"}
+                  {resendSent ? "Sent!" : "Resend OTP"}
                 </button>
               </div>
             )}
 
-            {/* Code input */}
-            <div className="space-y-2">
-              <p className="text-sm font-semibold text-text-primary">
-                Enter the code your driver shares with you
-              </p>
-              <p className="text-xs text-text-secondary">
-                The driver received their code. Ask them for it and enter it below to confirm cash payment.
-              </p>
-              <input
-                type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="e.g. AB12CD"
-                maxLength={10}
-                className="w-full text-center text-2xl font-black tracking-[0.4em] uppercase border border-[var(--color-border-strong)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] bg-[var(--color-surface)] text-text-primary"
-              />
-            </div>
+            {/* Instructions */}
+            {notified && (
+              <div className="rounded-xl bg-surface-muted px-4 py-3 space-y-1">
+                <p className="text-sm font-semibold text-text-primary">
+                  Read the payment OTP to your driver
+                </p>
+                <p className="text-xs text-text-secondary">
+                  Your driver will enter the payment OTP on their tracking page to confirm ₹{amount.toLocaleString("en-IN")} cash collection. This screen will update automatically once confirmed.
+                </p>
+              </div>
+            )}
+
+            {/* Polling indicator */}
+            {notified && (
+              <div className="flex items-center justify-center gap-2 text-xs text-text-tertiary">
+                <IconLoader size={12} className="animate-spin" />
+                Waiting for driver to confirm…
+              </div>
+            )}
 
             {errorMsg && (
               <p className="text-sm text-danger font-medium text-center">{errorMsg}</p>
             )}
-
-            <Button
-              onPress={handleConfirm}
-              disabled={code.trim().length === 0 || isSubmitting || !notified}
-              className="w-full bg-[var(--color-primary)] text-white font-bold rounded-xl py-3"
-            >
-              {isSubmitting
-                ? <IconLoader size={16} className="animate-spin" />
-                : "Confirm Payment"}
-            </Button>
           </>
         )}
       </div>

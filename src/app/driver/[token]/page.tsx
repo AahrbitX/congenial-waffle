@@ -11,6 +11,7 @@ import {
   IconLoader,
   IconNavigation,
   IconXCircle,
+  IconRefreshCw,
 } from "@/constants/icons";
 
 type RideData = {
@@ -27,6 +28,14 @@ type RideData = {
   members: number;
   pickupName: string;
   dropName: string;
+  // Calculated from all DB payment records
+  totalPaid: string;
+  balanceDue: string;
+  // Active cash_pending payment (null if no OTP waiting)
+  paymentId: string | null;
+  paymentStatus: string | null;
+  paymentAmount: string | null;
+  paymentMethod: string | null;
 };
 
 function formatDate(d: string) {
@@ -55,6 +64,12 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
   const [starting, setStarting] = useState(false);
   const [started, setStarted] = useState(false);
   const [timeReached, setTimeReached] = useState(false);
+  const [cashCode, setCashCode] = useState("");
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [endingRide, setEndingRide] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetch(`/api/driver/${token}`)
@@ -63,6 +78,7 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
         if (!res.success) { setError(res.message ?? "Ride not found"); return; }
         setRide(res.data);
         if (res.data.status === "ongoing") setStarted(true);
+        if (parseFloat(res.data.balanceDue ?? "0") <= 0) setPaymentConfirmed(true);
         setTimeReached(isRideTimeReached(res.data.journeyDate, res.data.journeyTime));
       })
       .catch(() => setError("Failed to load ride details."))
@@ -89,6 +105,63 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
       alert("Network error. Please try again.");
     } finally {
       setStarting(false);
+    }
+  };
+
+  const handleVerifyPayment = async () => {
+    if (!cashCode.trim()) return;
+    setVerifyingPayment(true);
+    setPaymentError(null);
+    try {
+      const res = await fetch(`/api/driver/${token}/verify-payment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: cashCode.trim() }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPaymentConfirmed(true);
+        setCashCode("");
+      } else {
+        setPaymentError(data.message ?? "Invalid OTP. Please try again.");
+      }
+    } catch {
+      setPaymentError("Network error. Please try again.");
+    } finally {
+      setVerifyingPayment(false);
+    }
+  };
+
+  const handleEndRide = async () => {
+    setEndingRide(true);
+    try {
+      const res = await fetch(`/api/driver/${token}/end`, { method: "PATCH" });
+      const data = await res.json();
+      if (data.success) {
+        setRide((prev) => prev ? { ...prev, status: "completed" } : prev);
+      } else {
+        alert(data.message ?? "Failed to end ride");
+      }
+    } catch {
+      alert("Network error. Please try again.");
+    } finally {
+      setEndingRide(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const res = await fetch(`/api/driver/${token}`);
+      const data = await res.json();
+      if (data.success) {
+        setRide(data.data);
+        if (parseFloat(data.data.balanceDue ?? "0") <= 0) setPaymentConfirmed(true);
+      }
+    } catch {
+      // silent
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -386,6 +459,126 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
             </button>
           </div>
         )}
+
+        {/* Payment section — always shown when ride is ongoing */}
+        {started && (() => {
+          const balanceDueAmt = parseFloat(ride.balanceDue ?? "0");
+          const fullyPaid = paymentConfirmed || balanceDueAmt <= 0;
+          const cashPending = ride.paymentStatus === "cash_pending" && !paymentConfirmed;
+          const amount = parseFloat(ride.paymentAmount ?? ride.balanceDue ?? "0").toLocaleString("en-IN");
+
+          return (
+            <>
+              {/* Fully paid */}
+              {fullyPaid && (
+                <div className="rounded-2xl border border-success/30 bg-success/8 p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-success/15 flex items-center justify-center shrink-0">
+                      <IconCheckCircle size={20} className="text-success" />
+                    </div>
+                    <div>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-success/20 text-success mb-0.5">
+                        Fully Paid
+                      </span>
+                      <p className="text-xs text-text-secondary">
+                        ₹{parseFloat(ride.totalPaid).toLocaleString("en-IN")} of ₹{parseFloat(ride.totalFare).toLocaleString("en-IN")} collected
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-lg font-black text-success">₹{parseFloat(ride.totalFare).toLocaleString("en-IN")}</p>
+                </div>
+              )}
+
+              {/* Balance due — waiting for customer to initiate */}
+              {!fullyPaid && !cashPending && (
+                <div className="rounded-2xl border border-danger/30 bg-danger/5 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-danger/15 text-danger mb-1">
+                        Balance Due
+                      </span>
+                      <p className="text-xs text-text-secondary">
+                        ₹{parseFloat(ride.totalPaid).toLocaleString("en-IN")} paid · ₹{parseFloat(ride.balanceDue).toLocaleString("en-IN")} remaining
+                      </p>
+                    </div>
+                    <p className="text-xl font-black text-danger">₹{parseFloat(ride.balanceDue).toLocaleString("en-IN")}</p>
+                  </div>
+                  <button
+                    onClick={handleRefresh}
+                    disabled={refreshing}
+                    className="w-full flex items-center justify-center gap-2 rounded-xl border border-border bg-surface py-2.5 text-xs font-semibold text-text-secondary hover:bg-surface-muted transition-colors disabled:opacity-50"
+                  >
+                    <IconRefreshCw size={13} className={refreshing ? "animate-spin" : ""} />
+                    {refreshing ? "Checking…" : "Refresh Payment Status"}
+                  </button>
+                </div>
+              )}
+
+              {/* Cash OTP entry */}
+              {cashPending && (
+                <div className="rounded-2xl border border-warning/40 bg-warning/5 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-warning/20 text-warning mb-1">
+                        Balance Due
+                      </span>
+                      <p className="text-xs text-text-secondary">Ask customer to read their WhatsApp OTP</p>
+                    </div>
+                    <p className="text-xl font-black text-warning">₹{parseFloat(ride.balanceDue).toLocaleString("en-IN")}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={cashCode}
+                      onChange={(e) => { setCashCode(e.target.value.toUpperCase()); setPaymentError(null); }}
+                      placeholder="Enter payment OTP"
+                      maxLength={6}
+                      className="flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-mono font-bold tracking-widest text-text-primary placeholder:text-text-tertiary placeholder:font-normal placeholder:tracking-normal focus:outline-none focus:border-primary"
+                    />
+                    <button
+                      onClick={handleVerifyPayment}
+                      disabled={verifyingPayment || cashCode.length < 6}
+                      className={`px-4 rounded-xl text-sm font-bold transition-all ${
+                        !verifyingPayment && cashCode.length >= 6
+                          ? "bg-warning text-white hover:bg-warning/90 active:scale-95"
+                          : "bg-surface-muted text-text-tertiary cursor-not-allowed"
+                      }`}
+                    >
+                      {verifyingPayment ? <IconLoader size={16} className="animate-spin" /> : "Confirm"}
+                    </button>
+                  </div>
+                  {paymentError && (
+                    <p className="text-xs text-danger font-medium">{paymentError}</p>
+                  )}
+                </div>
+              )}
+
+              {/* End Ride button */}
+              <div className="space-y-1.5">
+                {!fullyPaid && (
+                  <p className="text-xs text-center text-text-tertiary">
+                    {cashPending ? "Confirm payment OTP above to end the ride" : "Payment must be completed before ending the ride"}
+                  </p>
+                )}
+                <button
+                  onClick={handleEndRide}
+                  disabled={endingRide || !fullyPaid}
+                  className={`w-full flex items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold transition-all ${
+                    !endingRide && fullyPaid
+                      ? "bg-danger text-white hover:bg-danger/90 active:scale-95"
+                      : "bg-surface-muted text-text-tertiary cursor-not-allowed"
+                  }`}
+                >
+                  {endingRide ? (
+                    <><IconLoader size={18} className="animate-spin" /> Ending Ride…</>
+                  ) : (
+                    <><IconCheckCircle size={18} /> End Ride</>
+                  )}
+                </button>
+              </div>
+            </>
+          );
+        })()}
       </div>
     </div>
   );

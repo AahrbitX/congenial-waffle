@@ -259,7 +259,7 @@ function BookingDetailsPage() {
         <div className="grid grid-cols-2 gap-4 mt-4">
           <div className="space-y-4">
             <RiderDetails   rider={bookingDetails.rider} />
-            <DriverDetails  driver={bookingDetails.driver} />
+            <DriverDetails  driver={bookingDetails.driver} qrToken={(bookingDetails as any).qrToken} />
             <PaymentDetails payment={bookingDetails.payment} bookingId={bookingId} />
           </div>
           <div className="space-y-4">

@@ -2,20 +2,23 @@
 
 import React, { useState } from "react";
 import { request } from "@/lib/api-client";
-import { Breadcrumbs, Button, Card, Surface, Tabs, toast } from "@heroui/react";
+import { Breadcrumbs, Button, Card, Skeleton, Surface, Tabs, toast } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
-import { Trash2 } from "lucide-react";
+import { Trash2, RefreshCcw } from "lucide-react";
 import {
   ProfileHeader,
   ProfileHeaderSkeleton,
 } from "@/components/user/ProfileHeader";
 import EditDriver from "./editDriver";
+import DriverBookingsTab  from "./driverBookings";
+import DriverReviewsTab   from "./driverReviews";
+import DriverCarDetailsTab from "./driverCarDetails";
 
 function DriverProfilePage() {
-  const params = useParams<{ id: string }>();
-  const driverId = params.id;
-  const router = useRouter();
+  const params      = useParams<{ id: string }>();
+  const driverId    = params.id;
+  const router      = useRouter();
   const queryClient = useQueryClient();
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -29,21 +32,53 @@ function DriverProfilePage() {
     onError: () => toast.danger("Failed to delete driver"),
   });
 
-  const { data, isLoading } = useQuery<any>({
-    queryKey: [driverId],
+  const { data, isLoading, refetch, isFetching } = useQuery<any>({
+    queryKey: ["driver", driverId],
     queryFn: async () => {
-      return request(`/api/drivers/${driverId}`, {
-        method: "GET",
-      });
+      return request(`/api/drivers/${driverId}`, { method: "GET" });
     },
   });
 
   if (isLoading) {
-    return <div>Loading driver data</div>;
+    return (
+      <Surface className="h-full overflow-y-auto p-4 scrollbar-thin" variant="secondary">
+        {/* Header bar skeleton */}
+        <div className="flex items-center justify-between mb-2">
+          <Skeleton className="h-4 w-40 rounded" />
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-8 w-8 rounded-lg" />
+            <Skeleton className="h-8 w-24 rounded-lg" />
+            <Skeleton className="h-8 w-28 rounded-lg" />
+          </div>
+        </div>
+        {/* Profile card skeleton */}
+        <ProfileHeaderSkeleton />
+        {/* Tabs skeleton */}
+        <div className="mt-2">
+          <Skeleton className="h-9 w-full max-w-sm rounded-xl mb-4" />
+          <div className="rounded-xl border border-border p-4 space-y-3">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                <Skeleton className="h-3 w-24 rounded" />
+                <Skeleton className="h-3 w-32 rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </Surface>
+    );
   }
 
   if (!data?.data) {
-    return <div>Driver not found</div>;
+    return (
+      <Surface className="h-full flex flex-col items-center justify-center gap-3 text-center p-8" variant="secondary">
+        <p className="text-sm font-semibold">Driver not found</p>
+        <p className="text-xs text-muted">This driver may have been deleted or the ID is invalid.</p>
+        <Button variant="outline" size="sm" onPress={() => router.push("/admin/drivers")}>
+          Back to Drivers
+        </Button>
+      </Surface>
+    );
   }
 
   // Drizzle innerJoin returns { drivers: {...}, user: {...} }
@@ -72,6 +107,9 @@ function DriverProfilePage() {
           <Breadcrumbs.Item>{driverRow.id}</Breadcrumbs.Item>
         </Breadcrumbs>
         <div className="flex items-center gap-2">
+          <Button isIconOnly variant="ghost" size="sm" onPress={() => refetch()} isDisabled={isFetching}>
+            <RefreshCcw size={15} className={isFetching ? "animate-spin" : ""} />
+          </Button>
           <EditDriver driverData={formData} />
           {confirmDelete ? (
             <div className="flex items-center gap-2">
@@ -97,10 +135,7 @@ function DriverProfilePage() {
         </div>
       </div>
       <div className="my-2">
-        {isLoading ? (
-          <ProfileHeaderSkeleton />
-        ) : (
-          <ProfileHeader
+        <ProfileHeader
             name={userRow.name}
             isActive={driverRow.isAvailable}
             details={[
@@ -133,7 +168,6 @@ function DriverProfilePage() {
               },
             ]}
           />
-        )}
       </div>
       <div>
         <Card>
@@ -157,15 +191,14 @@ function DriverProfilePage() {
                   </Tabs.Tab>
                 </Tabs.List>
               </Tabs.ListContainer>
-              <Tabs.Panel id="bookings">
-                <p>View your project overview and recent activity.</p>
-              </Tabs.Panel>
-              <Tabs.Panel id="reviews">
-                <p>Track your metrics and analyze performance data.</p>
-              </Tabs.Panel>
-              <Tabs.Panel id="car-details">
-                <p>View your car details and specifications.</p>
-              </Tabs.Panel>
+              <DriverBookingsTab driverId={driverRow.id} />
+              <DriverReviewsTab driverId={driverRow.id} />
+              <DriverCarDetailsTab vehicle={{
+                vehicleType:   driverRow.vehicleType,
+                vehicleNumber: driverRow.vehicleNumber,
+                ac:            driverRow.ac,
+                isAvailable:   driverRow.isAvailable,
+              }} />
             </Tabs>
           </Card.Content>
         </Card>

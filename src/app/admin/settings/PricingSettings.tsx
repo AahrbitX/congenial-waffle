@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Skeleton, toast } from "@heroui/react";
-import { MOCK_VEHICLES } from "@/data/booking.mock";
+import { ListBox, Select, Skeleton, toast } from "@heroui/react";
 import { usePricing, useUpsertPricing } from "@/hooks/usePricing";
+import { useFleet } from "@/hooks/useFleet";
+import type { FleetVehicle } from "@/types/fleet.types";
 import { IconPlus, IconX, IconCheck, IconLoader } from "@/constants/icons";
 
 const FARE_UNITS = ["per km", "flat", "per 8 hrs", "per day", "per week"] as const;
@@ -14,14 +15,6 @@ type PricingState = { defaultAmount: number; defaultUnit: FareUnit; rows: Servic
 
 function toUnit(u: string): FareUnit {
   return (FARE_UNITS as readonly string[]).includes(u) ? (u as FareUnit) : "per km";
-}
-
-function mockToPricingState(v: (typeof MOCK_VEHICLES)[number]): PricingState {
-  return {
-    defaultAmount: v.defaultFare.amount,
-    defaultUnit:   toUnit(v.defaultFare.unit),
-    rows: Object.entries(v.serviceFares).map(([key, fare]) => ({ key, amount: fare.amount, unit: toUnit(fare.unit) })),
-  };
 }
 
 const SERVICE_LABELS: Record<string, string> = {
@@ -41,27 +34,25 @@ const SERVICE_LABELS: Record<string, string> = {
   "tempo":                "Tempo Traveller",
 };
 
-const CAT_DOT: Record<string, string> = {
-  Hatchback: "bg-blue-500",
-  Sedan:     "bg-violet-500",
-  MUV:       "bg-amber-500",
-  Luxury:    "bg-yellow-500",
-  Traveller: "bg-teal-500",
+// CSS-variable-based colors — keyed to globals.css vars
+const CAT_COLOR: Record<string, string> = {
+  Hatchback: "var(--color-primary)",
+  Sedan:     "var(--color-purple)",
+  MUV:       "var(--color-warning)",
+  Luxury:    "var(--color-success)",
+  Traveller: "var(--color-info)",
 };
-const CAT_BADGE: Record<string, string> = {
-  Hatchback: "bg-blue-100   text-blue-700   dark:bg-blue-900/40   dark:text-blue-300",
-  Sedan:     "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300",
-  MUV:       "bg-amber-100  text-amber-700  dark:bg-amber-900/40  dark:text-amber-300",
-  Luxury:    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300",
-  Traveller: "bg-teal-100   text-teal-700   dark:bg-teal-900/40   dark:text-teal-300",
+
+const UNIT_COLOR: Record<string, string> = {
+  "per km":    "var(--color-primary)",
+  "flat":      "var(--color-success)",
+  "per 8 hrs": "var(--color-warning)",
+  "per day":   "var(--color-purple)",
+  "per week":  "var(--color-danger)",
 };
-const UNIT_BADGE: Record<string, string> = {
-  "per km":    "bg-blue-100   text-blue-700   dark:bg-blue-900/40   dark:text-blue-300",
-  "flat":      "bg-green-100  text-green-700  dark:bg-green-900/40  dark:text-green-300",
-  "per 8 hrs": "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
-  "per day":   "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
-  "per week":  "bg-pink-100   text-pink-700   dark:bg-pink-900/40   dark:text-pink-300",
-};
+
+const BLANK_PRICING: PricingState = { defaultAmount: 0, defaultUnit: "per km", rows: [] };
+
 
 /* ── Skeleton ──────────────────────────────────────────────────────────────── */
 function PricingSettingsSkeleton() {
@@ -117,29 +108,6 @@ function PricingSettingsSkeleton() {
               </div>
             </div>
           </div>
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-3 w-28 rounded" />
-              <div className="flex-1 h-px bg-border" />
-              <Skeleton className="h-4 w-16 rounded" />
-            </div>
-            <div className="space-y-2">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex gap-3 items-start rounded-xl border border-border px-4 py-3">
-                  <div className="flex-1 space-y-1.5">
-                    <Skeleton className="h-8 w-full rounded-lg" />
-                    <Skeleton className="h-3 w-32 rounded" />
-                  </div>
-                  <div className="w-24 flex items-center gap-1">
-                    <Skeleton className="h-4 w-3 rounded" />
-                    <Skeleton className="h-8 w-full rounded-lg" />
-                  </div>
-                  <Skeleton className="h-8 w-24 rounded-lg" />
-                  <Skeleton className="h-7 w-7 rounded-lg" />
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -150,36 +118,36 @@ function PricingSettingsSkeleton() {
 interface Props { isLoading: boolean }
 
 export default function PricingSettings({ isLoading }: Props) {
-  const { data: dbPricing = [], isLoading: fetching } = usePricing();
+  const { data: dbPricing,     isLoading: fetchingPricing } = usePricing();
+  const { data: fleetVehicles, isLoading: fetchingFleet   } = useFleet();
   const upsertPricing = useUpsertPricing();
 
   const [selectedIdx, setSelectedIdx] = useState(0);
-  const [pricingData, setPricingData] = useState<PricingState[]>(
-    () => MOCK_VEHICLES.map(mockToPricingState),
-  );
+  const [pricingData, setPricingData] = useState<PricingState[]>([]);
   const [saved, setSaved] = useState(false);
 
-  // When DB pricing loads, merge into local state (DB overrides mock defaults)
+  // Build pricing state when both fleet and DB pricing are loaded
   useEffect(() => {
-    if (dbPricing.length === 0) return;
-    const dbMap = Object.fromEntries(dbPricing.map((p) => [p.vehicleType, p]));
+    if (!fleetVehicles?.length) return;
+    const dbMap = Object.fromEntries((dbPricing ?? []).map((p) => [p.vehicleType, p]));
     setPricingData(
-      MOCK_VEHICLES.map((v) => {
-        const db = dbMap[v.type];
-        if (!db) return mockToPricingState(v);
+      fleetVehicles.map((v: FleetVehicle) => {
+        const db = dbMap[v.name];
+        if (!db) return { ...BLANK_PRICING };
         return {
           defaultAmount: parseFloat(db.defaultAmount) || 0,
           defaultUnit:   toUnit(db.defaultUnit),
-          rows: Object.entries(db.serviceFares).map(([key, fare]) => ({
-            key, amount: fare.amount, unit: toUnit(fare.unit),
-          })),
+          rows: Object.entries(db.serviceFares as Record<string, { amount: number; unit: string }>).map(
+            ([key, fare]) => ({ key, amount: fare.amount, unit: toUnit(fare.unit) }),
+          ),
         };
       }),
     );
-  }, [dbPricing]);
+    setSelectedIdx((prev) => Math.min(prev, fleetVehicles.length - 1));
+  }, [fleetVehicles, dbPricing]);
 
-  const v       = MOCK_VEHICLES[selectedIdx];
-  const current = pricingData[selectedIdx];
+  const v       = fleetVehicles?.[selectedIdx] as FleetVehicle | undefined;
+  const current = pricingData[selectedIdx] ?? BLANK_PRICING;
 
   const setDefault = (field: "defaultAmount" | "defaultUnit", value: number | FareUnit) =>
     setPricingData((p) => p.map((s, i) => i === selectedIdx ? { ...s, [field]: value } : s));
@@ -209,6 +177,7 @@ export default function PricingSettings({ isLoading }: Props) {
     );
 
   const handleSave = async () => {
+    if (!v) return;
     const serviceFares = Object.fromEntries(
       current.rows
         .filter((r) => r.key.trim())
@@ -216,25 +185,30 @@ export default function PricingSettings({ isLoading }: Props) {
     );
     try {
       await upsertPricing.mutateAsync({
-        vehicleType:   v.type,
+        vehicleType:   v.name,
         defaultAmount: current.defaultAmount,
         defaultUnit:   current.defaultUnit,
         serviceFares,
       });
       setSaved(true);
-      toast.success(`Pricing updated for ${v.type}`);
+      toast.success(`Pricing updated for ${v.name}`);
       setTimeout(() => setSaved(false), 2000);
     } catch {
       toast("Failed to save pricing", { variant: "danger" });
     }
   };
 
-  const showSkeleton = isLoading || fetching;
+  const showSkeleton = isLoading || fetchingPricing || fetchingFleet;
 
   return (
     <div>
       {showSkeleton ? (
         <PricingSettingsSkeleton />
+      ) : !fleetVehicles?.length ? (
+        <div className="flex flex-col items-center justify-center py-20 rounded-2xl border border-dashed border-border text-center">
+          <p className="text-sm font-semibold text-text-secondary">No fleet vehicles found</p>
+          <p className="text-xs text-text-tertiary mt-1">Add vehicles in Fleet Settings first.</p>
+        </div>
       ) : (
         <div className="flex flex-col md:flex-row rounded-2xl border border-border overflow-hidden bg-surface">
 
@@ -244,11 +218,11 @@ export default function PricingSettings({ isLoading }: Props) {
               <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Vehicle Types</p>
             </div>
             <div className="p-2 space-y-0.5 overflow-y-auto flex-1">
-              {MOCK_VEHICLES.map((vehicle, i) => {
+              {(fleetVehicles ?? []).map((vehicle: FleetVehicle, i: number) => {
                 const isActive  = i === selectedIdx;
-                const hasDbData = dbPricing.some((p) => p.vehicleType === vehicle.type);
+                const hasDbData = (dbPricing ?? []).some((p) => p.vehicleType === vehicle.name);
                 return (
-                  <button key={vehicle.type} onClick={() => setSelectedIdx(i)}
+                  <button key={vehicle.id} onClick={() => setSelectedIdx(i)}
                     className={`w-full text-left px-3 py-2.5 rounded-xl transition-all ${
                       isActive
                         ? "bg-primary/10 border border-primary/20 shadow-sm"
@@ -256,9 +230,9 @@ export default function PricingSettings({ isLoading }: Props) {
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className={`w-2 h-2 rounded-full shrink-0 ${CAT_DOT[vehicle.category] ?? "bg-zinc-400"}`} />
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: CAT_COLOR[vehicle.category] ?? "var(--color-text-muted)" }} />
                       <span className={`text-sm truncate font-medium ${isActive ? "text-primary font-semibold" : "text-text-primary"}`}>
-                        {vehicle.type}
+                        {vehicle.name}
                       </span>
                       {!hasDbData && (
                         <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-warning/15 text-warning shrink-0 ml-auto">
@@ -283,126 +257,166 @@ export default function PricingSettings({ isLoading }: Props) {
           </div>
 
           {/* ── Right panel ──────────────────────────────────────────────── */}
-          <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
-            <div className="px-6 py-4 border-b border-border flex items-start justify-between gap-4 bg-surface-muted/20 shrink-0">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-base font-bold text-text-primary">{v.type}</h2>
-                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${CAT_BADGE[v.category] ?? "bg-surface-muted text-text-secondary"}`}>
-                    {v.category}
-                  </span>
-                </div>
-                <p className="text-xs text-text-secondary mt-0.5">
-                  {v.desc} · {current.rows.length} service fares configured
-                </p>
-              </div>
-              <button onClick={handleSave} disabled={upsertPricing.isPending}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-all shrink-0 shadow-sm disabled:opacity-60 ${
-                  saved
-                    ? "bg-success text-white shadow-success/30"
-                    : "bg-primary text-white hover:bg-primary/90 shadow-primary/30 active:scale-95"
-                }`}
-              >
-                {upsertPricing.isPending
-                  ? <><IconLoader size={14} className="animate-spin" /> Saving…</>
-                  : saved
-                  ? <><IconCheck size={14} /> Saved!</>
-                  : "Save Pricing"}
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* Default fare */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">Default Fare</p>
-                  <div className="flex-1 h-px bg-border" />
-                </div>
-                <div className="flex gap-3 items-center p-4 rounded-2xl bg-gradient-to-r from-primary/5 to-transparent border border-primary/15">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-wide mb-1.5">Amount (₹)</p>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-base font-bold text-text-secondary">₹</span>
-                      <input type="number" min={0} value={current.defaultAmount}
-                        onChange={(e) => setDefault("defaultAmount", parseFloat(e.target.value) || 0)}
-                        className="w-full rounded-xl border border-border bg-white dark:bg-zinc-800 px-3 py-2 text-sm font-bold text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
-                    </div>
-                  </div>
-                  <div className="w-36 shrink-0">
-                    <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-wide mb-1.5">Unit</p>
-                    <select value={current.defaultUnit}
-                      onChange={(e) => setDefault("defaultUnit", e.target.value as FareUnit)}
-                      className="w-full rounded-xl border border-border bg-white dark:bg-zinc-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
-                      {FARE_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
-                    </select>
-                  </div>
-                  <div className="shrink-0 self-end pb-0.5">
-                    <span className={`text-[11px] font-bold px-2 py-1 rounded-full ${UNIT_BADGE[current.defaultUnit] ?? "bg-surface-muted text-text-secondary"}`}>
-                      {current.defaultUnit}
+          {v && (
+            <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+              <div className="px-6 py-4 border-b border-border flex items-start justify-between gap-4 bg-surface-muted/20 shrink-0">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base font-bold text-text-primary">{v.name}</h2>
+                    <span
+                      className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+                      style={{ backgroundColor: `color-mix(in srgb, ${CAT_COLOR[v.category] ?? "var(--color-text-muted)"} 12%, transparent)`, color: CAT_COLOR[v.category] ?? "var(--color-text-secondary)" }}
+                    >
+                      {v.category}
                     </span>
                   </div>
+                  <p className="text-xs text-text-secondary mt-0.5">
+                    {v.tagline ?? v.category} · {current.rows.length} service fares configured
+                  </p>
                 </div>
+                <button onClick={handleSave} disabled={upsertPricing.isPending}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-all shrink-0 shadow-sm disabled:opacity-60 ${
+                    saved
+                      ? "bg-success text-white shadow-success/30"
+                      : "bg-primary text-white hover:bg-primary/90 shadow-primary/30 active:scale-95"
+                  }`}
+                >
+                  {upsertPricing.isPending
+                    ? <><IconLoader size={14} className="animate-spin" /> Saving…</>
+                    : saved
+                    ? <><IconCheck size={14} /> Saved!</>
+                    : "Save Pricing"}
+                </button>
               </div>
 
-              {/* Service fares */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">Service Fares</p>
-                  <div className="flex-1 h-px bg-border" />
-                  <button onClick={addRow}
-                    className="flex items-center gap-1.5 text-xs text-primary font-semibold hover:text-primary/80 transition-colors">
-                    <IconPlus size={12} /> Add fare
-                  </button>
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {/* Default fare */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">Default Fare</p>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+                  <div className="flex gap-3 items-center p-4 rounded-2xl bg-gradient-to-r from-primary/5 to-transparent border border-primary/15">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-wide mb-1.5">Amount (₹)</p>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-base font-bold text-text-secondary">₹</span>
+                        <input type="number" min={0} value={current.defaultAmount}
+                          onChange={(e) => setDefault("defaultAmount", parseFloat(e.target.value) || 0)}
+                          className="w-full rounded-xl border border-border bg-white dark:bg-zinc-800 px-3 py-2 text-sm font-bold text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+                      </div>
+                    </div>
+                    <div className="w-36 shrink-0">
+                      <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-wide mb-1.5">Unit</p>
+                      <select value={current.defaultUnit}
+                        onChange={(e) => setDefault("defaultUnit", e.target.value as FareUnit)}
+                        className="w-full rounded-xl border border-border bg-white dark:bg-zinc-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
+                        {FARE_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
+                      </select>
+                    </div>
+                    <div className="shrink-0 self-end pb-0.5">
+                      <span
+                        className="text-[11px] font-bold px-2 py-1 rounded-full"
+                        style={{ backgroundColor: `color-mix(in srgb, ${UNIT_COLOR[current.defaultUnit] ?? "var(--color-text-muted)"} 12%, transparent)`, color: UNIT_COLOR[current.defaultUnit] ?? "var(--color-text-secondary)" }}
+                      >
+                        {current.defaultUnit}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                {current.rows.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-10 rounded-2xl border border-dashed border-border text-center">
-                    <p className="text-sm font-semibold text-text-secondary">No service fares yet</p>
-                    <p className="text-xs text-text-tertiary mt-1 mb-3">Add fares for specific services like airport, outstation, etc.</p>
+                {/* Service fares */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">Service Fares</p>
+                    <div className="flex-1 h-px bg-border" />
                     <button onClick={addRow}
-                      className="flex items-center gap-2 text-xs text-primary font-semibold px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/15 transition-colors">
-                      <IconPlus size={12} /> Add first fare
+                      className="flex items-center gap-1.5 text-xs text-primary font-semibold hover:text-primary/80 transition-colors">
+                      <IconPlus size={12} /> Add fare
                     </button>
                   </div>
-                ) : (
-                  <div className="space-y-2">
-                    {current.rows.map((row, idx) => (
-                      <div key={idx}
-                        className="group flex gap-3 items-start rounded-xl border border-border bg-surface-muted/30 hover:bg-surface-muted/60 px-4 py-3 transition-colors">
-                        <div className="flex-1 min-w-0">
-                          <input type="text" value={row.key}
-                            onChange={(e) => setRow(idx, "key", e.target.value)}
-                            placeholder="service-id (e.g. airport)"
-                            className="w-full rounded-lg border border-border bg-white dark:bg-zinc-800 px-2.5 py-1.5 text-[13px] font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
-                          {row.key && SERVICE_LABELS[row.key] && (
-                            <p className="text-[11px] text-text-secondary mt-1 pl-0.5 font-medium">
-                              → {SERVICE_LABELS[row.key]}
-                            </p>
-                          )}
-                        </div>
-                        <div className="w-24 shrink-0">
-                          <div className="flex items-center gap-1">
-                            <span className="text-sm font-semibold text-text-secondary">₹</span>
-                            <input type="number" min={0} value={row.amount}
-                              onChange={(e) => setRow(idx, "amount", parseFloat(e.target.value) || 0)}
-                              className="w-full rounded-lg border border-border bg-white dark:bg-zinc-800 px-2 py-1.5 text-sm font-bold text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+
+                  {current.rows.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-10 rounded-2xl border border-dashed border-border text-center">
+                      <p className="text-sm font-semibold text-text-secondary">No service fares yet</p>
+                      <p className="text-xs text-text-tertiary mt-1 mb-3">Add fares for specific services like airport, outstation, etc.</p>
+                      <button onClick={addRow}
+                        className="flex items-center gap-2 text-xs text-primary font-semibold px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/15 transition-colors">
+                        <IconPlus size={12} /> Add first fare
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {current.rows.map((row, idx) => (
+                        <div key={idx}
+                          className="group flex gap-3 items-start rounded-xl border border-border bg-surface-muted/30 hover:bg-surface-muted/60 px-4 py-3 transition-colors">
+                          <div className="flex-1 min-w-0 space-y-1.5">
+                            <Select
+                              variant="secondary"
+                              placeholder="— Select service —"
+                              selectedKey={SERVICE_LABELS[row.key] ? row.key : row.key ? "__custom__" : ""}
+                              onSelectionChange={(key) => {
+                                if (key === "__custom__") {
+                                  setRow(idx, "key", "");
+                                } else {
+                                  setRow(idx, "key", String(key));
+                                }
+                              }}
+                            >
+                              <Select.Trigger>
+                                <Select.Value />
+                                <Select.Indicator />
+                              </Select.Trigger>
+                              <Select.Popover>
+                                <ListBox>
+                                  {Object.entries(SERVICE_LABELS).map(([key, label]) => (
+                                    <ListBox.Item key={key} id={key} textValue={label}>
+                                      {label}
+                                      <ListBox.ItemIndicator />
+                                    </ListBox.Item>
+                                  ))}
+                                  <ListBox.Item key="__custom__" id="__custom__" textValue="Custom…">
+                                    Custom…
+                                    <ListBox.ItemIndicator />
+                                  </ListBox.Item>
+                                </ListBox>
+                              </Select.Popover>
+                            </Select>
+                            {/* Show text input when key doesn't match any predefined label */}
+                            {row.key && !SERVICE_LABELS[row.key] && (
+                              <input
+                                type="text"
+                                value={row.key}
+                                onChange={(e) => setRow(idx, "key", e.target.value)}
+                                placeholder="Enter custom service id"
+                                className="w-full rounded-lg border border-primary/40 bg-white dark:bg-zinc-800 px-2.5 py-1.5 text-[13px] font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                              />
+                            )}
                           </div>
+                          <div className="w-24 shrink-0">
+                            <div className="flex items-center gap-1">
+                              <span className="text-sm font-semibold text-text-secondary">₹</span>
+                              <input type="number" min={0} value={row.amount}
+                                onChange={(e) => setRow(idx, "amount", parseFloat(e.target.value) || 0)}
+                                className="w-full rounded-lg border border-border bg-white dark:bg-zinc-800 px-2 py-1.5 text-sm font-bold text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+                            </div>
+                          </div>
+                          <select value={row.unit} onChange={(e) => setRow(idx, "unit", e.target.value)}
+                            className="rounded-lg border border-border bg-white dark:bg-zinc-800 px-2 py-1.5 text-[12px] font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shrink-0">
+                            {FARE_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
+                          </select>
+                          <button onClick={() => removeRow(idx)}
+                            className="p-1.5 mt-0.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-danger/10 transition-all shrink-0">
+                            <IconX size={14} className="text-danger" />
+                          </button>
                         </div>
-                        <select value={row.unit} onChange={(e) => setRow(idx, "unit", e.target.value)}
-                          className="rounded-lg border border-border bg-white dark:bg-zinc-800 px-2 py-1.5 text-[12px] font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shrink-0">
-                          {FARE_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
-                        </select>
-                        <button onClick={() => removeRow(idx)}
-                          className="p-1.5 mt-0.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-danger/10 transition-all shrink-0">
-                          <IconX size={14} className="text-danger" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>

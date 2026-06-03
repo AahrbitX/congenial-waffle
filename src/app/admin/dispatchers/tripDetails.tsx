@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Surface,
   Button,
@@ -16,6 +16,9 @@ import {
   Route as RouteIcon,
   Eye,
   MapPin,
+  Copy,
+  Check,
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -43,9 +46,13 @@ type DispatcherTrip = {
   pickupZone: string;
   dropName: string;
   dropZone: string;
+  qrToken?: string;
+  driverId?: string | null;
 };
 
 export default function TripDetails({ tripId, pageLoading }: TripDetailsProps) {
+  const [copied, setCopied] = useState(false);
+
   const { data, isLoading, isError } = useQuery<DispatcherTrip>({
     queryKey: ["dispatcher-trip", tripId],
     queryFn: async () => {
@@ -89,6 +96,16 @@ export default function TripDetails({ tripId, pageLoading }: TripDetailsProps) {
   }
 
   const trip = data;
+  const driverLink = trip.qrToken && trip.driverId
+    ? `${window.location.origin}/driver/${trip.qrToken}`
+    : null;
+
+  function handleCopy() {
+    if (!driverLink) return;
+    navigator.clipboard.writeText(driverLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   const pickup = `${trip.pickupName}, ${trip.pickupZone}`;
   const drop = `${trip.dropName}, ${trip.dropZone}`;
@@ -229,6 +246,24 @@ export default function TripDetails({ tripId, pageLoading }: TripDetailsProps) {
           Open Route in Google Maps
         </Link>
       </div>
+
+      {driverLink && (
+        <>
+          <Separator className="my-2" />
+          <div className="flex flex-col gap-2">
+            <p className="text-xs font-semibold text-default-500 uppercase tracking-wider">Driver Tracking Link</p>
+            <div className="flex items-center gap-2 rounded-xl border border-divider bg-content2 px-3 py-2">
+              <p className="flex-1 truncate text-xs font-mono text-default-600">{driverLink}</p>
+              <Button isIconOnly size="sm" variant="secondary" onPress={handleCopy}>
+                {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+              </Button>
+              <Button isIconOnly size="sm" variant="secondary" onPress={() => window.open(driverLink, "_blank")}>
+                <ExternalLink size={14} />
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

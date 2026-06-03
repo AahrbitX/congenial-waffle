@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { IconCamera, IconUser } from "@/constants/icons";
 import { AnimatePresence, motion } from "framer-motion";
 import { authClient } from "@/lib/auth-client";
+import { saveMarketingConsent } from "@/api/user.api";
 
 const slideVariants = {
   enterFromRight: { opacity: 0, x: 40 },
@@ -30,6 +31,13 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
   const [dob, setDob] = useState("");
   const [obLoading, setObLoading] = useState(false);
   const [obError, setObError] = useState("");
+
+  function syncConsentToDb() {
+    const stored = localStorage.getItem("mohan-cabs-consent");
+    if (stored === "accepted" || stored === "declined") {
+      saveMarketingConsent(stored === "accepted").catch(() => {});
+    }
+  }
 
   const handleSendOtp = async () => {
     if (!phone.trim()) { setOtpError("Please enter your phone number."); return; }
@@ -71,7 +79,7 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
       setShowOnboarding(true);
       setOtpLoading(false);
     } else {
-      // Session already created and atom updated by better-auth automatically
+      syncConsentToDb();
       onSuccess();
     }
   };
@@ -93,6 +101,7 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
       return;
     }
 
+    syncConsentToDb();
     onSuccess();
   };
 
@@ -151,9 +160,17 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
             {otpError && <p className="text-center text-sm text-danger">{otpError}</p>}
 
             {!otpSent ? (
-              <Button className="mt-4 w-full" size="lg" onPress={handleSendOtp} isLoading={otpLoading} disabled={otpLoading}>
-                Send OTP
-              </Button>
+              <>
+                <Button className="mt-4 w-full" size="lg" onPress={handleSendOtp} isLoading={otpLoading} disabled={otpLoading}>
+                  Send OTP
+                </Button>
+                <p className="text-center text-xs text-[var(--color-text-tertiary)]">
+                  By continuing, you agree to our{" "}
+                  <a href="/terms" className="underline underline-offset-2 hover:text-primary transition-colors">Terms &amp; Conditions</a>
+                  {" "}and{" "}
+                  <a href="/privacy" className="underline underline-offset-2 hover:text-primary transition-colors">Privacy Policy</a>.
+                </p>
+              </>
             ) : (
               <div className="mt-4 flex flex-col gap-2">
                 <Button
@@ -247,6 +264,13 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
               <Button className="w-full" size="lg" type="submit" isLoading={obLoading} disabled={obLoading}>
                 Get Started →
               </Button>
+
+              <p className="text-center text-xs text-[var(--color-text-tertiary)]">
+                By creating an account, you agree to our{" "}
+                <a href="/terms" className="underline underline-offset-2 hover:text-primary transition-colors">Terms &amp; Conditions</a>
+                {" "}and{" "}
+                <a href="/privacy" className="underline underline-offset-2 hover:text-primary transition-colors">Privacy Policy</a>.
+              </p>
 
               <button
                 type="button"

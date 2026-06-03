@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { Breadcrumbs, Button, Chip, Input, Skeleton, Surface, Tabs, toast } from "@heroui/react";
-import { Ban, Pencil, Trash2 } from "lucide-react";
+import { Ban, Pencil, Trash2, RefreshCcw } from "lucide-react";
 
 import { request } from "@/lib/api-client";
 import { ProfileHeader, ProfileHeaderSkeleton } from "@/components/user/ProfileHeader";
@@ -62,7 +62,7 @@ function UserDetailsPage() {
   const [editName,      setEditName]      = useState("");
   const [editPhone,     setEditPhone]     = useState("");
 
-  const { data: responseData, isLoading } = useQuery({
+  const { data: responseData, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["user", userId],
     queryFn:  () => request<{ success: boolean; data: any }>(`/api/users/${userId}`),
   });
@@ -147,6 +147,9 @@ function UserDetailsPage() {
             </div>
 
             <div className="flex items-center gap-2">
+              <Button isIconOnly variant="ghost" size="sm" onPress={() => refetch()} isDisabled={isFetching}>
+                <RefreshCcw size={14} className={isFetching ? "animate-spin" : ""} />
+              </Button>
               <Button size="sm" variant="outline" onPress={() => setEditing((v) => !v)}>
                 <Pencil size={14} />
                 {editing ? "Cancel" : "Edit"}
@@ -209,6 +212,7 @@ function UserDetailsPage() {
           {/* ── Profile card ── */}
           <ProfileHeader
             name={userData.name}
+            isActive={!isBanned}
             details={[{ label: "Phone", value: userData.phoneNumber ?? "—" }]}
             stats={[
               {

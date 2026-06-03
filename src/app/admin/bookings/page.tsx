@@ -24,7 +24,7 @@ export default function BookingsPage() {
   const [page, setPage] = useState(1);
   const limit = 10;
 
-  const { data: bookingData, isLoading } = useQuery<PaginatedResponse<Booking>>(
+  const { data: bookingData, isLoading, refetch } = useQuery<PaginatedResponse<Booking>>(
     {
       queryKey: ["bookings"],
       queryFn: async () => {
@@ -40,8 +40,8 @@ export default function BookingsPage() {
       <div className="flex items-center justify-between my-0">
         <div className="flex items-center justify-center gap-2">
           <h1 className="text-2xl font-bold">Bookings</h1>
-          <Button isIconOnly variant="ghost" name="refresh" size="sm">
-            <RefreshCcw />
+          <Button isIconOnly variant="ghost" size="sm" onPress={() => refetch()}>
+            <RefreshCcw size={16} />
           </Button>
         </div>
         <div className="flex items-center justify-center gap-2">

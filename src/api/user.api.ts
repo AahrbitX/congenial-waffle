@@ -43,3 +43,10 @@ export async function setPassword(otp: string, newPassword: string): Promise<voi
     body: JSON.stringify({ otp, newPassword }),
   });
 }
+
+export async function saveMarketingConsent(accepted: boolean): Promise<void> {
+  await request<{ success: boolean }>("/api/users/me/consent", {
+    method: "PATCH",
+    body: JSON.stringify({ accepted }),
+  });
+}

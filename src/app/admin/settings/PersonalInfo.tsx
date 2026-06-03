@@ -116,7 +116,7 @@ function ActionItem({ icon: Icon, label, sub, onClick, badge, disabled, badgeCol
       </div>
       <div className="flex-1 min-w-0">
         <p className={`text-sm font-semibold ${disabled ? "text-text-tertiary" : "text-text-primary"}`}>{label}</p>
-        <p className="text-xs text-text-secondary mt-0.5 truncate">{sub}</p>
+        <p className="text-xs text-text-secondary mt-0.5">{sub}</p>
       </div>
       {badge ? (
         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${badgeClass}`}>{badge}</span>

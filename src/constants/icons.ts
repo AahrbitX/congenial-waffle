@@ -40,6 +40,7 @@ export {
   Users            as IconUsers,
   Clock            as IconClock,
   RefreshCcw       as IconRoundTrip,
+  RefreshCw        as IconRefreshCw,
   Copy             as IconCopy,
   Eye              as IconEye,
   Pencil           as IconPencil,

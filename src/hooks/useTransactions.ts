@@ -22,11 +22,12 @@ export function useMyTransactions() {
   });
 }
 
-export function useMyTransaction(id: string) {
+export function useMyTransaction(id: string, refetchInterval?: number) {
   return useQuery({
     queryKey: [...MY_TRANSACTIONS_KEY, id],
     queryFn: () => getTransactionById(id),
     enabled: !!id,
+    refetchInterval,
   });
 }
 

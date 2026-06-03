@@ -8,6 +8,7 @@ import {
   CheckCircle,
   Clock,
   IndianRupee,
+  RefreshCcw,
 } from "lucide-react";
 
 import { BookingPerformanceChart } from "@/components/charts/BookingPerformanceChart";
@@ -76,20 +77,30 @@ function StatCardsSkeleton() {
 // ── Page ──────────────────────────────────────────────────────────────────────
 function AdminPage() {
   const { data: authData }   = authClient.useSession();
-  const { data: chartsData, isLoading } = useDashboardCharts();
+  const { data: chartsData, isLoading, refetch, isFetching } = useDashboardCharts();
 
   const summary = chartsData?.summary;
 
   return (
     <ResponsiveSurface className="min-h-full py-4" variant="secondary">
       {/* Header */}
-      <div className="px-4 md:px-0 mb-4">
-        <h1 className="text-xl font-semibold">
-          Welcome Back, {authData?.user.name || "Admin"}
-        </h1>
-        <p className="text-sm text-muted">
-          Here&apos;s what&apos;s happening with Mohan Cabs today.
-        </p>
+      <div className="px-4 md:px-0 mb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold">
+            Welcome Back, {authData?.user.name || "Admin"}
+          </h1>
+          <p className="text-sm text-muted">
+            Here&apos;s what&apos;s happening with Mohan Cabs today.
+          </p>
+        </div>
+        <button
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-muted hover:bg-surface transition-colors disabled:opacity-50"
+        >
+          <RefreshCcw size={13} className={isFetching ? "animate-spin" : ""} />
+          Refresh
+        </button>
       </div>
 
       {/* Stat cards */}

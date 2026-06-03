@@ -1,14 +1,25 @@
 import React from "react";
-import { Phone, UserPlus } from "lucide-react";
+import { Phone, UserPlus, ExternalLink, Copy, Check } from "lucide-react";
+import { useState } from "react";
 
 import UserAvatar from "@/components/user/avatar";
 import { Button, Card, CardContent, Separator } from "@heroui/react";
 
 type Props = {
   driver: any;
+  qrToken?: string;
 };
 
-export default function DriverDetails({ driver }: Props) {
+export default function DriverDetails({ driver, qrToken }: Props) {
+  const [copied, setCopied] = useState(false);
+  const driverLink = qrToken ? `${window.location.origin}/driver/${qrToken}` : null;
+
+  function handleCopy() {
+    if (!driverLink) return;
+    navigator.clipboard.writeText(driverLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
   const details = [
     {
       label: "Id",
@@ -102,6 +113,18 @@ export default function DriverDetails({ driver }: Props) {
             </div>
           ))}
         </div>
+
+        {driverLink && (
+          <div className="mt-4 flex items-center gap-2 rounded-xl border border-divider bg-surface-muted px-3 py-2">
+            <p className="flex-1 truncate text-xs text-muted font-mono">{driverLink}</p>
+            <Button isIconOnly size="sm" variant="secondary" onPress={handleCopy}>
+              {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+            </Button>
+            <Button isIconOnly size="sm" variant="secondary" onPress={() => window.open(driverLink, "_blank")}>
+              <ExternalLink size={14} />
+            </Button>
+          </div>
+        )}
       </Card.Content>
     </Card>
   );
