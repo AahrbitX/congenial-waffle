@@ -34,6 +34,8 @@ type BookingFormData = {
   customerName:  string;
   customerPhone: string;
   bookingFor:    string;
+  serviceType:   string;   // local | outstation | airport
+  tripType:      string;   // oneway | roundtrip
   pickup:        string;
   pickupZone:    string;
   pickupLat:     string;
@@ -44,6 +46,8 @@ type BookingFormData = {
   dropLng:       string;
   tripDate:      string;
   tripTime:      string;
+  returnDate:    string;
+  returnTime:    string;
   vehicleType:   string;
   seatsRequired: string;
   acPreference:  string;
@@ -55,6 +59,8 @@ const initialFormData: BookingFormData = {
   customerName:  "",
   customerPhone: "",
   bookingFor:    "self",
+  serviceType:   "local",
+  tripType:      "oneway",
   pickup:        "",
   pickupZone:    "",
   pickupLat:     "",
@@ -65,6 +71,8 @@ const initialFormData: BookingFormData = {
   dropLng:       "",
   tripDate:      "",
   tripTime:      "",
+  returnDate:    "",
+  returnTime:    "",
   vehicleType:   "",
   seatsRequired: "4",
   acPreference:  "ac",
@@ -104,20 +112,26 @@ function AddBookings({ className, iconOnly }: { className?: string; iconOnly?: b
 
   const mutation = useMutation({
     mutationFn: async (data: BookingFormData) => {
+      const isRoundTrip = data.tripType === "roundtrip";
       const payload: Record<string, unknown> = {
         customerName:  data.customerName,
         customerPhone: data.customerPhone,
         source:        "admin",
+        serviceType:   data.serviceType,
         pickupName:    data.pickup,
         pickupZone:    data.pickupZone,
         dropName:      data.drop,
         dropZone:      data.dropZone,
         journeyDate:   data.tripDate,
         journeyTime:   data.tripTime,
+        tripType:      data.tripType,
+        returnDate:    isRoundTrip ? data.returnDate : undefined,
+        returnTime:    isRoundTrip ? data.returnTime : undefined,
         members:       Number(data.seatsRequired),
         vehicleType:   toBackendVehicleType(data.vehicleType),
         ac:            data.acPreference === "ac",
         totalFare:     data.totalFare || "0.00",
+        notes:         data.notes || undefined,
       };
       if (data.pickupLat && data.pickupLng) {
         payload.pickupLat = Number(data.pickupLat);
@@ -150,8 +164,10 @@ function AddBookings({ className, iconOnly }: { className?: string; iconOnly?: b
     formData.pickup.trim() &&
     formData.drop.trim();
 
+  const isRoundTrip = formData.tripType === "roundtrip";
   const canProceedStep2 =
-    formData.tripDate && formData.tripTime && formData.vehicleType;
+    formData.tripDate && formData.tripTime && formData.vehicleType &&
+    (!isRoundTrip || (formData.returnDate && formData.returnTime));
 
   return (
     <Modal isOpen={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) { setFormData(initialFormData); setStep(1); } }}>
@@ -279,6 +295,34 @@ function StepOne({ data, onChange }: StepProps) {
         />
       </TextField>
 
+      <TextField name="serviceType" className="col-span-2">
+        <Label>Service Type</Label>
+        <CustomRadioGroup
+          value={data.serviceType}
+          options={[
+            { label: "Local",      value: "local" },
+            { label: "Outstation", value: "outstation" },
+            { label: "Airport",    value: "airport" },
+          ]}
+          onValueChange={(v) => onChange("serviceType", v)}
+        />
+      </TextField>
+
+      <TextField name="tripType" className="col-span-2">
+        <Label>Trip Type</Label>
+        <CustomRadioGroup
+          value={data.tripType}
+          options={[
+            { label: "One Way",    value: "oneway" },
+            { label: "Round Trip", value: "roundtrip" },
+          ]}
+          onValueChange={(v) => {
+            onChange("tripType", v);
+            if (v === "oneway") { onChange("returnDate", ""); onChange("returnTime", ""); }
+          }}
+        />
+      </TextField>
+
       <LocationSearchInput
         label="Pickup Location"
         placeholder="Search pickup address"
@@ -332,22 +376,41 @@ function StepTwo({ data, vehicles, onChange, onVehicleChange }: StepTwoProps) {
   const acBool           = data.acPreference === "ac";
   const filteredVehicles = vehicles.filter((v) => v.ac === acBool);
   const currentValid     = filteredVehicles.some((v) => v.type === data.vehicleType);
+  const isRoundTrip      = data.tripType === "roundtrip";
 
   return (
     <div className="grid grid-cols-2 gap-4">
       <TextField isRequired name="tripDate">
-        <Label>Ride Date</Label>
+        <Label>Outbound Date</Label>
         <Input type="date" variant="secondary" value={data.tripDate}
           onChange={(e) => onChange("tripDate", e.target.value)} />
         <FieldError />
       </TextField>
 
       <TextField isRequired name="tripTime">
-        <Label>Ride Time</Label>
+        <Label>Outbound Time</Label>
         <Input type="time" variant="secondary" value={data.tripTime}
           onChange={(e) => onChange("tripTime", e.target.value)} />
         <FieldError />
       </TextField>
+
+      {isRoundTrip && (
+        <>
+          <TextField isRequired name="returnDate">
+            <Label>Return Date</Label>
+            <Input type="date" variant="secondary" value={data.returnDate}
+              onChange={(e) => onChange("returnDate", e.target.value)} />
+            <FieldError />
+          </TextField>
+
+          <TextField isRequired name="returnTime">
+            <Label>Return Time</Label>
+            <Input type="time" variant="secondary" value={data.returnTime}
+              onChange={(e) => onChange("returnTime", e.target.value)} />
+            <FieldError />
+          </TextField>
+        </>
+      )}
 
       <TextField name="acPreference" className="col-span-2">
         <Label>AC Preference</Label>
@@ -428,8 +491,16 @@ function StepThree({ data, vehicles, distanceKm, onChange }: StepThreeProps) {
           <span className="font-medium text-text-primary">{data.customerName} · {data.customerPhone}</span>
           <span className="text-text-secondary">Route</span>
           <span className="font-medium text-text-primary truncate">{data.pickup} → {data.drop}</span>
-          <span className="text-text-secondary">Date & Time</span>
+          <span className="text-text-secondary">Service</span>
+          <span className="font-medium text-text-primary capitalize">{data.serviceType} · {data.tripType === "roundtrip" ? "Round Trip" : "One Way"}</span>
+          <span className="text-text-secondary">Outbound</span>
           <span className="font-medium text-text-primary">{data.tripDate} at {data.tripTime}</span>
+          {data.tripType === "roundtrip" && (
+            <>
+              <span className="text-text-secondary">Return</span>
+              <span className="font-medium text-text-primary">{data.returnDate} at {data.returnTime}</span>
+            </>
+          )}
           <span className="text-text-secondary">Vehicle</span>
           <span className="font-medium text-text-primary">{data.vehicleType || "—"}</span>
           <span className="text-text-secondary">Seats</span>

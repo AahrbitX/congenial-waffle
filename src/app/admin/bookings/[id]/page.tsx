@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { Edit, XCircle } from "lucide-react";
+import { Edit, XCircle, RefreshCw, ArrowRight } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Breadcrumbs,
   Button,
@@ -22,13 +23,14 @@ import { Booking } from "@/types/bookings";
 import { request } from "@/lib/api-client";
 import { queryClient } from "@/lib/query-client";
 
-import RiderDetails    from "./riderDetails";
-import RouteDetails    from "./routeDetails";
-import ReviewDetails   from "./reviewDetail";
-import DriverDetails   from "./driverDetails";
-import PaymentDetails  from "./paymentDetails";
-import RideInformation from "./rideInformation";
-import StatusIndicator from "@/components/data/statusIndicator";
+import RiderDetails     from "./riderDetails";
+import RouteDetails     from "./routeDetails";
+import ReviewDetails    from "./reviewDetail";
+import DriverDetails    from "./driverDetails";
+import PaymentDetails   from "./paymentDetails";
+import RideInformation  from "./rideInformation";
+import RoundTripDetails from "./roundTripDetails";
+import StatusIndicator  from "@/components/data/statusIndicator";
 
 const CANCELLABLE = ["pending", "confirmed"];
 
@@ -243,6 +245,15 @@ function BookingDetailsPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Master ride button — visible on return leg to jump to the outbound (primary) booking */}
+            {bookingDetails.tripType === "roundtrip" && bookingDetails.legType === "return" && bookingDetails.linkedBookingId && (
+              <Link href={`/admin/bookings/${bookingDetails.linkedBookingId}`}>
+                <CustomButton variant="secondary" size="sm">
+                  <RefreshCw size={15} />
+                  Master Ride
+                </CustomButton>
+              </Link>
+            )}
             {canCancel && (
               <CustomButton
                 variant="secondary"
@@ -265,6 +276,18 @@ function BookingDetailsPage() {
             <RiderDetails   rider={bookingDetails.rider} />
             <DriverDetails  driver={bookingDetails.driver} qrToken={(bookingDetails as any).qrToken} bookingId={bookingId} status={bookingDetails.status} />
             <PaymentDetails payment={bookingDetails.payment} bookingId={bookingId} />
+            {bookingDetails.tripType === "roundtrip" && bookingDetails.linkedBookingId && (
+              <RoundTripDetails
+                bookingRef={bookingDetails.bookingRef}
+                status={bookingDetails.status}
+                legType={bookingDetails.legType}
+                journeyDate={bookingDetails.info?.journeyDate}
+                journeyTime={bookingDetails.info?.journeyTime}
+                driverName={bookingDetails.driver?.name}
+                linkedBookingId={bookingDetails.linkedBookingId}
+                linkedLeg={bookingDetails.linkedLeg ?? null}
+              />
+            )}
           </div>
           <div className="space-y-4">
             <RideInformation info={bookingDetails.info} />

@@ -54,6 +54,7 @@ export interface BookingRequest {
   date: string;
   time: string;
   returnDate?: string;
+  returnTime?: string;
   vehicleType: string;
   ac: boolean;
   seats: number;
@@ -65,6 +66,7 @@ export interface BookingRequest {
 
 export interface BookingResponse {
   id: string; // bookingRef (human-readable reference)
-  bookingId: string; // UUID — used for payment operations
+  bookingId: string; // UUID — used for payment operations (outbound leg)
+  returnBookingId?: string; // round trip only — UUID of return leg
   status: "searching" | "confirmed" | "cancelled";
 }

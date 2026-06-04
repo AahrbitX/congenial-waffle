@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Edit } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Edit, RefreshCw } from "lucide-react";
+import { Button, Chip } from "@heroui/react";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 
 import AssignDriver from "./assignDriver";
@@ -24,15 +24,25 @@ export const bookingColumns: ColumnDef<Booking, any>[] = [
   columnHelper.accessor("id", {
     header: "Booking ID",
     size: 30,
-    cell: (id) => {
-      const bookingId = id.getValue();
+    cell: (info) => {
+      const bookingId  = info.getValue();
+      const tripType   = info.row.original.tripType;
+      const legType    = info.row.original.legType;
       return (
-        <Link
-          href={`/admin/bookings/${bookingId}`}
-          className="text-accent font-bold hover:underline cursor-pointer underline-offset-2"
-        >
-          {bookingId}
-        </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            href={`/admin/bookings/${bookingId}`}
+            className="text-accent font-bold hover:underline cursor-pointer underline-offset-2"
+          >
+            {bookingId}
+          </Link>
+          {tripType === "roundtrip" && (
+            <Chip size="sm" variant="soft" color="accent" className="gap-1 px-1.5 text-xs">
+              <RefreshCw size={10} className="shrink-0" />
+              {legType === "return" ? "Return" : "Outbound"}
+            </Chip>
+          )}
+        </div>
       );
     },
     meta: { isRowHeader: true },

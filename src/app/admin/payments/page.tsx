@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Button,
   Card,
+  ListBox,
   SearchField,
+  Select,
   Skeleton,
   Surface,
 } from "@heroui/react";
@@ -14,11 +16,11 @@ import {
   Banknote,
   Clock,
   CreditCard,
-  RefreshCcw,
 } from "lucide-react";
 import { request } from "@/lib/api-client";
 import { DataTable } from "@/components/dataTable/dynamic";
 import { AdminPayment, paymentColumns } from "./columns";
+import { PaginationData } from "@/types/responseTypes";
 
 type AdminPaymentsResponse = {
   success: boolean;
@@ -29,6 +31,7 @@ type AdminPaymentsResponse = {
     pendingPayments: number;
   };
   data: AdminPayment[];
+  pagination: PaginationData;
 };
 
 function StatCardsSkeleton() {
@@ -52,28 +55,30 @@ function StatCardsSkeleton() {
 }
 
 export default function AdminPaymentsPage() {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [page, setPage]               = useState(1);
+  const [search, setSearch]           = useState("");
+  const [statusFilter, setStatus]     = useState("");
+  const [methodFilter, setMethod]     = useState("");
 
-  const { data, isLoading, refetch } = useQuery<AdminPaymentsResponse>({
-    queryKey: ["admin-payments"],
-    queryFn: () => request("/api/payments/admin"),
+  const hasFilters = !!(search || statusFilter || methodFilter);
+
+  const resetFilters = () => {
+    setSearch("");
+    setStatus("");
+    setMethod("");
+    setPage(1);
+  };
+
+  const { data, isLoading } = useQuery<AdminPaymentsResponse>({
+    queryKey: ["admin-payments", page, search, statusFilter, methodFilter],
+    queryFn: () => {
+      const params = new URLSearchParams({ page: String(page), pageSize: "20" });
+      if (search)       params.set("search", search);
+      if (statusFilter) params.set("status", statusFilter);
+      if (methodFilter) params.set("method", methodFilter);
+      return request(`/api/payments/admin?${params.toString()}`);
+    },
   });
-
-  const filtered = useMemo(() => {
-    if (!data?.data) return [];
-    return data.data.filter((p) => {
-      const matchesSearch =
-        !search ||
-        p.userName.toLowerCase().includes(search.toLowerCase()) ||
-        p.userPhone.includes(search) ||
-        p.id.toLowerCase().includes(search.toLowerCase()) ||
-        (p.rzpPaymentId ?? "").toLowerCase().includes(search.toLowerCase()) ||
-        (p.bookingRef ?? "").toLowerCase().includes(search.toLowerCase());
-      const matchesStatus = !statusFilter || p.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [data?.data, search, statusFilter]);
 
   const summary = data?.summary;
 
@@ -111,22 +116,17 @@ export default function AdminPaymentsPage() {
     : [];
 
   return (
-    <Surface className="h-full overflow-y-auto p-4 scrollbar-thin" variant="secondary">
+    <Surface className="h-full flex flex-col overflow-hidden p-4" variant="secondary">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">Payments</h1>
-          <Button isIconOnly variant="ghost" onPress={() => refetch()}>
-            <RefreshCcw size={16} />
-          </Button>
-        </div>
+      <div className="flex items-center justify-between mb-4 shrink-0">
+        <h1 className="text-2xl font-bold">Payments</h1>
       </div>
 
       {/* Stat Cards */}
       {isLoading ? (
         <StatCardsSkeleton />
       ) : statCards.length > 0 && (
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6 shrink-0">
           {statCards.map(({ label, value, icon: Icon, color, bg }) => (
             <Card key={label}>
               <Card.Content className="p-4">
@@ -146,52 +146,81 @@ export default function AdminPaymentsPage() {
       )}
 
       {/* Filters */}
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2 shrink-0">
         <div className="flex items-center gap-2 flex-wrap">
           <SearchField
             name="search"
             variant="secondary"
             value={search}
-            onChange={setSearch}
+            onChange={(v) => { setSearch(v); setPage(1); }}
           >
             <SearchField.Group>
               <SearchField.SearchIcon />
-              <SearchField.Input placeholder="Search by name, phone, txn ID, Razorpay ID…" />
+              <SearchField.Input placeholder="Search by name, phone, txn ID…" />
               <SearchField.ClearButton />
             </SearchField.Group>
           </SearchField>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-9 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+          <Select
+            className="w-44"
+            placeholder="All Statuses"
+            variant="secondary"
+            selectedKey={statusFilter}
+            onSelectionChange={(key) => { setStatus(key as string ?? ""); setPage(1); }}
           >
-            <option value="">All Statuses</option>
-            <option value="paid">Paid</option>
-            <option value="cash_collected">Cash Collected</option>
-            <option value="created">Not Paid</option>
-            <option value="cash_pending">Cash Pending</option>
-            <option value="refunded">Refunded</option>
-            <option value="failed">Failed</option>
-          </select>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                <ListBox.Item id="" textValue="All Statuses">All Statuses<ListBox.ItemIndicator /></ListBox.Item>
+                <ListBox.Item id="paid" textValue="Paid">Paid<ListBox.ItemIndicator /></ListBox.Item>
+                <ListBox.Item id="cash_collected" textValue="Cash Collected">Cash Collected<ListBox.ItemIndicator /></ListBox.Item>
+                <ListBox.Item id="created" textValue="Not Paid">Not Paid<ListBox.ItemIndicator /></ListBox.Item>
+                <ListBox.Item id="cash_pending" textValue="Cash Pending">Cash Pending<ListBox.ItemIndicator /></ListBox.Item>
+                <ListBox.Item id="refunded" textValue="Refunded">Refunded<ListBox.ItemIndicator /></ListBox.Item>
+                <ListBox.Item id="failed" textValue="Failed">Failed<ListBox.ItemIndicator /></ListBox.Item>
+              </ListBox>
+            </Select.Popover>
+          </Select>
+
+          <Select
+            className="w-36"
+            placeholder="All Methods"
+            variant="secondary"
+            selectedKey={methodFilter}
+            onSelectionChange={(key) => { setMethod(key as string ?? ""); setPage(1); }}
+          >
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                <ListBox.Item id="" textValue="All Methods">All Methods<ListBox.ItemIndicator /></ListBox.Item>
+                <ListBox.Item id="online" textValue="Online">Online<ListBox.ItemIndicator /></ListBox.Item>
+                <ListBox.Item id="cash" textValue="Cash">Cash<ListBox.ItemIndicator /></ListBox.Item>
+              </ListBox>
+            </Select.Popover>
+          </Select>
         </div>
 
-        {(search || statusFilter) && (
-          <Button
-            variant="secondary"
-            onPress={() => { setSearch(""); setStatusFilter(""); }}
-          >
-            Reset Filter
-          </Button>
+        {hasFilters && (
+          <Button variant="secondary" onPress={resetFilters}>Reset Filter</Button>
         )}
       </div>
 
       {/* Table */}
-      <DataTable<AdminPayment>
-        isLoading={isLoading}
-        data={filtered}
-        columns={paymentColumns}
-      />
+      <div className="flex-1 min-h-0">
+        <DataTable<AdminPayment>
+          isLoading={isLoading}
+          data={data?.data ?? []}
+          columns={paymentColumns}
+          pagination={data?.pagination}
+          onPageChange={(p) => setPage(p)}
+        />
+      </div>
     </Surface>
   );
 }

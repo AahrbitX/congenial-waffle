@@ -51,6 +51,7 @@ export async function createBooking(req: BookingRequest): Promise<BookingRespons
     customerName:  req.customerName,
     customerPhone: req.customerPhone,
     source:        "self",
+    serviceType:   req.serviceTab,   // local | outstation | airport
     pickupName:    req.pickup,
     pickupZone:    "",
     pickupLat:     req.pickupLat,
@@ -61,18 +62,30 @@ export async function createBooking(req: BookingRequest): Promise<BookingRespons
     dropLng:       req.dropLng,
     journeyDate:   req.date,
     journeyTime:   req.time,
+    tripType:      req.tripTab,
+    returnDate:    req.returnDate,
+    returnTime:    req.returnTime,
     members:       req.seats,
     vehicleType:   toBackendVehicleType(req.vehicleType),
     ac:            req.ac,
     totalFare:     req.totalFare,
   };
 
-  const res = await request<{ success: boolean; data: { id: string; bookingRef: string } }>(
+  const res = await request<{
+    success: boolean;
+    data: { id: string; bookingRef: string };
+    returnBooking?: { id: string };
+  }>(
     "/api/bookings/create",
     { method: "POST", body: JSON.stringify(payload) },
   );
 
-  return { id: res.data.bookingRef, bookingId: res.data.id, status: "confirmed" };
+  return {
+    id: res.data.bookingRef,
+    bookingId: res.data.id,
+    returnBookingId: res.returnBooking?.id,
+    status: "confirmed" as const,
+  };
 }
 
 export async function cancelBooking(bookingId: string): Promise<void> {

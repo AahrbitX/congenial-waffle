@@ -9,6 +9,7 @@ import {
   Card,
   Chip,
   Separator,
+  Skeleton,
   Surface,
 } from "@heroui/react";
 import { Printer } from "lucide-react";
@@ -76,8 +77,52 @@ export default function TransactionDetailPage() {
 
   if (isLoading) {
     return (
-      <Surface className="h-full p-4" variant="secondary">
-        <p className="text-sm text-muted-foreground">Loading…</p>
+      <Surface className="h-full overflow-y-auto p-4 scrollbar-thin" variant="secondary">
+        <Skeleton className="h-5 w-40 rounded mb-6" />
+        <div className="flex items-center gap-3 mb-6">
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-72 rounded" />
+            <Skeleton className="h-4 w-32 rounded" />
+          </div>
+          <Skeleton className="h-6 w-20 rounded-full" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Card>
+            <Card.Header><Skeleton className="h-5 w-36 rounded" /></Card.Header>
+            <Card.Content className="pt-0 space-y-3">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="flex justify-between py-2">
+                  <Skeleton className="h-4 w-32 rounded" />
+                  <Skeleton className="h-4 w-40 rounded" />
+                </div>
+              ))}
+            </Card.Content>
+          </Card>
+          <div className="flex flex-col gap-4">
+            <Card>
+              <Card.Header><Skeleton className="h-5 w-36 rounded" /></Card.Header>
+              <Card.Content className="pt-0 space-y-3">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="flex justify-between py-2">
+                    <Skeleton className="h-4 w-28 rounded" />
+                    <Skeleton className="h-4 w-36 rounded" />
+                  </div>
+                ))}
+              </Card.Content>
+            </Card>
+            <Card>
+              <Card.Header><Skeleton className="h-5 w-24 rounded" /></Card.Header>
+              <Card.Content className="pt-0 space-y-3">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div key={i} className="flex justify-between py-2">
+                    <Skeleton className="h-4 w-16 rounded" />
+                    <Skeleton className="h-4 w-32 rounded" />
+                  </div>
+                ))}
+              </Card.Content>
+            </Card>
+          </div>
+        </div>
       </Surface>
     );
   }

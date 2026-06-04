@@ -361,18 +361,32 @@ export function BookRideModal({
   }
 
   // Computed fare: per-km × road distance, or static for flat/hire fares
+  // Round trip doubles the fare (outbound + return leg)
   const computedFare = useMemo(() => {
     if (!selectedV) return 0;
     const baseFare = getVehicleFare(selectedV, config?.id);
-    if (baseFare.unit === "per km" && distanceKm != null) {
-      return Math.ceil(distanceKm * baseFare.amount);
+    const singleFare = baseFare.unit === "per km" && distanceKm != null
+      ? Math.ceil(distanceKm * baseFare.amount)
+      : baseFare.amount;
+    return form.tripTab === "roundtrip" ? singleFare * 2 : singleFare;
+  }, [selectedV, distanceKm, config, form.tripTab]);
+
+  // Advance amount: for round trip = outbound full (halfFare) + return advance (calcAdvance(halfFare))
+  const advanceAmount = useMemo(() => {
+    if (form.tripTab === "roundtrip" && computedFare > 0) {
+      const half = computedFare / 2;
+      return half + calcAdvance(half);
     }
-    return baseFare.amount;
-  }, [selectedV, distanceKm, config]);
+    return calcAdvance(computedFare);
+  }, [form.tripTab, computedFare]);
 
   async function handleRazorpayPay(mode: "full" | "partial") {
     if (!selectedV || computedFare === 0) return;
-    const amount = mode === "full" ? computedFare : calcAdvance(computedFare);
+
+    // Amount charged now:
+    //   full    → computedFare (covers entire trip)
+    //   partial → advanceAmount (covers outbound in full + return advance for round trips)
+    const amount = mode === "full" ? computedFare : advanceAmount;
 
     setPayMode(mode);
     setPayProcessing(true);
@@ -394,6 +408,7 @@ export function BookRideModal({
         date: form.date,
         time: form.time,
         returnDate: form.tripTab === "roundtrip" ? form.returnDate : undefined,
+        returnTime: form.tripTab === "roundtrip" ? form.returnTime : undefined,
         vehicleType: vehicle,
         ac: selectedV.ac,
         seats: selectedV.seats,
@@ -773,6 +788,7 @@ export function BookRideModal({
                                     v.seats < minPassengerSeats
                                   }
                                   distanceKm={distanceKm}
+                                  isRoundTrip={form.tripTab === "roundtrip"}
                                 />
                               ))}
                             </div>
@@ -818,13 +834,12 @@ export function BookRideModal({
                                 Advance (Partial Pay)
                               </span>
                               <p className="text-xs">
-                                Balance ₹
-                                {computedFare - calcAdvance(computedFare)} paid
-                                to driver on arrival
+                                Balance ₹{computedFare - advanceAmount} paid to{" "}
+                                {form.tripTab === "roundtrip" ? "return driver" : "driver"} on arrival
                               </p>
                             </div>
                             <span className=" font-semibold text-primary">
-                              ₹{calcAdvance(computedFare)}
+                              ₹{advanceAmount}
                             </span>
                           </div>
                         </div>
@@ -862,9 +877,7 @@ export function BookRideModal({
                           variant="secondary"
                           isLoading={payProcessing && payMode === "partial"}
                         >
-                          Pay ₹
-                          {computedFare > 0 ? calcAdvance(computedFare) : "..."}{" "}
-                          Advance
+                          Pay ₹{computedFare > 0 ? advanceAmount : "..."} Advance
                         </Button>
 
                         <Button
@@ -1882,6 +1895,7 @@ function VehicleCard({
   serviceId,
   disabled,
   distanceKm,
+  isRoundTrip,
 }: {
   vehicle: Vehicle;
   selected: boolean;
@@ -1889,12 +1903,16 @@ function VehicleCard({
   serviceId?: string;
   disabled?: boolean;
   distanceKm?: number | null;
+  isRoundTrip?: boolean;
 }) {
   const fare = getVehicleFare(vehicle, serviceId);
-  const computedAmount =
+  const singleAmount =
     fare.unit === "per km" && distanceKm != null
       ? Math.ceil(distanceKm * fare.amount)
       : null;
+  const computedAmount = singleAmount != null
+    ? (isRoundTrip ? singleAmount * 2 : singleAmount)
+    : null;
 
   return (
     <button

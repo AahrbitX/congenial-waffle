@@ -4,7 +4,11 @@ import { request } from "@/lib/api-client";
 import { useQuery } from "@tanstack/react-query";
 
 type Params = {
-  date?: string;
+  date?:     string;
+  search?:   string;
+  status?:   string;
+  page?:     number;
+  pageSize?: number;
 };
 
 // Hook to fetch the dashboard rides datatable data
@@ -15,13 +19,14 @@ export const useDashboardRides = (params?: Params) => {
 
     queryFn: () => {
       const qs = new URLSearchParams();
-
-      if (params?.date) qs.set("date", params.date);
+      if (params?.date)     qs.set("date",     params.date);
+      if (params?.search)   qs.set("search",   params.search);
+      if (params?.status)   qs.set("status",   params.status);
+      if (params?.page)     qs.set("page",     String(params.page));
+      if (params?.pageSize) qs.set("pageSize", String(params.pageSize));
 
       return request<any>(
-        `/api/reports/dashboard/rides${
-          qs.toString() ? `?${qs.toString()}` : ""
-        }`,
+        `/api/reports/dashboard/rides${qs.toString() ? `?${qs.toString()}` : ""}`,
       );
     },
 

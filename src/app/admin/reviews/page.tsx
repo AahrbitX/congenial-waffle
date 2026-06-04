@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Button, Surface } from "@heroui/react";
+import { Button, SearchField, Surface } from "@heroui/react";
 import { RefreshCcw } from "lucide-react";
 import { request } from "@/lib/api-client";
 
@@ -33,6 +33,7 @@ const TAB_LABELS: { key: FilterKey; label: string }[] = [
 
 export default function AdminReviewsPage() {
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [search, setSearch] = useState("");
 
   const { data, isLoading, refetch } = useQuery<AdminReviewsResponse>({
     queryKey: ["admin-reviews"],
@@ -42,7 +43,7 @@ export default function AdminReviewsPage() {
   const reviews = data?.data ?? [];
   const stats   = data?.stats;
 
-  const filtered: AdminReview[] = (() => {
+  const byTab: AdminReview[] = (() => {
     switch (filter) {
       case "unread":  return reviews.filter((r) => r.unread);
       case "5star":   return reviews.filter((r) => r.rating === 5);
@@ -51,6 +52,16 @@ export default function AdminReviewsPage() {
       default:        return reviews;
     }
   })();
+
+  const q = search.toLowerCase();
+  const filtered: AdminReview[] = search
+    ? byTab.filter(
+        (r) =>
+          r.customerName?.toLowerCase().includes(q) ||
+          r.driverName?.toLowerCase().includes(q) ||
+          r.comment?.toLowerCase().includes(q),
+      )
+    : byTab;
 
   const counts: Record<FilterKey, number> = {
     all:     reviews.length,
@@ -75,6 +86,22 @@ export default function AdminReviewsPage() {
       {/* Stats */}
       <div className="shrink-0">
         <ReviewStats stats={data?.stats} isLoading={isLoading} />
+      </div>
+
+      {/* Search */}
+      <div className="shrink-0 flex items-center gap-2">
+        <SearchField
+          name="search"
+          variant="secondary"
+          value={search}
+          onChange={setSearch}
+        >
+          <SearchField.Group>
+            <SearchField.SearchIcon />
+            <SearchField.Input placeholder="Search by customer, driver or comment" />
+            <SearchField.ClearButton />
+          </SearchField.Group>
+        </SearchField>
       </div>
 
       {/* Filter tabs */}

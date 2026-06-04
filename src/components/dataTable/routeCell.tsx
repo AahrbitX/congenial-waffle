@@ -1,7 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 interface RouteCellProps {
   from: string;
@@ -10,39 +9,18 @@ interface RouteCellProps {
 
 function truncate(text: string, max = 24) {
   if (text.length <= max) return text;
-
   return `${text.slice(0, max)}...`;
 }
 
 export function RouteCell({ from, to }: RouteCellProps) {
   return (
     <div
-      className="flex items-center gap-3 min-w-[320px] max-w-[520px]"
+      className="flex items-center gap-2 min-w-[280px] max-w-[480px]"
       title={`${from} → ${to}`}
     >
-      <div className="flex-1 min-w-0">
-        <p className="truncate text-sm font-medium">{truncate(from)}</p>
-      </div>
-      <div className="relative h-7 w-14 overflow-hidden rounded-full bg-accent">
-        <motion.div
-          animate={{
-            x: [-12, 35],
-          }}
-          transition={{
-            duration: 1.8,
-            repeat: Infinity,
-            repeatType: "mirror",
-            ease: "easeInOut",
-          }}
-          className="absolute inset-y-1 left-1 flex w-5 items-center justify-center rounded-full bg-white"
-        >
-          <ChevronRight size={12} className="text-accent" />
-        </motion.div>
-      </div>
-
-      <div className="flex-1 min-w-0 text-right">
-        <p className="truncate text-sm font-medium">{truncate(to)}</p>
-      </div>
+      <p className="truncate text-sm font-medium flex-1 min-w-0">{truncate(from)}</p>
+      <ArrowRight size={14} className="shrink-0 text-muted-foreground" />
+      <p className="truncate text-sm font-medium flex-1 min-w-0 text-right">{truncate(to)}</p>
     </div>
   );
 }
