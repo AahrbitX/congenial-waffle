@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import React, { useState } from "react";
 import { Avatar, Input, InputOTP, Label } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
 import { IconCamera, IconUser } from "@/constants/icons";
 import { AnimatePresence, motion } from "framer-motion";
-import { authClient } from "@/lib/auth-client";
+import { authClient, waitForSession } from "@/lib/auth-client";
 import { saveMarketingConsent } from "@/api/user.api";
 
 const slideVariants = {
@@ -16,7 +16,7 @@ const slideVariants = {
 };
 
 interface OtpLoginFlowProps {
-  onSuccess: () => void;
+  onSuccess: (user?: any) => void;
 }
 
 export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
@@ -80,11 +80,14 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
       setOtpLoading(false);
     } else {
       syncConsentToDb();
-      onSuccess();
+      // Force atom re-fetch and wait — phoneNumber.verify() triggers atomListeners
+      // with a 10ms setTimeout race; waitForSession() forces it immediately.
+      const session = await waitForSession();
+      onSuccess(session?.user);
     }
   };
 
-  const handleOnboardingSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleOnboardingSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     if (!name.trim()) { setObError("Full name is required."); return; }
     setObError("");
@@ -102,7 +105,7 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
     }
 
     syncConsentToDb();
-    onSuccess();
+    onSuccess();  // onboarding: role is always "user"
   };
 
   return (

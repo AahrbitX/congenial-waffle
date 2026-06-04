@@ -2,8 +2,7 @@
 
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Button, Chip, Skeleton, Tabs } from "@heroui/react";
-import { RefreshCcw } from "lucide-react";
+import { Chip, Skeleton, Tabs } from "@heroui/react";
 import { request } from "@/lib/api-client";
 import { IconCar } from "@/constants/icons";
 
@@ -41,7 +40,7 @@ function LoadingSkeleton() {
 }
 
 export default function DriverBookingsTab({ driverId }: { driverId: string }) {
-  const { data, isLoading, refetch, isFetching } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["driver-bookings", driverId],
     queryFn: () => request<{ success: boolean; data: any[]; pagination: any }>(
       `/api/bookings?driverId=${driverId}&pageSize=50`
@@ -52,12 +51,9 @@ export default function DriverBookingsTab({ driverId }: { driverId: string }) {
 
   return (
     <Tabs.Panel className="pt-2 px-0" id="bookings">
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-semibold text-muted">{rides.length} ride{rides.length !== 1 ? "s" : ""}</p>
-        <Button isIconOnly variant="ghost" size="sm" onPress={() => refetch()} isDisabled={isFetching}>
-          <RefreshCcw size={14} className={isFetching ? "animate-spin" : ""} />
-        </Button>
-      </div>
+      {!isLoading && rides.length > 0 && (
+        <p className="text-sm font-semibold text-muted mb-3">{rides.length} ride{rides.length !== 1 ? "s" : ""}</p>
+      )}
 
       {isLoading ? (
         <LoadingSkeleton />

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Input, Label } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
+import { authClient, waitForSession } from "@/lib/auth-client";
 
 export default function PasswordLoginForm() {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -12,6 +13,7 @@ export default function PasswordLoginForm() {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleLogin = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -37,11 +39,15 @@ export default function PasswordLoginForm() {
         return;
       }
 
-      if (data.user?.role === "admin") {
-        router.push("/admin");
-      } else {
-        router.push("/dashboard/overview");
-      }
+      // Force the session atom to re-fetch and wait for it to settle.
+      // Raw fetch() bypasses the proxy so atomListeners never fire — calling
+      // waitForSession() triggers $sessionSignal directly so useSession() in
+      // the layout has the data before we navigate.
+      const session = await waitForSession();
+      const redirect = searchParams.get("redirect");
+      const defaultDest = (session?.user as any)?.role === "admin" ? "/admin" : "/dashboard/overview";
+      const dest = redirect?.startsWith("/") ? redirect : defaultDest;
+      router.push(`/redirecting?to=${encodeURIComponent(dest)}`);
     } catch (err: any) {
       setError(err.message || "Login failed");
       setLoading(false);

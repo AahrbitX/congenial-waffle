@@ -28,6 +28,7 @@ import ReviewDetails   from "./reviewDetail";
 import DriverDetails   from "./driverDetails";
 import PaymentDetails  from "./paymentDetails";
 import RideInformation from "./rideInformation";
+import StatusIndicator from "@/components/data/statusIndicator";
 
 const CANCELLABLE = ["pending", "confirmed"];
 
@@ -233,10 +234,13 @@ function BookingDetailsPage() {
     <>
       <Surface className="h-full overflow-y-auto p-4 scrollbar-thin" variant="secondary">
         <div className="flex items-center justify-between">
-          <Breadcrumbs>
-            <Breadcrumbs.Item href="/admin/bookings">Bookings</Breadcrumbs.Item>
-            <Breadcrumbs.Item>{bookingDetails.bookingRef ?? bookingId}</Breadcrumbs.Item>
-          </Breadcrumbs>
+          <div className="flex items-center gap-3">
+            <Breadcrumbs>
+              <Breadcrumbs.Item href="/admin/bookings">Bookings</Breadcrumbs.Item>
+              <Breadcrumbs.Item>{bookingDetails.bookingRef ?? bookingId}</Breadcrumbs.Item>
+            </Breadcrumbs>
+            <StatusIndicator status={bookingDetails.status} />
+          </div>
 
           <div className="flex items-center gap-2">
             {canCancel && (
@@ -259,7 +263,7 @@ function BookingDetailsPage() {
         <div className="grid grid-cols-2 gap-4 mt-4">
           <div className="space-y-4">
             <RiderDetails   rider={bookingDetails.rider} />
-            <DriverDetails  driver={bookingDetails.driver} qrToken={(bookingDetails as any).qrToken} />
+            <DriverDetails  driver={bookingDetails.driver} qrToken={(bookingDetails as any).qrToken} bookingId={bookingId} status={bookingDetails.status} />
             <PaymentDetails payment={bookingDetails.payment} bookingId={bookingId} />
           </div>
           <div className="space-y-4">

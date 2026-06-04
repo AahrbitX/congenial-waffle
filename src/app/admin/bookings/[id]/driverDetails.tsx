@@ -1,17 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import { Phone, UserPlus, ExternalLink, Copy, Check } from "lucide-react";
-import { useState } from "react";
 
 import UserAvatar from "@/components/user/avatar";
 import { Button, Card, CardContent, Separator } from "@heroui/react";
+import { AssignDriverDrawer } from "../assignDriver";
 
 type Props = {
   driver: any;
   qrToken?: string;
+  bookingId?: string;
+  status?: string;
 };
 
-export default function DriverDetails({ driver, qrToken }: Props) {
+export default function DriverDetails({ driver, qrToken, bookingId, status }: Props) {
   const [copied, setCopied] = useState(false);
+  const [assignOpen, setAssignOpen] = useState(false);
   const driverLink = qrToken ? `${window.location.origin}/driver/${qrToken}` : null;
 
   function handleCopy() {
@@ -69,13 +72,19 @@ export default function DriverDetails({ driver, qrToken }: Props) {
               to begin trip execution and tracking.
             </p>
 
-            <Button
-              className="mt-5"
-              // onPress={onAssignDriver}
-            >
-              <UserPlus size={16} />
-              Assign Driver
-            </Button>
+            {status === "confirmed" && bookingId && (
+              <>
+                <Button className="mt-5" onPress={() => setAssignOpen(true)}>
+                  <UserPlus size={16} />
+                  Assign Driver
+                </Button>
+                <AssignDriverDrawer
+                  bookingId={bookingId}
+                  isOpen={assignOpen}
+                  onClose={() => setAssignOpen(false)}
+                />
+              </>
+            )}
           </div>
         </Card.Content>
       </Card>

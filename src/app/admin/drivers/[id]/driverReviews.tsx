@@ -2,8 +2,7 @@
 
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Button, Skeleton, Tabs } from "@heroui/react";
-import { RefreshCcw } from "lucide-react";
+import { Skeleton, Tabs } from "@heroui/react";
 import { request } from "@/lib/api-client";
 import { IconStar } from "@/constants/icons";
 
@@ -33,7 +32,7 @@ function LoadingSkeleton() {
 }
 
 export default function DriverReviewsTab({ driverId }: { driverId: string }) {
-  const { data, isLoading, refetch, isFetching } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["driver-reviews", driverId],
     queryFn: () => request<{ success: boolean; data: any[] }>(
       `/api/reviews/admin?driverId=${driverId}`
@@ -44,12 +43,9 @@ export default function DriverReviewsTab({ driverId }: { driverId: string }) {
 
   return (
     <Tabs.Panel className="pt-2 px-0" id="reviews">
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-semibold text-muted">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</p>
-        <Button isIconOnly variant="ghost" size="sm" onPress={() => refetch()} isDisabled={isFetching}>
-          <RefreshCcw size={14} className={isFetching ? "animate-spin" : ""} />
-        </Button>
-      </div>
+      {!isLoading && reviews.length > 0 && (
+        <p className="text-sm font-semibold text-muted mb-3">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</p>
+      )}
 
       {isLoading ? (
         <LoadingSkeleton />

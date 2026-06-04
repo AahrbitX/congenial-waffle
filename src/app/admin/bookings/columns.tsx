@@ -58,8 +58,10 @@ export const bookingColumns: ColumnDef<Booking, any>[] = [
       const driver = info.getValue();
       const bookingId = info.row.original.id;
       const driverId = info.row.original.driverId;
+      const status = info.row.original.status;
       if (!driver) {
-        return <AssignDriver id={bookingId} />;
+        if (status === "confirmed") return <AssignDriver bookingId={bookingId} />;
+        return <span className="text-xs text-muted">—</span>;
       }
 
       return (

@@ -36,10 +36,13 @@ const navLinks = [
 ];
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathName   = usePathname();
-  const router     = useRouter();
-  const { data: session, isPending } = authClient.useSession();
+  const pathName = usePathname();
+  const router   = useRouter();
 
+  // waitForSession() in the login forms populates the session atom before
+  // router.push(), so useSession() reads it synchronously here — no extra
+  // network request, no bounce.
+  const { data: session, isPending } = authClient.useSession();
   const role = (session?.user as any)?.role as string | undefined;
 
   const hideSidebar = pathName === "/admin";
@@ -61,10 +64,11 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isPending) return;
-    if (role !== "admin") router.replace(role === "user" ? "/dashboard" : "/");
-  }, [role, isPending]);
+    if (role === "admin") return;
+    router.replace(role === "user" ? "/dashboard" : "/login");
+  }, [isPending, role]);
 
-  if (!isPending && role !== "admin") return null;
+  if (isPending || role !== "admin") return null;
 
   return (
     <div className="h-screen overflow-hidden">
@@ -82,7 +86,7 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
             <Image src={ASSETS.logos.minimal.src} alt={ASSETS.logos.minimal.alt} width={30} height={30} />
             <Image src={ASSETS.logos.darkFullName.src} alt={ASSETS.logos.darkFullName.alt} width={110} height={28} className="object-contain" />
           </div>
-          <UserDropdown showDashboard={false} />
+          <UserDropdown showDashboard={false} hideLoginButton />
         </div>
 
         {/* ── Body ── */}

@@ -1,15 +1,18 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
-import { Avatar, Dropdown, Label, Spinner } from "@heroui/react";
+import { Avatar, Dropdown, Label } from "@heroui/react";
 import { CalendarCheck, Car, Headphones, LogOut, Settings, User, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 
-function UserDropdown({ showDashboard = true }: { showDashboard?: boolean }) {
+function UserDropdown({ showDashboard = true, hideLoginButton = false }: { showDashboard?: boolean; hideLoginButton?: boolean }) {
   const { data, isPending } = authClient.useSession();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -29,12 +32,12 @@ function UserDropdown({ showDashboard = true }: { showDashboard?: boolean }) {
     });
   };
 
-  if (isPending) {
-    return (
-      <Avatar>
-        <Spinner />
-      </Avatar>
-    );
+  // Render a static skeleton until after hydration — Spinner generates dynamic
+  // SVG gradient IDs that differ between server and client, causing a mismatch.
+  // Also show skeleton when hideLoginButton is set and data hasn't arrived yet
+  // (e.g. admin layout where auth is already guaranteed but reactive store may lag).
+  if (!mounted || isPending || (hideLoginButton && !data)) {
+    return <span className="inline-block w-8 h-8 rounded-full bg-border animate-pulse" />;
   }
 
   return (
