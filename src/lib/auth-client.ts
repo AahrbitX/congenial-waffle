@@ -34,12 +34,12 @@ export const { useSession, signIn, signOut, signUp } = authClient;
 export function waitForSession(): Promise<any | null> {
   return new Promise((resolve) => {
     let settled = false;
-    let timeout: ReturnType<typeof setTimeout>;
+    const handle: { timeout?: ReturnType<typeof setTimeout> } = {};
 
     const finish = (data: any) => {
       if (settled) return;
       settled = true;
-      clearTimeout(timeout);
+      clearTimeout(handle.timeout);
       unsubscribe();
       resolve(data);
     };
@@ -61,6 +61,6 @@ export function waitForSession(): Promise<any | null> {
     );
 
     // 5s safety timeout so login never hangs
-    timeout = setTimeout(() => finish(null), 5000);
+    handle.timeout = setTimeout(() => finish(null), 5000);
   });
 }

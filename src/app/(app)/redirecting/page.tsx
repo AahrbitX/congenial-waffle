@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ASSETS } from "@/constants/assets";
 
-export default function RedirectingPage() {
+function RedirectingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const to = searchParams.get("to") ?? "/dashboard/overview";
@@ -54,5 +54,13 @@ export default function RedirectingPage() {
         </motion.div>
       </motion.div>
     </div>
+  );
+}
+
+export default function RedirectingPage() {
+  return (
+    <Suspense>
+      <RedirectingContent />
+    </Suspense>
   );
 }

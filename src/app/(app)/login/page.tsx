@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import Image from "next/image";
 import { Card, Surface, Tabs } from "@heroui/react";
 import PhoneLoginForm from "./phoneLoginForm";
@@ -58,10 +58,14 @@ export default function LoginPage() {
                 </Tabs.List>
               </Tabs.ListContainer>
               <Tabs.Panel className="pt-4 h-full" id="otp">
-                <PhoneLoginForm />
+                <Suspense>
+                  <PhoneLoginForm />
+                </Suspense>
               </Tabs.Panel>
               <Tabs.Panel className="pt-4" id="password">
-                <PasswordLoginForm />
+                <Suspense>
+                  <PasswordLoginForm />
+                </Suspense>
               </Tabs.Panel>
             </Tabs>
           </div>

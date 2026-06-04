@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input, Label } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
-import { authClient, waitForSession } from "@/lib/auth-client";
+import { waitForSession } from "@/lib/auth-client";
 
 export default function PasswordLoginForm() {
   const [phoneNumber, setPhoneNumber] = useState("");
