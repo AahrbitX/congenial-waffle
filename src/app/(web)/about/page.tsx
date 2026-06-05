@@ -130,55 +130,52 @@ const VALUES = [
 
 function HeroSection() {
   return (
-    <section className="min-h-screen flex flex-col justify-between px-8 sm:px-16 pt-36 pb-12 bg-white overflow-hidden relative">
-      <div className="absolute top-0 right-0 w-[55vw] h-full bg-[#f5f7ff] rounded-bl-[80px] -z-0" />
-      <div className="absolute top-24 right-16 w-72 h-72 rounded-full bg-blue-500/5 blur-3xl" />
+    <section className="bg-white">
+      {/* Text content with split background — full width so right-0 hits viewport edge */}
+      <div className="relative overflow-hidden pt-28 sm:pt-36 pb-12 sm:pb-16">
+        <div className="absolute top-0 right-0 w-[50vw] h-full bg-[#f5f7ff] rounded-bl-[80px] -z-0" />
 
-      <div className="relative z-10 flex items-center justify-between">
-        <span className="text-[11px] font-bold tracking-[0.2em] text-blue-500 uppercase">
-          001 / mohan Cabs
-        </span>
-        <Link
-          href="/book"
-          className="hidden sm:inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-blue-500 transition-colors group"
-        >
-          Book a ride{" "}
-          <ArrowRight
-            size={14}
-            className="group-hover:translate-x-1 transition-transform"
-          />
-        </Link>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-16">
+          {/* Tag */}
+          <span className="text-[11px] font-bold tracking-[0.2em] text-blue-500 uppercase">
+            About Us
+          </span>
+
+          {/* Heading */}
+          <h1 className="text-[clamp(2.4rem,6vw,5.5rem)] font-black leading-[1.05] tracking-tight text-[#0f0f0f] mt-4 max-w-2xl">
+            Your ride,{" "}
+            <span className="text-blue-500 italic">your rules.</span>
+            <br />
+            Our promise.
+          </h1>
+
+          {/* Paragraph */}
+          <p className="text-gray-400 text-[15px] mt-5 max-w-lg leading-relaxed">
+            Headquartered in Trivandrum, Kerala — trusted across the state since
+            2005. Over two decades of punctual, safe, and honest cab service.
+          </p>
+
+          {/* CTA */}
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 mt-8 text-sm font-bold text-blue-500 border border-blue-200 rounded-full px-5 py-2.5 hover:bg-blue-50 transition-colors group"
+          >
+            Book a ride
+            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
       </div>
 
-      <div className="relative z-10 max-w-5xl mt-16 sm:mt-0">
-        <p className="text-sm font-medium text-gray-400 mb-6 tracking-wide">
-          Headquartered in Trivandrum, Kerala — trusted across the state since
-          2005.
-        </p>
-        <h1 className="text-[clamp(3rem,8vw,7rem)] font-black leading-[1.05] tracking-tight text-[#0f0f0f]">
-          Your ride, <br />
-          <span className="text-blue-500 italic">your rules.</span>
-          <br />
-          Our promise.
-        </h1>
-      </div>
-
-      <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-6 border-t border-gray-100 pt-10 mt-10">
+      {/* Stats — clean white, no background overlap */}
+      <div className="max-w-7xl mx-auto px-6 sm:px-16 grid grid-cols-2 sm:grid-cols-4 gap-6 border-t border-gray-100 py-10">
         {STATS.map(({ value, label }) => (
           <div key={label}>
-            <p className="text-4xl font-black text-[#0f0f0f] tracking-tight">
+            <p className="text-3xl sm:text-4xl font-black text-[#0f0f0f] tracking-tight">
               {value}
             </p>
             <p className="text-sm text-gray-400 font-medium mt-1">{label}</p>
           </div>
         ))}
-      </div>
-
-      <div className="absolute bottom-10 right-10 hidden sm:flex flex-col items-center gap-2 opacity-40">
-        <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-gray-500 [writing-mode:vertical-rl]">
-          Scroll
-        </span>
-        <div className="w-px h-16 bg-gray-400" />
       </div>
     </section>
   );
@@ -203,7 +200,7 @@ function TimelineItem({
   const isLeft = side === "left";
 
   const Card = (
-    <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm max-w-sm w-full">
+    <div className="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6 shadow-sm sm:max-w-sm w-full">
       <p className="text-xs font-bold text-blue-500 tracking-widest mb-2 uppercase">
         {year}
       </p>
@@ -215,20 +212,23 @@ function TimelineItem({
   return (
     <div
       ref={ref}
-      className={`relative grid grid-cols-[1fr_32px_1fr] gap-x-6 items-center py-6 transition-all duration-700 ease-out
+      className={`relative grid grid-cols-[32px_1fr] sm:grid-cols-[1fr_32px_1fr] gap-x-4 sm:gap-x-6 items-center py-4 sm:py-6 transition-all duration-700 ease-out
         ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       style={{ transitionDelay: `${index * 100}ms` }}
     >
-      {/* Left slot */}
-      <div className="flex justify-end">{isLeft ? Card : null}</div>
+      {/* Left slot — desktop only */}
+      <div className="hidden sm:flex justify-end">{isLeft ? Card : null}</div>
 
-      {/* Center dot — sits on top of the continuous line */}
-      <div className="flex justify-center">
+      {/* Center dot */}
+      <div className="flex justify-center items-center">
         <div className="w-4 h-4 rounded-full bg-blue-500 border-4 border-[#f8f9fe] shadow z-10 shrink-0" />
       </div>
 
-      {/* Right slot */}
-      <div className="flex justify-start">{!isLeft ? Card : null}</div>
+      {/* Right slot — always on mobile, right-side only on desktop */}
+      <div className="flex justify-start">
+        <div className="sm:hidden w-full">{Card}</div>
+        <div className="hidden sm:block">{!isLeft ? Card : null}</div>
+      </div>
     </div>
   );
 }
@@ -259,14 +259,14 @@ function TimelineSection() {
   }, []);
 
   return (
-    <section className="py-24 px-8 sm:px-16 bg-[#f8f9fe]">
+    <section className="py-16 sm:py-24 px-6 sm:px-16 bg-[#f8f9fe]">
       <div className="max-w-5xl mx-auto">
         <div
           ref={headRef}
-          className={`text-center mb-16 transition-all duration-700 ${headIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+          className={`text-center mb-12 sm:mb-16 transition-all duration-700 ${headIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
         >
           <span className="text-[11px] font-bold tracking-[0.2em] text-blue-500 uppercase">
-            002 / Our Journey
+            Our Journey
           </span>
           <h2 className="text-[clamp(2rem,4vw,3rem)] font-black tracking-tight text-[#0f0f0f] mt-3">
             Two decades, one road.
@@ -280,10 +280,10 @@ function TimelineSection() {
         {/* Timeline with scroll-driven line */}
         <div ref={containerRef} className="relative">
           {/* Track (background) */}
-          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-blue-100 -translate-x-1/2" />
+          <div className="absolute left-4 sm:left-1/2 top-0 bottom-0 w-px bg-blue-100 sm:-translate-x-1/2" />
           {/* Animated fill line */}
           <div
-            className="absolute left-1/2 top-0 w-0.5 bg-blue-500 -translate-x-1/2 origin-top transition-none"
+            className="absolute left-4 sm:left-1/2 top-0 w-0.5 bg-blue-500 sm:-translate-x-1/2 origin-top transition-none"
             style={{ height: `${lineHeight}%` }}
           />
           {TIMELINE.map((item, i) => (
@@ -350,18 +350,21 @@ function TestimonialsSection() {
   const { ref: headRef, inView: headIn } = useInView(0.2);
 
   return (
-    <section className="py-24 px-8 sm:px-16 bg-white">
+    <section className="py-16 sm:py-24 px-6 sm:px-16 bg-white">
       <div className="max-w-7xl mx-auto">
         <div
           ref={headRef}
-          className={`mb-14 transition-all duration-700 ${headIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+          className={`mb-10 sm:mb-14 transition-all duration-700 ${headIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
         >
           <span className="text-[11px] font-bold tracking-[0.2em] text-blue-500 uppercase">
-            003 / Reviews
+            Reviews
           </span>
           <h2 className="text-[clamp(2rem,4vw,3rem)] font-black tracking-tight text-[#0f0f0f] mt-3">
             What our riders say.
           </h2>
+          <p className="text-gray-400 text-[15px] mt-3 max-w-lg leading-relaxed">
+            Real experiences from real people across Kerala — families, commuters, and frequent travellers.
+          </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {TESTIMONIALS.map((t, i) => (
@@ -414,18 +417,21 @@ function ValuesSection() {
   const { ref: headRef, inView: headIn } = useInView(0.2);
 
   return (
-    <section className="py-24 px-8 sm:px-16 bg-[#f8f9fe]">
+    <section className="py-16 sm:py-24 px-6 sm:px-16 bg-[#f8f9fe]">
       <div className="max-w-7xl mx-auto">
         <div
           ref={headRef}
-          className={`mb-14 transition-all duration-700 ${headIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+          className={`mb-10 sm:mb-14 transition-all duration-700 ${headIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
         >
           <span className="text-[11px] font-bold tracking-[0.2em] text-blue-500 uppercase">
-            004 / What We Stand For
+            What We Stand For
           </span>
           <h2 className="text-[clamp(2rem,4vw,3rem)] font-black tracking-tight text-[#0f0f0f] mt-3">
             Built on four pillars.
           </h2>
+          <p className="text-gray-400 text-[15px] mt-3 max-w-lg leading-relaxed">
+            The values that have guided every ride, every driver, and every decision since day one.
+          </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {VALUES.map(({ Icon, title, desc }, i) => (
@@ -447,13 +453,13 @@ function ValuesSection() {
 
 function CtaSection() {
   return (
-    <section className="py-24 px-8 sm:px-16 bg-blue-500">
+    <section className="py-16 sm:py-24 px-6 sm:px-16 bg-blue-500">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8">
-        <h2 className="text-[clamp(2rem,5vw,4rem)] font-black text-white leading-tight tracking-tight max-w-xl">
+        <h2 className="text-[clamp(1.8rem,5vw,4rem)] font-black text-white leading-tight tracking-tight max-w-xl">
           Ready to experience the difference?
         </h2>
         <Link
-          href="/book"
+          href="/"
           className="inline-flex items-center gap-3 bg-white text-blue-500 font-extrabold text-[15px] px-8 py-4 rounded-full hover:bg-blue-50 transition-colors group shrink-0"
         >
           Book Your Ride

@@ -1,11 +1,14 @@
 "use client";
 
+import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { useDashboard } from "@/context/DashboardContext";
 import { useNotifications } from "@/hooks/useNotifications";
 import { greeting } from "@/lib/dashboard/helpers";
 import { ROUTES } from "@/constants/routes";
+import { ASSETS } from "@/constants/assets";
 import { IconBell } from "@/constants/icons";
 import { Button } from "@heroui/react";
 
@@ -52,11 +55,23 @@ export function DashboardHeader() {
 
   return (
     <div className="flex items-center justify-between mb-2">
-      <div>
-        <h1 className="text-xl md:text-2xl font-bold">{meta.title}</h1>
-        {meta.subFn && (
-          <p className="text-sm text-muted">{meta.subFn(firstName)}</p>
-        )}
+      <div className="flex items-center gap-3">
+        {/* Logo — mobile only */}
+        <Link href="/" className="lg:hidden shrink-0 hover:opacity-80 transition-opacity">
+          <Image
+            src={ASSETS.logos.minimal.src}
+            alt={ASSETS.logos.minimal.alt}
+            width={32}
+            height={32}
+            className="w-8 h-8 object-contain"
+          />
+        </Link>
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold">{meta.title}</h1>
+          {meta.subFn && (
+            <p className="text-sm text-muted">{meta.subFn(firstName)}</p>
+          )}
+        </div>
       </div>
       <Button
         isIconOnly

@@ -59,19 +59,16 @@ export function Sidebar() {
       <aside className="hidden lg:flex w-[250px] shrink-0 border-r border-border bg-surface min-h-screen sticky top-0 h-screen flex-col">
         {/* Logo */}
         <div className="border-b border-border px-6 py-5">
-          <div className="flex items-center gap-2">
-            <div className="">
-              <Image
-                src={ASSETS.logos.minimal.src}
-                alt={ASSETS.logos.minimal.alt}
-                width={24}
-                height={24}
-                className="w-10 h-6 rounded-full"
-              />
-            </div>
-
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <Image
+              src={ASSETS.logos.minimal.src}
+              alt={ASSETS.logos.minimal.alt}
+              width={24}
+              height={24}
+              className="w-10 h-6 rounded-full"
+            />
             <p className="text-base font-bold">Mohan Cabs</p>
-          </div>
+          </Link>
         </div>
 
         {/* Navigation */}

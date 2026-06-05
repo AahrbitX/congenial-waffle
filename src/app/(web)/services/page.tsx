@@ -34,7 +34,7 @@ export default function ServicesPage() {
           </h2>
           <div className="flex flex-col gap-3 shrink-0">
             <Link
-              href="/book"
+              href="/"
               className="inline-flex items-center gap-2 bg-white text-blue-500 font-extrabold text-[15px] px-8 py-4 rounded-full hover:bg-blue-50 transition-colors group"
             >
               Book a Ride

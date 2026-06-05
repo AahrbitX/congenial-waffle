@@ -53,38 +53,40 @@ export function ServiceDetail({ slug }: ServiceDetailProps) {
   return (
     <main className="w-full">
       {/* Hero */}
-      <section className="pt-36 pb-20 px-8 sm:px-16 bg-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[50vw] h-full bg-[#f5f7ff] rounded-bl-[80px] -z-0" />
-        <div className="relative z-10 mx-20">
-          <Link
-            href="/services"
-            className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-gray-400 hover:text-blue-500 transition-colors mb-8"
-          >
-            <ArrowLeft size={13} /> All Services
-          </Link>
+      <section className="bg-white">
+        <div className="relative overflow-hidden pt-28 sm:pt-36 pb-12 sm:pb-20">
+          <div className="absolute top-0 right-0 w-[50vw] h-full bg-[#f5f7ff] rounded-bl-[80px] -z-0" />
+          <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-16">
+            <Link
+              href="/services"
+              className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-gray-400 hover:text-blue-500 transition-colors mb-8"
+            >
+              <ArrowLeft size={13} /> All Services
+            </Link>
 
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center">
-              <Icon size={28} className="text-blue-500" />
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0">
+                <Icon size={26} className="text-blue-500" />
+              </div>
+              {service.badge && (
+                <span className="text-[11px] font-bold tracking-wide text-blue-500 bg-blue-50 px-3 py-1.5 rounded-full">
+                  {service.badge}
+                </span>
+              )}
             </div>
-            {service.badge && (
-              <span className="text-[11px] font-bold tracking-wide text-blue-500 bg-blue-50 px-3 py-1.5 rounded-full">
-                {service.badge}
-              </span>
-            )}
-          </div>
 
-          <h1 className="text-[clamp(2.5rem,6vw,4rem)] font-black leading-[1.05] tracking-tight text-[#0f0f0f] mb-3">
-            {service.name}
-          </h1>
-          <p className="text-gray-400 text-[15px] mb-6 leading-relaxed max-w-xl">{service.tagline}</p>
-          <p className="text-gray-600 text-[16px] leading-relaxed max-w-xl">{service.description}</p>
+            <h1 className="text-[clamp(2.2rem,6vw,4rem)] font-black leading-[1.05] tracking-tight text-[#0f0f0f] mb-3">
+              {service.name}
+            </h1>
+            <p className="text-blue-500 text-[15px] mb-5 leading-relaxed max-w-xl font-medium">{service.tagline}</p>
+            <p className="text-gray-600 text-[15px] leading-relaxed max-w-xl">{service.description}</p>
+          </div>
         </div>
       </section>
 
       {/* Details grid */}
-      <section className="py-20 px-8 sm:px-16 bg-[#f8f9fe]">
-        <div className="mx-20 grid grid-cols-1 md:grid-cols-2 gap-8">
+      <section className="py-12 sm:py-20 px-6 sm:px-16 bg-[#f8f9fe]">
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Features */}
           <div>
             <p className="text-[11px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-5">What&apos;s Included</p>
@@ -134,6 +136,7 @@ export function ServiceDetail({ slug }: ServiceDetailProps) {
           </div>
         </div>
       </section>
+
     </main>
   );
 }
