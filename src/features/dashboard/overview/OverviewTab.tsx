@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { SlidersHorizontal, Check } from "lucide-react";
 
 import { useRides } from "@/hooks/useRides";
-import { authClient } from "@/lib/auth-client";
+
 import { useUserStats } from "@/hooks/useUser";
 import { StatCard } from "@/components/ui/StatCard";
 import { useDashboard } from "@/context/DashboardContext";
@@ -19,13 +20,9 @@ import {
   IconStar,
   IconPlus,
   IconArrowLeftRight,
-  IconCopy,
-  IconEye,
   IconSearch,
-  IconTicket,
 } from "@/constants/icons";
 import {
-  Avatar,
   Button,
   Card,
   Chip,
@@ -43,8 +40,6 @@ import { OverviewSkeleton } from "./OverviewTabSkeleton";
 // ─── OverviewTab ──────────────────────────────────────────────────────────────
 
 export function OverviewTab() {
-  const { data: session } = authClient.useSession();
-  const user = session?.user;
 
   const PAGE_SIZE = 8;
 
@@ -52,11 +47,24 @@ export function OverviewTab() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!filterOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setFilterOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [filterOpen]);
 
   // tanstack query hooks
   const { data: rides = [], isLoading: ridesLoading } = useRides();
   const { data: stats, isLoading: statsLoading } = useUserStats();
-  const { openRatingModal, openTicketModal } = useDashboard();
+  const { openRatingModal } = useDashboard();
 
   // Ongoing ride takes priority — driver has started the trip
   const ongoingRide = rides.find((r) => r.status === "ongoing") ?? null;
@@ -204,16 +212,54 @@ export function OverviewTab() {
       <Card className="mb-2 flex flex-col">
         {/* Toolbar — sticky header */}
         <div className="shrink-0 flex flex-col gap-3 border-b border-[var(--color-border)] pb-3">
-          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3">
+          {/* Mobile toolbar: search + filter icon */}
+          <div className="flex sm:hidden items-center gap-2">
             <Input
               variant="secondary"
               placeholder="Search rides..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full sm:w-56"
+              className="flex-1"
+            />
+            {/* Custom filter dropdown */}
+            <div ref={filterRef} className="relative shrink-0">
+              <button
+                onClick={() => setFilterOpen((o) => !o)}
+                className={`relative flex items-center justify-center h-10 w-10 rounded-xl border transition-colors ${statusFilter !== "all" ? "border-[var(--color-primary)] bg-[var(--color-primary-light)] text-primary" : "border-[var(--color-border)] bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)]"}`}
+              >
+                <SlidersHorizontal size={16} />
+                {statusFilter !== "all" && (
+                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-[var(--color-primary)]" />
+                )}
+              </button>
+              {filterOpen && (
+                <div className="absolute right-0 top-12 z-50 min-w-[140px] rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl overflow-hidden py-1">
+                  {(["all", "ongoing", "completed", "cancelled"] as const).map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() => { setStatusFilter(opt); setFilterOpen(false); }}
+                      className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--color-surface-muted)] ${statusFilter === opt ? "text-[var(--color-primary)]" : "text-[var(--color-text-primary)]"}`}
+                    >
+                      {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                      {statusFilter === opt && <Check size={14} />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Desktop toolbar: search + tabs (unchanged) */}
+          <div className="hidden sm:flex sm:flex-wrap sm:items-center sm:justify-between gap-3">
+            <Input
+              variant="secondary"
+              placeholder="Search rides..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-56"
             />
             <Tabs onSelectionChange={(key) => setStatusFilter(String(key))}>
-              <Tabs.ListContainer className="w-full text-sm overflow-x-scroll scrollbar-hide">
+              <Tabs.ListContainer className="text-sm">
                 <Tabs.List aria-label="Filter by status">
                   <Tabs.Tab id="all">All<Tabs.Indicator /></Tabs.Tab>
                   <Tabs.Tab id="ongoing">Ongoing<Tabs.Indicator /></Tabs.Tab>
@@ -274,11 +320,12 @@ export function OverviewTab() {
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-bold text-primary">#{ride.bookingRef}</span>
+                    <span className="text-xs font-bold text-primary truncate min-w-0">#{ride.bookingRef}</span>
                     <Chip
                       color={STATUS_COLOR[ride.status as keyof typeof STATUS_COLOR] ?? "warning"}
                       size="sm"
                       variant="soft"
+                      className="shrink-0"
                     >
                       {ride.status.charAt(0).toUpperCase() + ride.status.slice(1)}
                     </Chip>

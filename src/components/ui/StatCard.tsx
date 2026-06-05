@@ -19,14 +19,14 @@ export function StatCard({
   return (
     <Card className="flex items-start gap-4 flex-row">
       <div
-        className={`size-11 rounded-2xl flex items-center justify-center shrink-0 ${colorClass}`}
+        className={`size-9 sm:size-11 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 ${colorClass}`}
       >
-        <Icon size={20} />
+        <Icon size={17} />
       </div>
       <div>
-        <p className="text-xs text-muted ">{label}</p>
-        <p className="text-xl font-bold leading-tight">{value}</p>
-        {sub && <p className="text-sm text-muted mt-0.5">{sub}</p>}
+        <p className="text-xs text-muted">{label}</p>
+        <p className="text-base sm:text-xl font-bold leading-tight">{value}</p>
+        {sub && <p className="text-xs sm:text-sm text-muted mt-0.5">{sub}</p>}
       </div>
     </Card>
   );

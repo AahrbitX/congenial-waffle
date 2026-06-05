@@ -55,21 +55,21 @@ export function DashboardHeader() {
 
   return (
     <div className="flex items-center justify-between mb-2">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         {/* Logo — mobile only */}
         <Link href="/" className="lg:hidden shrink-0 hover:opacity-80 transition-opacity">
           <Image
             src={ASSETS.logos.minimal.src}
             alt={ASSETS.logos.minimal.alt}
-            width={32}
-            height={32}
-            className="w-8 h-8 object-contain"
+            width={28}
+            height={28}
+            className="w-7 h-7 object-contain"
           />
         </Link>
         <div>
-          <h1 className="text-xl md:text-2xl font-bold">{meta.title}</h1>
+          <h1 className="text-lg font-bold leading-tight">{meta.title}</h1>
           {meta.subFn && (
-            <p className="text-sm text-muted">{meta.subFn(firstName)}</p>
+            <p className="hidden sm:block text-xs text-muted leading-tight">{meta.subFn(firstName)}</p>
           )}
         </div>
       </div>

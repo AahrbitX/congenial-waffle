@@ -21,6 +21,7 @@ import {
   IconLock,
 } from "@/constants/icons";
 import { Edit, Save } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { PasswordModal } from "./PasswordModal";
 import { request } from "@/lib/api-client";
 
@@ -88,6 +89,20 @@ export function ProfileMain() {
 
   const [showSignOut, setShowSignOut] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile || !showSignOut) return;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, [isMobile, showSignOut]);
 
   const phone = (user as any)?.phoneNumber ?? "";
 
@@ -319,45 +334,76 @@ export function ProfileMain() {
       </div>
 
       {/* Sign-out confirm */}
-      {showSignOut && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-[var(--color-surface)] rounded-3xl shadow-2xl w-full max-w-sm p-6 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-[var(--color-danger-light)] flex items-center justify-center mx-auto">
-              <IconLogOut size={28} className="text-[var(--color-danger)]" />
-            </div>
-            <p className="text-[18px] font-black text-primary">Sign out?</p>
-            <p className="text-[13px] text-muted leading-relaxed">
-              You&apos;ll need to log in again with your phone number to access
-              your account.
-            </p>
-            <div className="flex gap-3 pt-2">
-              <Button
-                onPress={() => setShowSignOut(false)}
-                className="flex-1 rounded-xl font-semibold border border-[var(--color-border-strong)] text-[var(--color-text-secondary)]"
-              >
-                Cancel
-              </Button>
-              <Button
-                onPress={() => {
-                  setShowSignOut(false);
-                  authClient.signOut({
-                    fetchOptions: {
-                      onSuccess: () => {
-                        queryClient.clear();
-                        router.push("/");
-                        router.refresh();
-                      },
-                    },
-                  });
-                }}
-                className="flex-1 rounded-xl font-bold bg-[var(--color-danger)] text-white"
-              >
-                Yes, Sign Out
-              </Button>
-            </div>
+      <AnimatePresence>
+        {showSignOut && (
+          <div
+            className={`fixed inset-0 z-50 flex ${isMobile ? "items-end" : "items-center justify-center p-4 bg-black/40 backdrop-blur-sm"}`}
+            onClick={isMobile ? () => setShowSignOut(false) : undefined}
+          >
+            {isMobile && (
+              <motion.div
+                key="bd"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              />
+            )}
+            <motion.div
+              initial={isMobile ? { y: "100%" } : { opacity: 0, scale: 0.95 }}
+              animate={isMobile ? { y: 0 } : { opacity: 1, scale: 1 }}
+              exit={isMobile ? { y: "100%" } : { opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", damping: 28, stiffness: 280 }}
+              onClick={(e) => e.stopPropagation()}
+              className={isMobile
+                ? "relative w-full rounded-t-3xl bg-[var(--color-surface)] shadow-2xl px-5 pb-8 pt-2"
+                : "bg-[var(--color-surface)] rounded-3xl shadow-2xl w-full max-w-sm p-6"
+              }
+            >
+              {isMobile && (
+                <div className="flex justify-center py-3">
+                  <div className="h-1 w-12 rounded-full bg-gray-300" />
+                </div>
+              )}
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-[var(--color-danger-light)] flex items-center justify-center mx-auto">
+                  <IconLogOut size={28} className="text-[var(--color-danger)]" />
+                </div>
+                <p className="text-[18px] font-black text-primary">Sign out?</p>
+                <p className="text-[13px] text-muted leading-relaxed">
+                  You&apos;ll need to log in again with your phone number to access
+                  your account.
+                </p>
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    onPress={() => setShowSignOut(false)}
+                    className="flex-1 rounded-xl font-semibold border border-[var(--color-border-strong)] text-white"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onPress={() => {
+                      setShowSignOut(false);
+                      authClient.signOut({
+                        fetchOptions: {
+                          onSuccess: () => {
+                            queryClient.clear();
+                            router.push("/");
+                            router.refresh();
+                          },
+                        },
+                      });
+                    }}
+                    className="flex-1 rounded-xl font-bold bg-[var(--color-danger)] text-white"
+                  >
+                    Yes, Sign Out
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       <PasswordModal
         isOpen={showPasswordModal}
