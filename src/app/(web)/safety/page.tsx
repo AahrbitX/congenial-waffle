@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Safety",
+  description:
+    "Your safety is our top priority. Learn about Mohan Cabs' driver verification, vehicle checks, trip monitoring, emergency assistance and women's safety features.",
+  alternates: { canonical: "/safety" },
+};
 
 const SECTIONS = [
   {

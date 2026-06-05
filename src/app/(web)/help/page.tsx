@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Help Center",
+  description:
+    "Find answers to common questions about booking a cab, payments, refunds, account management and more on the Mohan Cabs help center.",
+  alternates: { canonical: "/help" },
+};
 
 const SECTIONS = [
   {

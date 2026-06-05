@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Terms & Conditions",
+  description:
+    "Read the terms and conditions governing the use of Mohan Cabs — booking policies, payment, cancellations, driver conduct and more.",
+  alternates: { canonical: "/terms" },
+};
 
 const SECTIONS = [
   {

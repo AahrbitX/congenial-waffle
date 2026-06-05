@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description:
+    "Read Mohan Cabs' privacy policy — how we collect, use and protect your personal information.",
+  alternates: { canonical: "/privacy" },
+};
 
 const SECTIONS = [
   {

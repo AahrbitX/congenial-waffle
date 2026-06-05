@@ -1,6 +1,20 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ServicesList } from "@/features/web/services/ServicesList";
+
+export const metadata: Metadata = {
+  title: "Our Services",
+  description:
+    "Explore Mohan Cabs' full range of services — city taxi, outstation, airport transfers, car rental, wedding cars, corporate travel & more. Transparent fares for every journey.",
+  openGraph: {
+    title: "Our Services | Mohan Cabs",
+    description:
+      "City taxi, outstation, airport transfers, car rental & more. Transparent fares, verified drivers across Trivandrum and Kerala.",
+    url: "/services",
+  },
+  alternates: { canonical: "/services" },
+};
 
 export default function ServicesPage() {
   return (
