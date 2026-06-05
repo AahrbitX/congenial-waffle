@@ -25,7 +25,6 @@ import {
 import UserDropdown from "./userDropdown";
 import { usePathname } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
 import { ASSETS } from "@/constants/assets";
 
@@ -242,7 +241,6 @@ export default function LandingNavbar() {
   const pathName = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = authClient.useSession();
-  const { requireAuth } = useAuth();
 
   return (
     <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-7xl">
@@ -385,16 +383,14 @@ export default function LandingNavbar() {
               </Link>
             </div>
           ) : (
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                requireAuth(() => {});
-              }}
+            <Link
+              href="/login"
+              onClick={() => setIsOpen(false)}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl bg-primary text-white hover:bg-primary-hover transition-colors"
             >
               <LogIn size={16} />
               Login / Sign Up
-            </button>
+            </Link>
           )}
         </div>
       )}

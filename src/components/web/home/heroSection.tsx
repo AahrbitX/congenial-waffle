@@ -414,5 +414,6 @@ function HeroSectionImpl() {
   );
 }
 
-const HeroSection = dynamic(() => Promise.resolve({ default: HeroSectionImpl }), { ssr: false });
-export { HeroSection };
+// HeroSection is SSR-safe (no direct window/document access outside useEffect).
+// LocationInput inside already handles its own ssr:false for mapbox.
+export { HeroSectionImpl as HeroSection };
