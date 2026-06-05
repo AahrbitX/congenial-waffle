@@ -67,6 +67,7 @@ function HeroSectionImpl() {
   const [date,       setDate]       = useState<CalendarDate | null>(null);
   const [time,       setTime]       = useState<Time | null>(null);
   const [returnDate, setReturnDate] = useState<CalendarDate | null>(null);
+  const [returnTime, setReturnTime] = useState<Time | null>(null);
 
   const { openBooking } = useBooking();
   const { requireAuth } = useAuth();
@@ -75,6 +76,7 @@ function HeroSectionImpl() {
     setServiceTab(tab);
     setTripTab("oneway");
     setReturnDate(null);
+    setReturnTime(null);
     setDirection("to");
   }
 
@@ -406,42 +408,62 @@ function HeroSectionImpl() {
                     >
                       <div>
                         <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-muted">
-                          Return Date
+                          Return Date &amp; Time
                         </p>
-                        <DatePicker value={returnDate} onChange={setReturnDate} aria-label="Return date" className="w-full">
-                          <DateField.Group
-                            fullWidth
-                            className="rounded-xl border border-[var(--color-border)] bg-[var(--background)] shadow-none"
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <DatePicker value={returnDate} onChange={setReturnDate} aria-label="Return date" className="w-full">
+                            <DateField.Group
+                              fullWidth
+                              className="rounded-xl border border-[var(--color-border)] bg-[var(--background)] shadow-none"
+                            >
+                              <DateField.Input className="text-[13px]">
+                                {(segment) => <DateField.Segment segment={segment} />}
+                              </DateField.Input>
+                              <DateField.Suffix>
+                                <DatePicker.Trigger>
+                                  <DatePicker.TriggerIndicator />
+                                </DatePicker.Trigger>
+                              </DateField.Suffix>
+                            </DateField.Group>
+                            <DatePicker.Popover>
+                              <Dialog>
+                                <Calendar>
+                                  <Calendar.Header>
+                                    <Calendar.NavButton slot="previous" />
+                                    <Calendar.Heading />
+                                    <Calendar.NavButton slot="next" />
+                                  </Calendar.Header>
+                                  <Calendar.Grid>
+                                    <Calendar.GridHeader>
+                                      {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
+                                    </Calendar.GridHeader>
+                                    <Calendar.GridBody>
+                                      {(d) => <Calendar.Cell date={d} />}
+                                    </Calendar.GridBody>
+                                  </Calendar.Grid>
+                                </Calendar>
+                              </Dialog>
+                            </DatePicker.Popover>
+                          </DatePicker>
+
+                          <TimeField
+                            value={returnTime}
+                            onChange={setReturnTime}
+                            aria-label="Return time"
+                            className="w-full"
                           >
-                            <DateField.Input className="text-[13px]">
-                              {(segment) => <DateField.Segment segment={segment} />}
-                            </DateField.Input>
-                            <DateField.Suffix>
-                              <DatePicker.Trigger>
-                                <DatePicker.TriggerIndicator />
-                              </DatePicker.Trigger>
-                            </DateField.Suffix>
-                          </DateField.Group>
-                          <DatePicker.Popover>
-                            <Dialog>
-                              <Calendar>
-                                <Calendar.Header>
-                                  <Calendar.NavButton slot="previous" />
-                                  <Calendar.Heading />
-                                  <Calendar.NavButton slot="next" />
-                                </Calendar.Header>
-                                <Calendar.Grid>
-                                  <Calendar.GridHeader>
-                                    {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
-                                  </Calendar.GridHeader>
-                                  <Calendar.GridBody>
-                                    {(d) => <Calendar.Cell date={d} />}
-                                  </Calendar.GridBody>
-                                </Calendar.Grid>
-                              </Calendar>
-                            </Dialog>
-                          </DatePicker.Popover>
-                        </DatePicker>
+                            <TimeField.Input
+                              className="h-9 w-full flex items-center gap-px cursor-text rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 text-[13px] outline-none"
+                            >
+                              {(segment) => (
+                                <TimeField.Segment
+                                  segment={segment}
+                                  className="date-input-group__segment"
+                                />
+                              )}
+                            </TimeField.Input>
+                          </TimeField>
+                        </div>
                       </div>
                     </motion.div>
                   )}
@@ -459,6 +481,9 @@ function HeroSectionImpl() {
                     time:        time?.toString(),
                     returnDate:  serviceTab !== "airport" && tripTab === "roundtrip"
                                    ? returnDate?.toString()
+                                   : undefined,
+                    returnTime:  serviceTab !== "airport" && tripTab === "roundtrip"
+                                   ? returnTime?.toString()
                                    : undefined,
                   })}
                   className="mt-1 h-12 w-full rounded-xl bg-[var(--color-primary)] text-[15px] font-bold text-[var(--color-text-inverted)] hover:bg-[var(--color-primary-hover)]"

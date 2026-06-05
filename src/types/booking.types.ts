@@ -16,6 +16,7 @@ export interface BookingInitialData {
   date?: string;
   time?: string;
   returnDate?: string;
+  returnTime?: string;
 }
 
 export interface VehicleFare {
