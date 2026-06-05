@@ -338,7 +338,7 @@ export function TransactionsTab() {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 px-4 py-4 sm:px-6">
       {/* Pending Payments */}
       <Card className="">
         <Card.Header className="flex flex-row items-center justify-between">

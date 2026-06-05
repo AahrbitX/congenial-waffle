@@ -4,16 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeftRight, ArrowRight, MapPin, Plane, RotateCcw } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import type { CalendarDate, Time } from "@internationalized/date";
-
-import { Dialog } from "react-aria-components";
-import {
-  Button,
-  Calendar,
-  DateField,
-  DatePicker,
-  TimeField,
-} from "@heroui/react";
+import { Button } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
 import { useBooking } from "@/context/BookingContext";
 import type { ServiceTab, TripTab } from "@/types/booking.types";
@@ -64,10 +55,10 @@ function HeroSectionImpl() {
   const [direction,      setDirection]      = useState<"to" | "from">("to");
   const [pickup,     setPickup]     = useState("");
   const [destination, setDestination] = useState("");
-  const [date,       setDate]       = useState<CalendarDate | null>(null);
-  const [time,       setTime]       = useState<Time | null>(null);
-  const [returnDate, setReturnDate] = useState<CalendarDate | null>(null);
-  const [returnTime, setReturnTime] = useState<Time | null>(null);
+  const [date,       setDate]       = useState("");
+  const [time,       setTime]       = useState("");
+  const [returnDate, setReturnDate] = useState("");
+  const [returnTime, setReturnTime] = useState("");
 
   const { openBooking } = useBooking();
   const { requireAuth } = useAuth();
@@ -75,8 +66,8 @@ function HeroSectionImpl() {
   function switchService(tab: ServiceTab) {
     setServiceTab(tab);
     setTripTab("oneway");
-    setReturnDate(null);
-    setReturnTime(null);
+    setReturnDate("");
+    setReturnTime("");
     setDirection("to");
   }
 
@@ -256,7 +247,7 @@ function HeroSectionImpl() {
                     {TRIP_TABS.map(({ id, label, Icon }) => (
                       <button
                         key={id}
-                        onClick={() => { setTripTab(id); if (id === "oneway") setReturnDate(null); }}
+                        onClick={() => { setTripTab(id); if (id === "oneway") setReturnDate(""); }}
                         className="relative flex-1 rounded-full py-2 text-xs font-semibold z-0"
                       >
                         {tripTab === id && (
@@ -341,58 +332,18 @@ function HeroSectionImpl() {
                     {serviceTab === "airport" ? "Flight Date & Time" : "Journey Date & Time"}
                   </p>
                   <div className="grid grid-cols-2 gap-2.5">
-                    <DatePicker value={date} onChange={setDate} aria-label="Journey date" className="w-full">
-                      <DateField.Group
-                        fullWidth
-                        className="rounded-xl border border-[var(--color-border)] bg-[var(--background)] shadow-none"
-                      >
-                        <DateField.Input className="text-[13px]">
-                          {(segment) => <DateField.Segment segment={segment} />}
-                        </DateField.Input>
-                        <DateField.Suffix>
-                          <DatePicker.Trigger>
-                            <DatePicker.TriggerIndicator />
-                          </DatePicker.Trigger>
-                        </DateField.Suffix>
-                      </DateField.Group>
-                      <DatePicker.Popover>
-                        <Dialog>
-                          <Calendar>
-                            <Calendar.Header>
-                              <Calendar.NavButton slot="previous" />
-                              <Calendar.Heading />
-                              <Calendar.NavButton slot="next" />
-                            </Calendar.Header>
-                            <Calendar.Grid>
-                              <Calendar.GridHeader>
-                                {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
-                              </Calendar.GridHeader>
-                              <Calendar.GridBody>
-                                {(d) => <Calendar.Cell date={d} />}
-                              </Calendar.GridBody>
-                            </Calendar.Grid>
-                          </Calendar>
-                        </Dialog>
-                      </DatePicker.Popover>
-                    </DatePicker>
-
-                    <TimeField
+                    <input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 text-[13px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)]"
+                    />
+                    <input
+                      type="time"
                       value={time}
-                      onChange={setTime}
-                      aria-label="Journey time"
-                      className="w-full"
-                    >
-                      <TimeField.Input
-                        className="h-9 w-full flex items-center gap-px cursor-text rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 text-[13px] outline-none"
-                      >
-                        {(segment) => (
-                          <TimeField.Segment
-                            segment={segment}
-                            className="date-input-group__segment"
-                          />
-                        )}
-                      </TimeField.Input>
-                    </TimeField>
+                      onChange={(e) => setTime(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 text-[13px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)]"
+                    />
                   </div>
                 </div>
 
@@ -411,58 +362,18 @@ function HeroSectionImpl() {
                           Return Date &amp; Time
                         </p>
                         <div className="grid grid-cols-2 gap-2.5">
-                          <DatePicker value={returnDate} onChange={setReturnDate} aria-label="Return date" className="w-full">
-                            <DateField.Group
-                              fullWidth
-                              className="rounded-xl border border-[var(--color-border)] bg-[var(--background)] shadow-none"
-                            >
-                              <DateField.Input className="text-[13px]">
-                                {(segment) => <DateField.Segment segment={segment} />}
-                              </DateField.Input>
-                              <DateField.Suffix>
-                                <DatePicker.Trigger>
-                                  <DatePicker.TriggerIndicator />
-                                </DatePicker.Trigger>
-                              </DateField.Suffix>
-                            </DateField.Group>
-                            <DatePicker.Popover>
-                              <Dialog>
-                                <Calendar>
-                                  <Calendar.Header>
-                                    <Calendar.NavButton slot="previous" />
-                                    <Calendar.Heading />
-                                    <Calendar.NavButton slot="next" />
-                                  </Calendar.Header>
-                                  <Calendar.Grid>
-                                    <Calendar.GridHeader>
-                                      {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
-                                    </Calendar.GridHeader>
-                                    <Calendar.GridBody>
-                                      {(d) => <Calendar.Cell date={d} />}
-                                    </Calendar.GridBody>
-                                  </Calendar.Grid>
-                                </Calendar>
-                              </Dialog>
-                            </DatePicker.Popover>
-                          </DatePicker>
-
-                          <TimeField
+                          <input
+                            type="date"
+                            value={returnDate}
+                            onChange={(e) => setReturnDate(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 text-[13px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)]"
+                          />
+                          <input
+                            type="time"
                             value={returnTime}
-                            onChange={setReturnTime}
-                            aria-label="Return time"
-                            className="w-full"
-                          >
-                            <TimeField.Input
-                              className="h-9 w-full flex items-center gap-px cursor-text rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 text-[13px] outline-none"
-                            >
-                              {(segment) => (
-                                <TimeField.Segment
-                                  segment={segment}
-                                  className="date-input-group__segment"
-                                />
-                              )}
-                            </TimeField.Input>
-                          </TimeField>
+                            onChange={(e) => setReturnTime(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 text-[13px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)]"
+                          />
                         </div>
                       </div>
                     </motion.div>
@@ -477,13 +388,13 @@ function HeroSectionImpl() {
                     tripTab:     serviceTab !== "airport" ? tripTab : undefined,
                     pickup,
                     destination: serviceTab !== "airport" ? destination : undefined,
-                    date:        date?.toString(),
-                    time:        time?.toString(),
+                    date:        date || undefined,
+                    time:        time || undefined,
                     returnDate:  serviceTab !== "airport" && tripTab === "roundtrip"
-                                   ? returnDate?.toString()
+                                   ? returnDate || undefined
                                    : undefined,
                     returnTime:  serviceTab !== "airport" && tripTab === "roundtrip"
-                                   ? returnTime?.toString()
+                                   ? returnTime || undefined
                                    : undefined,
                   })}
                   className="mt-1 h-12 w-full rounded-xl bg-[var(--color-primary)] text-[15px] font-bold text-[var(--color-text-inverted)] hover:bg-[var(--color-primary-hover)]"

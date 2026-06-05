@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
@@ -199,6 +200,23 @@ export function BookRideModal({
   const [verifying, setVerifying] = useState(false);
   // Temporarily hides our modal while Razorpay checkout is active (removes focus trap)
   const [rzpActive, setRzpActive] = useState(false);
+
+  // Responsive: bottom sheet on mobile, centered dialog on desktop
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  // Lock background scroll when the mobile sheet is open
+  useEffect(() => {
+    if (!isMobile) return;
+    const shouldLock = (isOpen || confirmed || verifying) && !rzpActive;
+    document.body.style.overflow = shouldLock ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [isMobile, isOpen, confirmed, verifying, rzpActive]);
 
   // Re-seed when modal reopens with new data
   useEffect(() => {
@@ -518,17 +536,14 @@ export function BookRideModal({
         ? "Choose Vehicle"
         : "Confirm Booking";
 
-  return (
-    <Modal
-      isOpen={(isOpen || confirmed || verifying) && !rzpActive}
-      onOpenChange={(open) => {
-        if (!open) handleClose();
-      }}
-    >
-      <Modal.Backdrop isDismissable={false}>
-        <Modal.Container>
-          <Modal.Dialog>
-            <div className="w-full max-w-lg max-h-[90vh] flex flex-col">
+  const sheetContent = (
+    <div className={`w-full flex flex-col ${isMobile ? "max-h-[88svh]" : "max-w-lg max-h-[90vh]"}`}>
+      {/* Drag handle — mobile only */}
+      {isMobile && (
+        <div className="flex justify-center pt-4 pb-2 shrink-0">
+          <div className="h-1 w-12 rounded-full bg-gray-300" />
+        </div>
+      )}
               {/* ── Verifying payment loader ───────────────────────────── */}
               {verifying ? (
                 <div className="flex flex-col items-center justify-center py-14 px-8 gap-5 text-center">
@@ -614,7 +629,7 @@ export function BookRideModal({
                 </div>
               ) : (
                 <>
-                  <Modal.Header className="flex items-center justify-between flex-row">
+                  <Modal.Header className="flex items-center justify-between flex-row px-5 py-4">
                     <div className="flex items-center gap-2">
                       {step > 1 && (
                         <button
@@ -654,10 +669,18 @@ export function BookRideModal({
                           ))}
                         </div>
                       )}
-                      <Modal.CloseTrigger />
+                      {!isMobile && (
+                        <button
+                          onClick={handleClose}
+                          className="p-1.5 rounded-full hover:bg-[var(--color-surface-muted)] transition-colors"
+                          aria-label="Close"
+                        >
+                          <IconX size={16} />
+                        </button>
+                      )}
                     </div>
                   </Modal.Header>
-                  <Modal.Body className="overflow-y-auto px-1">
+                  <Modal.Body className="overflow-y-auto flex-1 px-5 py-2">
                     {step === 1 && (
                       <Step1Form
                         formType={config?.formType ?? "standard"}
@@ -852,7 +875,7 @@ export function BookRideModal({
                       </>
                     )}
                   </Modal.Body>
-                  <Modal.Footer className="mt-2">
+                  <Modal.Footer className="px-5 pb-6 pt-3">
                     {step === 1 && (
                       <Button onPress={handleStep1Next} fullWidth>
                         {isInquiry ? "Send Enquiry" : "See Available Cabs →"}
@@ -893,6 +916,52 @@ export function BookRideModal({
                 </>
               )}
             </div>
+  );
+
+  // Mobile: framer-motion portal bottom sheet (proper slide-up animation)
+  if (isMobile) {
+    return createPortal(
+      <AnimatePresence>
+        {!rzpActive && (
+          <>
+            {/* Transparent tap-to-close overlay */}
+            <motion.div
+              key="bd"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9998]"
+              onClick={handleClose}
+            />
+            {/* Bottom sheet */}
+            <motion.div
+              key="sheet"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 280 }}
+              className="fixed inset-x-0 bottom-0 z-[9999] flex flex-col rounded-t-3xl bg-white shadow-2xl"
+            >
+              {sheetContent}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>,
+      document.body,
+    );
+  }
+
+  // Desktop: HeroUI Modal (unchanged)
+  return (
+    <Modal
+      isOpen={(isOpen || confirmed || verifying) && !rzpActive}
+      onOpenChange={(open) => { if (!open) handleClose(); }}
+    >
+      <Modal.Backdrop isDismissable={false}>
+        <Modal.Container>
+          <Modal.Dialog>
+            {sheetContent}
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>

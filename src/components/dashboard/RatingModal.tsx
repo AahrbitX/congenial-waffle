@@ -1,4 +1,8 @@
-import { useState } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   IconCheckCircle,
   IconMapPin,
@@ -136,6 +140,20 @@ export function RatingModal() {
   const [comment, setComment]     = useState("");
   const [submitted, setSubmitted] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    document.body.style.overflow = !!ratingRide ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [isMobile, ratingRide]);
+
   const setAspect = (key: AspectKey, value: number) =>
     setAspects((prev) => ({ ...prev, [key]: value }));
 
@@ -174,146 +192,184 @@ export function RatingModal() {
       prev.includes(tag) ? prev.filter((x) => x !== tag) : [...prev, tag],
     );
 
+  const sheetContent = (
+    <div className={`w-full flex flex-col ${isMobile ? "max-h-[88svh]" : "max-w-md max-h-[90vh]"}`}>
+      {isMobile && (
+        <div className="flex justify-center pt-4 pb-2 shrink-0">
+          <div className="h-1 w-12 rounded-full bg-gray-300" />
+        </div>
+      )}
+      {submitted ? (
+        <div className="flex flex-col items-center justify-center py-12 px-8 gap-4 text-center">
+          <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center">
+            <IconCheckCircle size={34} className="text-success" />
+          </div>
+          <p className="text-lg font-black">Thanks for the feedback!</p>
+          <p className="text-sm text-default-400">
+            Your rating helps us improve the service.
+          </p>
+          {stars >= 4 && (
+            <p className="text-sm text-primary font-semibold bg-primary/10 px-4 py-2 rounded-full">
+              Glad you had a great ride
+              {ratingRide.driver !== "—" ? ` with ${ratingRide.driver}` : ""}!
+            </p>
+          )}
+        </div>
+      ) : (
+        <>
+          <Modal.Header className="px-5 py-4">
+            <div className="flex flex-col w-full">
+              <p className="text-[11px] text-default-400 font-semibold uppercase tracking-wider">
+                Rate your ride
+              </p>
+              <div className="flex items-center gap-1.5 text-sm font-semibold mt-2">
+                <IconMapPin size={13} className="text-primary shrink-0" />
+                <span className="truncate">{ratingRide.from}</span>
+                <span className="text-default-400">→</span>
+                <span className="truncate">{ratingRide.to}</span>
+              </div>
+              <div className="flex items-center gap-1.5 mt-1">
+                <IconCar size={12} className="text-default-400" />
+                <span className="text-xs text-default-400">
+                  {ratingRide.driver !== "—" ? ratingRide.driver : "Driver"}
+                  {" · "}
+                  {formatJourneyDate(ratingRide.journeyDate, ratingRide.journeyTime)}
+                </span>
+              </div>
+            </div>
+          </Modal.Header>
+
+          <Modal.Body className="overflow-y-auto flex-1 px-5 py-2">
+            <div className="space-y-4 mt-4">
+              <div className="flex flex-col items-center gap-1">
+                <p className="text-sm font-semibold">How was your driver?</p>
+                <StarPicker value={stars} onChange={setStars} />
+              </div>
+
+              {stars > 0 && (
+                <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 px-4 py-3 space-y-3">
+                  <p className="text-xs font-semibold text-default-500 uppercase tracking-wide">
+                    Rate each aspect{" "}
+                    <span className="normal-case font-normal">(optional)</span>
+                  </p>
+                  {ASPECTS.map(({ key, label, icon: Icon }) => (
+                    <div key={key} className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-1.5 w-28 shrink-0">
+                        <Icon size={14} className="text-default-400 shrink-0" />
+                        <span className="text-sm font-medium text-foreground">{label}</span>
+                      </div>
+                      <MiniStarPicker
+                        value={aspects[key]}
+                        onChange={(v) => setAspect(key, v)}
+                      />
+                      <span className={`text-xs font-bold w-16 text-right shrink-0 ${
+                        aspects[key] >= 4 ? "text-success"
+                          : aspects[key] === 3 ? "text-warning"
+                          : aspects[key] > 0 ? "text-danger"
+                          : "text-transparent"
+                      }`}>
+                        {RATING_LABEL[aspects[key]] ?? ""}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {stars > 0 && (
+                <div>
+                  <p className="text-sm font-semibold mb-2">What stood out?</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {TAG_OPTIONS.map((tag) => (
+                      <Chip
+                        key={tag}
+                        variant={tags.includes(tag) ? "primary" : "soft"}
+                        size="sm"
+                        className="cursor-pointer"
+                        onClick={() => toggleTag(tag)}
+                      >
+                        {tag}
+                      </Chip>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="px-1">
+                <TextArea
+                  rows={3}
+                  fullWidth
+                  value={comment}
+                  variant="secondary"
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Add a comment (optional)..."
+                />
+              </div>
+            </div>
+          </Modal.Body>
+
+          <Modal.Footer className="px-5 pb-6 pt-3">
+            <Button variant="secondary" onPress={closeRatingModal}>
+              Skip
+            </Button>
+            <Button
+              onPress={handleSubmit}
+              isDisabled={stars === 0 || submitReview.isPending}
+            >
+              {submitReview.isPending ? (
+                <>
+                  <IconLoader size={14} className="animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Submit Rating"
+              )}
+            </Button>
+          </Modal.Footer>
+        </>
+      )}
+    </div>
+  );
+
+  if (isMobile) {
+    return createPortal(
+      <AnimatePresence>
+        {!!ratingRide && (
+          <>
+            <motion.div
+              key="bd"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9998]"
+              onClick={closeRatingModal}
+            />
+            <motion.div
+              key="sheet"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 280 }}
+              className="fixed inset-x-0 bottom-0 z-[9999] flex flex-col rounded-t-3xl bg-white shadow-2xl"
+            >
+              {sheetContent}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>,
+      document.body,
+    );
+  }
+
   return (
     <Modal
       isOpen={!!ratingRide}
-      onOpenChange={(open) => {
-        if (!open) {
-          closeRatingModal();
-        }
-      }}
+      onOpenChange={(open) => { if (!open) closeRatingModal(); }}
     >
       <Modal.Backdrop>
         <Modal.Container>
           <Modal.Dialog className="sm:max-w-md">
-            {submitted ? (
-              <div className="flex flex-col items-center justify-center py-12 px-8 gap-4 text-center">
-                <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center">
-                  <IconCheckCircle size={34} className="text-success" />
-                </div>
-                <p className="text-lg font-black">Thanks for the feedback!</p>
-                <p className="text-sm text-default-400">
-                  Your rating helps us improve the service.
-                </p>
-                {stars >= 4 && (
-                  <p className="text-sm text-primary font-semibold bg-primary/10 px-4 py-2 rounded-full">
-                    Glad you had a great ride
-                    {ratingRide.driver !== "—" ? ` with ${ratingRide.driver}` : ""}!
-                  </p>
-                )}
-              </div>
-            ) : (
-              <>
-                <Modal.Header>
-                  <div className="flex flex-col w-full">
-                    <p className="text-[11px] text-default-400 font-semibold uppercase tracking-wider">
-                      Rate your ride
-                    </p>
-                    <div className="flex items-center gap-1.5 text-sm font-semibold mt-2">
-                      <IconMapPin size={13} className="text-primary shrink-0" />
-                      <span className="truncate">{ratingRide.from}</span>
-                      <span className="text-default-400">→</span>
-                      <span className="truncate">{ratingRide.to}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <IconCar size={12} className="text-default-400" />
-                      <span className="text-xs text-default-400">
-                        {ratingRide.driver !== "—" ? ratingRide.driver : "Driver"}
-                        {" · "}
-                        {formatJourneyDate(ratingRide.journeyDate, ratingRide.journeyTime)}
-                      </span>
-                    </div>
-                  </div>
-                </Modal.Header>
-
-                <Modal.Body>
-                  <div className="space-y-4 mt-4">
-                    <div className="flex flex-col items-center gap-1">
-                      <p className="text-sm font-semibold">How was your driver?</p>
-                      <StarPicker value={stars} onChange={setStars} />
-                    </div>
-
-                    {stars > 0 && (
-                      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 px-4 py-3 space-y-3">
-                        <p className="text-xs font-semibold text-default-500 uppercase tracking-wide">
-                          Rate each aspect{" "}
-                          <span className="normal-case font-normal">(optional)</span>
-                        </p>
-                        {ASPECTS.map(({ key, label, icon: Icon }) => (
-                          <div key={key} className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-1.5 w-28 shrink-0">
-                              <Icon size={14} className="text-default-400 shrink-0" />
-                              <span className="text-sm font-medium text-foreground">{label}</span>
-                            </div>
-                            <MiniStarPicker
-                              value={aspects[key]}
-                              onChange={(v) => setAspect(key, v)}
-                            />
-                            <span className={`text-xs font-bold w-16 text-right shrink-0 ${
-                              aspects[key] >= 4 ? "text-success"
-                                : aspects[key] === 3 ? "text-warning"
-                                : aspects[key] > 0 ? "text-danger"
-                                : "text-transparent"
-                            }`}>
-                              {RATING_LABEL[aspects[key]] ?? ""}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {stars > 0 && (
-                      <div>
-                        <p className="text-sm font-semibold mb-2">What stood out?</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {TAG_OPTIONS.map((tag) => (
-                            <Chip
-                              key={tag}
-                              variant={tags.includes(tag) ? "primary" : "soft"}
-                              size="sm"
-                              className="cursor-pointer"
-                              onClick={() => toggleTag(tag)}
-                            >
-                              {tag}
-                            </Chip>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="px-1">
-                      <TextArea
-                        rows={3}
-                        fullWidth
-                        value={comment}
-                        variant="secondary"
-                        onChange={(e) => setComment(e.target.value)}
-                        placeholder="Add a comment (optional)..."
-                      />
-                    </div>
-                  </div>
-                </Modal.Body>
-
-                <Modal.Footer>
-                  <Button variant="secondary" onPress={closeRatingModal}>
-                    Skip
-                  </Button>
-                  <Button
-                    onPress={handleSubmit}
-                    isDisabled={stars === 0 || submitReview.isPending}
-                  >
-                    {submitReview.isPending ? (
-                      <>
-                        <IconLoader size={14} className="animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      "Submit Rating"
-                    )}
-                  </Button>
-                </Modal.Footer>
-              </>
-            )}
+            {sheetContent}
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>

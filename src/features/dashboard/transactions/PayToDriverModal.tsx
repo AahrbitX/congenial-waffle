@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import {
   useCreateBalancePayment,
@@ -95,6 +96,20 @@ export function PayToDriverModal({ tx, amountDue, isBalance, onClose }: PayToDri
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, [isMobile]);
+
   async function handleResend() {
     if (!activePaymentId) return;
     setErrorMsg("");
@@ -108,17 +123,37 @@ export function PayToDriverModal({ tx, amountDue, isBalance, onClose }: PayToDri
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-[var(--color-surface)] rounded-3xl shadow-2xl w-full max-w-sm p-6 space-y-5">
+    <div
+      className={`fixed inset-0 z-50 flex ${isMobile ? "items-end" : "items-center justify-center p-4 bg-black/40 backdrop-blur-sm"}`}
+      onClick={isMobile ? onClose : undefined}
+    >
+      <motion.div
+        initial={isMobile ? { y: "100%" } : false}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", damping: 28, stiffness: 280 }}
+        onClick={isMobile ? (e) => e.stopPropagation() : undefined}
+        className={isMobile
+          ? "w-full rounded-t-3xl bg-[var(--color-surface)] shadow-2xl max-h-[88svh] overflow-y-auto px-5 pb-6 space-y-5"
+          : "bg-[var(--color-surface)] rounded-3xl shadow-2xl w-full max-w-sm p-6 space-y-5"
+        }
+      >
+        {/* Drag handle — mobile only */}
+        {isMobile && (
+          <div className="flex justify-center pt-4 pb-2">
+            <div className="h-1 w-12 rounded-full bg-gray-300" />
+          </div>
+        )}
         {/* Header */}
         <div className="flex items-center justify-between">
           <p className="text-xl font-semibold">Pay to Driver</p>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)]"
-          >
-            <IconX size={16} />
-          </button>
+          {!isMobile && (
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)]"
+            >
+              <IconX size={16} />
+            </button>
+          )}
         </div>
 
         {success ? (
@@ -205,7 +240,7 @@ export function PayToDriverModal({ tx, amountDue, isBalance, onClose }: PayToDri
             )}
           </>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

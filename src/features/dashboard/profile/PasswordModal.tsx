@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { Input, InputOTP, Label } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
 import { authClient } from "@/lib/auth-client";
@@ -27,6 +28,20 @@ export function PasswordModal({ isOpen, onClose, hasPassword, phoneNumber }: Pas
   const [error, setError] = useState("");
 
   const title = hasPassword ? "Reset Password" : "Create Password";
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, [isMobile]);
 
   function handleClose() {
     setStep("send");
@@ -72,8 +87,26 @@ export function PasswordModal({ isOpen, onClose, hasPassword, phoneNumber }: Pas
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-[var(--color-surface)] rounded-3xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+    <div
+      className={`fixed inset-0 z-50 flex ${isMobile ? "items-end" : "items-center justify-center p-4 bg-black/40 backdrop-blur-sm"}`}
+      onClick={isMobile ? handleClose : undefined}
+    >
+      <motion.div
+        initial={isMobile ? { y: "100%" } : false}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", damping: 28, stiffness: 280 }}
+        onClick={isMobile ? (e) => e.stopPropagation() : undefined}
+        className={isMobile
+          ? "w-full rounded-t-3xl bg-[var(--color-surface)] shadow-2xl max-h-[88svh] overflow-y-auto"
+          : "bg-[var(--color-surface)] rounded-3xl shadow-2xl w-full max-w-sm"
+        }
+      >
+        {isMobile && (
+          <div className="flex justify-center pt-4 pb-2">
+            <div className="h-1 w-12 rounded-full bg-gray-300" />
+          </div>
+        )}
+        <div className={isMobile ? "px-5 pb-6 space-y-4" : "p-6 space-y-4"}>
 
         {step === "success" ? (
           <div className="flex flex-col items-center gap-3 py-4 text-center">
@@ -196,7 +229,8 @@ export function PasswordModal({ isOpen, onClose, hasPassword, phoneNumber }: Pas
             )}
           </>
         )}
-      </div>
+        </div>
+      </motion.div>
     </div>
   );
 }

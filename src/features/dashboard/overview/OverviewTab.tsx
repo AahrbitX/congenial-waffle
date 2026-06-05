@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useRides } from "@/hooks/useRides";
 import { authClient } from "@/lib/auth-client";
@@ -46,9 +46,12 @@ export function OverviewTab() {
   const { data: session } = authClient.useSession();
   const user = session?.user;
 
+  const PAGE_SIZE = 8;
+
   const [bookOpen, setBookOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
   // tanstack query hooks
   const { data: rides = [], isLoading: ridesLoading } = useRides();
@@ -90,7 +93,14 @@ export function OverviewTab() {
         r.id.toLowerCase().includes(search.toLowerCase()) ||
         r.from.toLowerCase().includes(search.toLowerCase()) ||
         r.to.toLowerCase().includes(search.toLowerCase()),
-    );
+    )
+    ;
+
+  // Reset to page 1 when any filter changes
+  useEffect(() => { setPage(1); }, [search, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRides.length / PAGE_SIZE));
+  const pagedRides = filteredRides.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const parseDate = (date: string) => {
     const dateObj = new Date(date);
@@ -125,11 +135,11 @@ export function OverviewTab() {
   }
 
   return (
-    <Surface className="h-auto space-y-6" variant="secondary">
+    <Surface className="h-auto space-y-6 px-4 py-4 sm:px-6" variant="secondary">
       {/* ── Stat Cards ── */}
       {stats && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <StatCard
               label="Total Rides"
               value={String(stats.totalRides)}
@@ -190,196 +200,264 @@ export function OverviewTab() {
         <RateDriverBanner ride={needsRatingRide} onRate={openRatingModal} />
       )}
 
-      {/* ── Rides Table ── */}
-      <Card className="mb-2">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-4">
+      {/* ── Rides Table / Cards ── */}
+      <Card className="mb-2 flex flex-col">
+        {/* Toolbar — sticky header */}
+        <div className="shrink-0 flex flex-col gap-3 border-b border-[var(--color-border)] pb-3">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3">
             <Input
               variant="secondary"
               placeholder="Search rides..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-56"
+              className="w-full sm:w-56"
             />
             <Tabs onSelectionChange={(key) => setStatusFilter(String(key))}>
-              <Tabs.ListContainer className="w-full min-w-[440px] text-sm overflow-x-scroll scrollbar-hide">
+              <Tabs.ListContainer className="w-full text-sm overflow-x-scroll scrollbar-hide">
                 <Tabs.List aria-label="Filter by status">
-                  <Tabs.Tab id="all">
-                    All
-                    <Tabs.Indicator />
-                  </Tabs.Tab>
-                  <Tabs.Tab id="ongoing">
-                    Ongoing
-                    <Tabs.Indicator />
-                  </Tabs.Tab>
-                  <Tabs.Tab id="completed">
-                    Completed
-                    <Tabs.Indicator />
-                  </Tabs.Tab>
-                  <Tabs.Tab id="cancelled">
-                    Cancelled
-                    <Tabs.Indicator />
-                  </Tabs.Tab>
+                  <Tabs.Tab id="all">All<Tabs.Indicator /></Tabs.Tab>
+                  <Tabs.Tab id="ongoing">Ongoing<Tabs.Indicator /></Tabs.Tab>
+                  <Tabs.Tab id="completed">Completed<Tabs.Indicator /></Tabs.Tab>
+                  <Tabs.Tab id="cancelled">Cancelled<Tabs.Indicator /></Tabs.Tab>
                 </Tabs.List>
               </Tabs.ListContainer>
             </Tabs>
           </div>
         </div>
 
-        {/* Scrollable table body — 5 rows visible, scroll for the rest */}
-        <Table>
-          <div className="max-h-[350px] overflow-y-auto overflow-x-auto scrollbar-hide [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-10">
-            <Table.Content aria-label="My rides" className="min-w-[700px]">
-              <Table.Header>
-                <Table.Column isRowHeader id="id">
-                  Booking ID
-                </Table.Column>
-                <Table.Column id="route">Route</Table.Column>
-                <Table.Column id="date">Date</Table.Column>
-                <Table.Column id="driver">Driver</Table.Column>
-                <Table.Column id="status">Status</Table.Column>
-                <Table.Column id="fare">Fare</Table.Column>
-              </Table.Header>
-              <Table.Body
-                renderEmptyState={() =>
-                  !ridesLoading && (
-                    <EmptyState className="my-10 flex flex-col items-center gap-3 text-center">
-                      {search || statusFilter !== "all" ? (
-                        <>
-                          <IconSearch size={28} className="text-muted" />
-                          <p className="font-semibold">No rides found</p>
-                          <p className="text-sm text-muted">
-                            Try adjusting your search or filter.
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <IconCar size={28} className="text-muted" />
-                          <p className="font-semibold">No rides yet</p>
-                          <p className="text-sm text-muted">
-                            Book your first ride to get started.
-                          </p>
-                          <Button size="sm" onPress={() => setBookOpen(true)}>
-                            <IconPlus size={14} />
-                            Book a Ride
-                          </Button>
-                        </>
-                      )}
-                    </EmptyState>
-                  )
-                }
+        {/* ── Mobile card list (hidden on sm+) ── */}
+        <div className="sm:hidden overflow-y-auto mt-3 space-y-2" style={{ maxHeight: "calc(100svh - 380px)" }}>
+          {ridesLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-start gap-3 rounded-2xl border border-border p-4">
+                <Skeleton className="h-10 w-10 rounded-xl shrink-0" />
+                <div className="flex-1 space-y-2 pt-0.5">
+                  <div className="flex justify-between">
+                    <Skeleton className="h-4 w-20 rounded" />
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                  </div>
+                  <Skeleton className="h-3 w-full rounded" />
+                  <Skeleton className="h-3 w-28 rounded" />
+                </div>
+              </div>
+            ))
+          ) : filteredRides.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 py-10 text-center">
+              {search || statusFilter !== "all" ? (
+                <>
+                  <IconSearch size={28} className="text-muted" />
+                  <p className="font-semibold">No rides found</p>
+                  <p className="text-sm text-muted">Try adjusting your search or filter.</p>
+                </>
+              ) : (
+                <>
+                  <IconCar size={28} className="text-muted" />
+                  <p className="font-semibold">No rides yet</p>
+                  <p className="text-sm text-muted">Book your first ride to get started.</p>
+                  <Button size="sm" onPress={() => setBookOpen(true)}>
+                    <IconPlus size={14} /> Book a Ride
+                  </Button>
+                </>
+              )}
+            </div>
+          ) : (
+            pagedRides.map((ride) => (
+              <Link
+                key={ride.id}
+                href={`/dashboard/rides/${ride.id}`}
+                className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-4 active:bg-surface-muted transition-colors"
               >
-                {ridesLoading
-                  ? Array.from({ length: 5 }).map((_, i) => (
-                      <Table.Row key={`skel-${i}`} id={`skel-${i}`}>
-                        <Table.Cell>
-                          <div className="flex items-center gap-2">
-                            <Skeleton className="h-4 w-14 rounded-lg" />
-                            <Skeleton className="size-6 rounded-lg" />
-                          </div>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Skeleton className="h-4 w-36 rounded-lg" />
-                        </Table.Cell>
-                        <Table.Cell>
-                          <div className="flex items-center gap-2">
-                            <Skeleton className="size-8 shrink-0 rounded-full" />
-                            <div className="space-y-1">
-                              <Skeleton className="h-3 w-20 rounded-lg" />
-                              <Skeleton className="h-3 w-16 rounded-lg" />
+                {/* Icon */}
+                <div className="h-10 w-10 shrink-0 flex items-center justify-center rounded-xl bg-[var(--color-primary-light)]">
+                  <IconCar size={18} className="text-primary" />
+                </div>
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-bold text-primary">#{ride.bookingRef}</span>
+                    <Chip
+                      color={STATUS_COLOR[ride.status as keyof typeof STATUS_COLOR] ?? "warning"}
+                      size="sm"
+                      variant="soft"
+                    >
+                      {ride.status.charAt(0).toUpperCase() + ride.status.slice(1)}
+                    </Chip>
+                  </div>
+                  <p className="text-sm text-foreground truncate mt-1">
+                    {ride.from} → {ride.to}
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-1 text-xs text-muted flex-wrap">
+                    <span>
+                      {new Date(ride.date).toLocaleDateString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
+                    {ride.driver && (
+                      <>
+                        <span>·</span>
+                        <span>{ride.driver}</span>
+                      </>
+                    )}
+                    {ride.fare > 0 && (
+                      <>
+                        <span>·</span>
+                        <span className="font-semibold text-foreground">₹{ride.fare}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
+
+        {/* ── Desktop table (hidden on mobile, unchanged) ── */}
+        <div className="hidden sm:block">
+          <Table>
+            <div className="max-h-[350px] overflow-y-auto overflow-x-auto scrollbar-hide [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-10">
+              <Table.Content aria-label="My rides" className="min-w-[700px]">
+                <Table.Header>
+                  <Table.Column isRowHeader id="id">Booking ID</Table.Column>
+                  <Table.Column id="route">Route</Table.Column>
+                  <Table.Column id="date">Date</Table.Column>
+                  <Table.Column id="driver">Driver</Table.Column>
+                  <Table.Column id="status">Status</Table.Column>
+                  <Table.Column id="fare">Fare</Table.Column>
+                </Table.Header>
+                <Table.Body
+                  renderEmptyState={() =>
+                    !ridesLoading && (
+                      <EmptyState className="my-10 flex flex-col items-center gap-3 text-center">
+                        {search || statusFilter !== "all" ? (
+                          <>
+                            <IconSearch size={28} className="text-muted" />
+                            <p className="font-semibold">No rides found</p>
+                            <p className="text-sm text-muted">Try adjusting your search or filter.</p>
+                          </>
+                        ) : (
+                          <>
+                            <IconCar size={28} className="text-muted" />
+                            <p className="font-semibold">No rides yet</p>
+                            <p className="text-sm text-muted">Book your first ride to get started.</p>
+                            <Button size="sm" onPress={() => setBookOpen(true)}>
+                              <IconPlus size={14} /> Book a Ride
+                            </Button>
+                          </>
+                        )}
+                      </EmptyState>
+                    )
+                  }
+                >
+                  {ridesLoading
+                    ? Array.from({ length: 5 }).map((_, i) => (
+                        <Table.Row key={`skel-${i}`} id={`skel-${i}`}>
+                          <Table.Cell>
+                            <div className="flex items-center gap-2">
+                              <Skeleton className="h-4 w-14 rounded-lg" />
+                              <Skeleton className="size-6 rounded-lg" />
                             </div>
-                          </div>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Skeleton className="h-6 w-20 rounded-full" />
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Skeleton className="h-6 w-20 rounded-full" />
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Skeleton className="h-4 w-12 rounded-lg" />
-                        </Table.Cell>
-                      </Table.Row>
-                    ))
-                  : filteredRides.map((ride) => (
-                      <Table.Row key={ride.id} id={ride.id}>
-                        {/* Booking ID + copy */}
-                        <Table.Cell className="font-medium">
-                          <Link
-                            className="flex items-center gap-2"
-                            href={`/dashboard/rides/${ride.id}`}
-                          >
-                            <span className="text-accent font-semibold hover:underline">
-                              {"#" + ride.bookingRef}
-                            </span>
-                          </Link>
-                        </Table.Cell>
-
-                        {/* Route */}
-                        <Table.Cell>
-                          <div
-                            className="flex items-center gap-2"
-                            title={`${ride.from} -- ${ride.to}`}
-                          >
-                            <span className="max-w-[320px] line-clamp-1">
-                              {ride.from}
-                            </span>
-                            <IconArrowLeftRight
-                              size={14}
-                              className="text-muted"
-                            />
-                            <span className="max-w-[320px] line-clamp-1">
-                              {ride.to}
-                            </span>
-                          </div>
-                        </Table.Cell>
-
-                        <Table.Cell>{parseDate(ride.date)}</Table.Cell>
-
-                        {/* Driver with avatar */}
-                        <Table.Cell>
-                          {ride.driver ? (
-                            <div className="flex items-center gap-3">
-                              <span className="text-sm font-medium">
-                                {ride.driver}
-                              </span>
-                              {/* <span className="text-xs text-muted">
-                                  {ride.driverPhone}
-                                </span> */}
+                          </Table.Cell>
+                          <Table.Cell><Skeleton className="h-4 w-36 rounded-lg" /></Table.Cell>
+                          <Table.Cell>
+                            <div className="flex items-center gap-2">
+                              <Skeleton className="size-8 shrink-0 rounded-full" />
+                              <div className="space-y-1">
+                                <Skeleton className="h-3 w-20 rounded-lg" />
+                                <Skeleton className="h-3 w-16 rounded-lg" />
+                              </div>
                             </div>
-                          ) : (
-                            <span className="text-muted text-sm">
-                              Unassigned
-                            </span>
-                          )}
-                        </Table.Cell>
+                          </Table.Cell>
+                          <Table.Cell><Skeleton className="h-6 w-20 rounded-full" /></Table.Cell>
+                          <Table.Cell><Skeleton className="h-6 w-20 rounded-full" /></Table.Cell>
+                          <Table.Cell><Skeleton className="h-4 w-12 rounded-lg" /></Table.Cell>
+                        </Table.Row>
+                      ))
+                    : pagedRides.map((ride) => (
+                        <Table.Row key={ride.id} id={ride.id}>
+                          <Table.Cell className="font-medium">
+                            <Link className="flex items-center gap-2" href={`/dashboard/rides/${ride.id}`}>
+                              <span className="text-accent font-semibold hover:underline">{"#" + ride.bookingRef}</span>
+                            </Link>
+                          </Table.Cell>
+                          <Table.Cell>
+                            <div className="flex items-center gap-2" title={`${ride.from} -- ${ride.to}`}>
+                              <span className="max-w-[320px] line-clamp-1">{ride.from}</span>
+                              <IconArrowLeftRight size={14} className="text-muted" />
+                              <span className="max-w-[320px] line-clamp-1">{ride.to}</span>
+                            </div>
+                          </Table.Cell>
+                          <Table.Cell>{parseDate(ride.date)}</Table.Cell>
+                          <Table.Cell>
+                            {ride.driver ? (
+                              <span className="text-sm font-medium">{ride.driver}</span>
+                            ) : (
+                              <span className="text-muted text-sm">Unassigned</span>
+                            )}
+                          </Table.Cell>
+                          <Table.Cell>
+                            <Chip
+                              color={STATUS_COLOR[ride.status as keyof typeof STATUS_COLOR] ?? "warning"}
+                              size="sm"
+                              variant="soft"
+                            >
+                              {ride.status.charAt(0).toUpperCase() + ride.status.slice(1)}
+                            </Chip>
+                          </Table.Cell>
+                          <Table.Cell>{ride.fare > 0 ? `₹${ride.fare}` : "—"}</Table.Cell>
+                        </Table.Row>
+                      ))}
+                </Table.Body>
+              </Table.Content>
+            </div>
+          </Table>
+        </div>
 
-                        {/* Status */}
-                        <Table.Cell>
-                          <Chip
-                            color={
-                              STATUS_COLOR[
-                                ride.status as keyof typeof STATUS_COLOR
-                              ] ?? "warning"
-                            }
-                            size="sm"
-                            variant="soft"
-                          >
-                            {ride.status.charAt(0).toUpperCase() +
-                              ride.status.slice(1)}
-                          </Chip>
-                        </Table.Cell>
+        {/* ── Pagination ── */}
+        {totalPages > 1 && (
+          <div className="shrink-0 flex items-center justify-between pt-3 border-t border-[var(--color-border)] mt-1">
+            {/* Prev */}
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-medium text-muted disabled:opacity-30 hover:bg-[var(--color-surface-muted)] transition-colors"
+            >
+              ‹ Prev
+            </button>
 
-                        {/* Fare */}
-                        <Table.Cell className="">
-                          {ride.fare > 0 ? `₹${ride.fare}` : "—"}
-                        </Table.Cell>
-                      </Table.Row>
-                    ))}
-              </Table.Body>
-            </Table.Content>
+            {/* Page numbers */}
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                const startPage = Math.max(1, Math.min(page - 2, totalPages - 4));
+                const p = startPage + i;
+                if (p > totalPages) return null;
+                return (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`h-7 w-7 rounded-lg text-xs font-bold transition-colors ${
+                      p === page
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-muted hover:bg-[var(--color-surface-muted)]"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Next */}
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-medium text-muted disabled:opacity-30 hover:bg-[var(--color-surface-muted)] transition-colors"
+            >
+              Next ›
+            </button>
           </div>
-        </Table>
+        )}
       </Card>
 
       <BookRideModal
