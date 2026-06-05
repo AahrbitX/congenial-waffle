@@ -11,10 +11,12 @@ import {
   Card,
   Surface,
   Skeleton,
+  toast,
 } from "@heroui/react";
 import { Users } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { request } from "@/lib/api-client";
+import { Button as CustomButton } from "@/components/ui/Button";
 
 type Driver = {
   id: string;
@@ -55,6 +57,7 @@ export default function AvailableDrivers({ tripId, pageLoading }: Props) {
   const queryClient = useQueryClient();
 
   const [filters, setFilters] = useState<Filters>({});
+  const [assigningId, setAssigningId] = useState<string | null>(null);
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -94,19 +97,22 @@ export default function AvailableDrivers({ tripId, pageLoading }: Props) {
 
   const assignMutation = useMutation({
     mutationFn: async (driverId: string) => {
+      setAssigningId(driverId);
       return request(`/api/dispatchers/${tripId}/assign-driver`, {
         method: "POST",
         body: JSON.stringify({ driverId }),
       });
     },
     onSuccess: () => {
+      setAssigningId(null);
+      toast.success("Driver assigned successfully");
       queryClient.invalidateQueries({ queryKey: ["dispatchers"] });
-      queryClient.invalidateQueries({
-        queryKey: ["dispatcher-trip", tripId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["dispatcher-drivers", tripId],
-      });
+      queryClient.invalidateQueries({ queryKey: ["dispatcher-trip", tripId] });
+      queryClient.invalidateQueries({ queryKey: ["dispatcher-drivers", tripId] });
+    },
+    onError: () => {
+      setAssigningId(null);
+      toast("Failed to assign driver", { variant: "danger" });
     },
   });
 
@@ -254,15 +260,16 @@ export default function AvailableDrivers({ tripId, pageLoading }: Props) {
                 </div>
 
                 {/* Assign button */}
-                <Button
+                <CustomButton
                   size="sm"
                   variant={driver.hasConflict ? "secondary" : "primary"}
                   onPress={() => assignMutation.mutate(driver.id)}
+                  isLoading={assigningId === driver.id}
                   isDisabled={assignMutation.isPending}
                   className="shrink-0"
                 >
                   Assign
-                </Button>
+                </CustomButton>
               </div>
             </Card>
           ))}

@@ -44,7 +44,7 @@ export default function AdminDispatchersPage() {
           isError={isError}
         />
 
-        <div className="border-b md:border-r">
+        <div className="border-b md:border-r h-full min-h-0 overflow-hidden">
           <TripDetails tripId={activeTripId} pageLoading={isLoading} />
         </div>
 
