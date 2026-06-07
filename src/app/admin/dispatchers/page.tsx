@@ -27,7 +27,7 @@ export default function AdminDispatchersPage() {
 
   const { data, isLoading, isError } = useQuery<{ data: DispatcherTrip[] }>({
     queryKey: ["dispatchers"],
-    queryFn:  () => request("/api/dispatchers"),
+    queryFn: () => request("/api/dispatchers"),
     refetchInterval: 5000,
   });
 
@@ -35,7 +35,7 @@ export default function AdminDispatchersPage() {
 
   return (
     <Surface className="h-full min-h-0 p-4" variant="secondary">
-      <Surface className="grid h-full min-h-0 grid-cols-1 md:grid-cols-[0.75fr_1fr_0.85fr] rounded-2xl overflow-hidden">
+      <Surface className="grid h-full min-h-0 grid-cols-1 md:grid-cols-[0.75fr_1fr_0.85fr] rounded-2xl overflow-hidden border">
         <TripsList
           activeTripId={activeTripId}
           setActiveTripIdAction={setActiveTripId}
@@ -44,7 +44,7 @@ export default function AdminDispatchersPage() {
           isError={isError}
         />
 
-        <div className="border-b md:border-r h-full min-h-0 overflow-hidden">
+        <div className="max-md:border-b md:border-r h-full min-h-0 overflow-hidden">
           <TripDetails tripId={activeTripId} pageLoading={isLoading} />
         </div>
 

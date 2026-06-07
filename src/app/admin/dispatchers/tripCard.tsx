@@ -3,6 +3,7 @@ import React from "react";
 import { cn, Chip, Skeleton } from "@heroui/react";
 import { Circle, Square } from "lucide-react";
 import UserAvatar from "@/components/user/avatar";
+import StatusIndicator from "@/components/data/statusIndicator";
 
 interface TripCardProps {
   trip: any;
@@ -28,14 +29,7 @@ export default function TripCard({ trip, isActive, onSelect }: TripCardProps) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <span className="text-base font-bold tracking-tight">{trip.id}</span>
-          <Chip
-            size="sm"
-            variant="soft"
-            color="danger"
-            className="text-[12px] uppercase font-bold h-6"
-          >
-            {trip.status}
-          </Chip>
+          <StatusIndicator status={trip.status} />
         </div>
 
         {/* Customer & Badges */}

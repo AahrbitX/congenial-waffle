@@ -48,8 +48,23 @@ export default function RouteDetails({ route }: Props) {
 
   return (
     <Card>
-      <Card.Header>
+      <Card.Header className="flex flex-row items-center justify-between">
         <Card.Title>Route Details</Card.Title>
+        {link ? (
+          <Link
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm font-medium text-primary transition-opacity hover:opacity-80"
+          >
+            <IconNavigation size={14} />
+            Open Route in Google Maps
+          </Link>
+        ) : (
+          <p className="text-xs italic text-muted">
+            Coordinates unavailable for navigation.
+          </p>
+        )}
       </Card.Header>
 
       <Separator />
@@ -104,24 +119,6 @@ export default function RouteDetails({ route }: Props) {
             </div>
           </div>
         </div>
-
-        <Separator className="my-4" />
-
-        {link ? (
-          <Link
-            href={link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm font-medium text-primary transition-opacity hover:opacity-80"
-          >
-            <IconNavigation size={14} />
-            Open Route in Google Maps
-          </Link>
-        ) : (
-          <p className="text-xs italic text-muted">
-            Coordinates unavailable for navigation.
-          </p>
-        )}
       </Card.Content>
     </Card>
   );

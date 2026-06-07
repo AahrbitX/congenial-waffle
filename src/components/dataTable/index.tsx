@@ -141,7 +141,8 @@ function DataTable<TData>({
     ));
   };
 
-  const showPagination = !!pagination?.totalCount && pagination.totalCount > pageSize;
+  const showPagination =
+    !!pagination?.totalCount && pagination.totalCount > pageSize;
 
   return (
     <div className="h-full flex flex-col min-h-0">
@@ -159,7 +160,9 @@ function DataTable<TData>({
                 >
                   {({ sortDirection }) => (
                     <SortableColumnHeader
-                      sortDirection={sortDirection as "ascending" | "descending"}
+                      sortDirection={
+                        sortDirection as "ascending" | "descending"
+                      }
                     >
                       {flexRender(
                         header.column.columnDef.header,
@@ -197,63 +200,57 @@ function DataTable<TData>({
                   ))}
             </TableBody>
           </TableContent>
+          {showPagination && (
+            <TableFooter>
+              <Pagination>
+                <PaginationSummary>
+                  Showing {start} to {end} of {totalCount} results
+                </PaginationSummary>
+                <Pagination.Content>
+                  <Pagination.Item>
+                    <Pagination.Previous
+                      isDisabled={page <= 1}
+                      onPress={() => onPageChange?.(page - 1)}
+                    >
+                      <Pagination.PreviousIcon />
+                      <span>Previous</span>
+                    </Pagination.Previous>
+                  </Pagination.Item>
+
+                  {buildPageWindows(page, totalPages).map((p, i) =>
+                    p === -1 ? (
+                      <Pagination.Item key={`ellipsis-${i}`}>
+                        <Pagination.Ellipsis />
+                      </Pagination.Item>
+                    ) : (
+                      <Pagination.Item key={p}>
+                        <Pagination.Link
+                          isActive={p === page}
+                          onPress={() => onPageChange?.(p)}
+                        >
+                          {p}
+                        </Pagination.Link>
+                      </Pagination.Item>
+                    ),
+                  )}
+
+                  <Pagination.Item>
+                    <Pagination.Next
+                      isDisabled={page >= totalPages}
+                      onPress={() => onPageChange?.(page + 1)}
+                    >
+                      <span>Next</span>
+                      <Pagination.NextIcon />
+                    </Pagination.Next>
+                  </Pagination.Item>
+                </Pagination.Content>
+              </Pagination>
+            </TableFooter>
+          )}
         </Table>
       </div>
 
       {/* Fixed pagination footer */}
-      {showPagination && (
-        <div className="shrink-0 border-t border-border">
-          <Pagination>
-            <PaginationSummary>
-              Showing {start} to {end} of {totalCount} results
-            </PaginationSummary>
-            <Pagination.Content>
-              <Pagination.Item>
-                <Pagination.Previous
-                  isDisabled={page <= 1}
-                  onPress={() => onPageChange?.(page - 1)}
-                  className={page > 1 ? "text-primary hover:bg-primary/10" : ""}
-                >
-                  <Pagination.PreviousIcon />
-                  <span>Previous</span>
-                </Pagination.Previous>
-              </Pagination.Item>
-
-              {buildPageWindows(page, totalPages).map((p, i) =>
-                p === -1 ? (
-                  <Pagination.Item key={`ellipsis-${i}`}>
-                    <Pagination.Ellipsis />
-                  </Pagination.Item>
-                ) : (
-                  <Pagination.Item key={p}>
-                    <Pagination.Link
-                      isActive={p === page}
-                      onPress={() => onPageChange?.(p)}
-                      className={p === page
-                        ? "w-8 h-8 flex items-center justify-center rounded-md bg-primary text-white font-semibold text-sm hover:bg-primary/90"
-                        : "w-8 h-8 flex items-center justify-center rounded-md text-sm"
-                      }
-                    >
-                      {p}
-                    </Pagination.Link>
-                  </Pagination.Item>
-                )
-              )}
-
-              <Pagination.Item>
-                <Pagination.Next
-                  isDisabled={page >= totalPages}
-                  onPress={() => onPageChange?.(page + 1)}
-                  className={page < totalPages ? "text-primary hover:bg-primary/10" : ""}
-                >
-                  <span>Next</span>
-                  <Pagination.NextIcon />
-                </Pagination.Next>
-              </Pagination.Item>
-            </Pagination.Content>
-          </Pagination>
-        </div>
-      )}
     </div>
   );
 }

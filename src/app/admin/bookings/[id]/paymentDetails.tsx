@@ -13,6 +13,7 @@ import {
   IconCar,
   IconCreditCard,
 } from "@/constants/icons";
+import { BiQuestionMark } from "react-icons/bi";
 
 type PaymentStatus =
   | "created"
@@ -88,11 +89,20 @@ interface PaymentDetailsProps {
   bookingId: string;
 }
 
-export default function PaymentDetails({ payment, bookingId }: PaymentDetailsProps) {
+export default function PaymentDetails({
+  payment,
+  bookingId,
+}: PaymentDetailsProps) {
   const qc = useQueryClient();
 
   const adminVerify = useMutation({
-    mutationFn: ({ paymentId, approved }: { paymentId: string; approved: boolean }) =>
+    mutationFn: ({
+      paymentId,
+      approved,
+    }: {
+      paymentId: string;
+      approved: boolean;
+    }) =>
       request(`/api/payments/${paymentId}/admin-verify`, {
         method: "PATCH",
         body: JSON.stringify({ approved }),
@@ -141,59 +151,91 @@ export default function PaymentDetails({ payment, bookingId }: PaymentDetailsPro
       <Separator />
 
       {!payment.id ? (
-        <div className="px-4 pb-4 text-sm text-text-secondary">
+        <Card.Content className="text-sm text-text-secondary">
           No payment record found for this booking.
-        </div>
+        </Card.Content>
       ) : (
-        <div className="px-4 pb-4 space-y-4">
+        <Card.Content className="space-y-3">
           {/* Fare summary */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl bg-surface-muted p-3 space-y-0.5">
-              <p className="text-[11px] text-text-tertiary uppercase tracking-wider">
-                Total Fare
-              </p>
-              <p className="text-base font-bold text-text-primary">
+            <Card variant="secondary">
+              <Card.Header className="flex flex-row items-center justify-between">
+                <p className="text-xs text-muted font-medium">Total Fare</p>
+                <p className="text-xs cursor-pointer">?</p>
+              </Card.Header>
+
+              <Card.Content className="text-xl font-bold">
                 ₹{totalFare.toLocaleString("en-IN")}
-              </p>
-            </div>
-            <div className="rounded-xl bg-surface-muted p-3 space-y-0.5">
-              <p className="text-[11px] text-text-tertiary uppercase tracking-wider">
+              </Card.Content>
+            </Card>
+
+            <Card variant="secondary">
+              <Card.Header className="text-xs text-muted font-medium">
                 Paid
-              </p>
-              <p className="text-base font-bold text-success">
+              </Card.Header>
+              <Card.Content className="text-xl font-bold text-success">
                 ₹{paidAmount.toLocaleString("en-IN")}
-              </p>
-            </div>
+              </Card.Content>
+            </Card>
+
             {isPartial && (
-              <div className="col-span-2 rounded-xl bg-warning-light p-3 space-y-0.5">
-                <p className="text-[11px] text-text-tertiary uppercase tracking-wider">
-                  Balance Due
-                </p>
-                <p className="text-base font-bold text-warning">
+              <Card
+                variant="secondary"
+                className="col-span-2 border-warning/20"
+              >
+                <Card.Header className="text-xs text-muted font-medium">
+                  Remaining Balance
+                </Card.Header>
+
+                <Card.Content className="text-xl font-bold text-warning">
                   ₹{remaining.toLocaleString("en-IN")}
-                </p>
-              </div>
+                </Card.Content>
+              </Card>
             )}
           </div>
 
           {/* Payment method */}
-          <div className="flex items-center gap-3 rounded-xl border border-border p-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-muted">
-              {payment.method === "cash" ? (
-                <IconCar size={16} className="text-text-secondary" />
-              ) : (
-                <IconCreditCard size={16} className="text-text-secondary" />
-              )}
+          <Card variant="secondary">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black/10">
+                {payment.method === "cash" ? (
+                  <IconCar size={18} />
+                ) : (
+                  <IconCreditCard size={18} />
+                )}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-text-primary">
+                  {payment.method === "cash"
+                    ? "Cash Payment"
+                    : "Online Payment"}
+                </p>
+
+                <p className="text-xs text-muted font-medium">
+                  {payment.mode === "partial"
+                    ? "Partial Payment"
+                    : payment.mode === "balance"
+                      ? "Balance Payment"
+                      : "Full Payment"}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold text-text-primary">
-                {payment.method === "cash" ? "Cash Payment" : "Online Payment"}
-              </p>
-              <p className="text-xs text-text-tertiary">
-                {payment.mode === "partial" ? "Partial" : payment.mode === "balance" ? "Balance" : "Full"} · {payment.paidAt ? `Paid ${fmt(payment.paidAt)}` : payment.cashVerifiedAt ? `Cash collected ${fmt(payment.cashVerifiedAt)}` : "Not paid yet"}
-              </p>
-            </div>
-          </div>
+
+            <Separator variant="secondary" />
+
+            <Card.Footer className="flex justify-between text-xs">
+              <span className="font-medium text-muted">Payment Date</span>
+
+              <span className="font-medium text-text-primary">
+                {payment.paidAt
+                  ? fmt(payment.paidAt)
+                  : payment.cashVerifiedAt
+                    ? fmt(payment.cashVerifiedAt)
+                    : "-"}
+              </span>
+            </Card.Footer>
+          </Card>
 
           {/* Cash collection details */}
           {(status === "cash_pending" || status === "cash_collected") && (
@@ -258,7 +300,7 @@ export default function PaymentDetails({ payment, bookingId }: PaymentDetailsPro
               Verified by admin on {fmt(payment.adminVerifiedAt)}
             </div>
           )}
-        </div>
+        </Card.Content>
       )}
     </Card>
   );

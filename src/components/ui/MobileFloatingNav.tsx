@@ -32,7 +32,7 @@ export function MobileFloatingNav() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 md:hidden">
+    <div className="fixed bottom-5 right-5 z-50 md:hidden print:hidden">
       <AnimatePresence>
         {open && (
           <>

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { authClient } from "@/lib/auth-client";
-import { Card, Skeleton } from "@heroui/react";
+import { Button, Card, Skeleton } from "@heroui/react";
 import {
   CalendarCheck,
   CheckCircle,
@@ -20,35 +20,35 @@ import { ResponsiveSurface } from "@/components/ui/ResponsiveSurface";
 // ── Stat cards ────────────────────────────────────────────────────────────────
 const STAT_DEFS = [
   {
-    key:   "todayBookings",
+    key: "todayBookings",
     label: "Today's Rides",
-    icon:  CalendarCheck,
-    color: "text-blue-600",
-    bg:    "bg-blue-50 dark:bg-blue-950/30",
+    icon: CalendarCheck,
+    color: "text-blue-700",
+    bg: "bg-blue-200 dark:bg-blue-950/30",
     format: (v: number) => v.toLocaleString("en-IN"),
   },
   {
-    key:   "completed",
+    key: "completed",
     label: "Total Completed",
-    icon:  CheckCircle,
-    color: "text-emerald-600",
-    bg:    "bg-emerald-50 dark:bg-emerald-950/30",
+    icon: CheckCircle,
+    color: "text-emerald-700",
+    bg: "bg-emerald-200 dark:bg-emerald-950/30",
     format: (v: number) => v.toLocaleString("en-IN"),
   },
   {
-    key:   "pending",
+    key: "pending",
     label: "Pending Rides",
-    icon:  Clock,
-    color: "text-amber-600",
-    bg:    "bg-amber-50 dark:bg-amber-950/30",
+    icon: Clock,
+    color: "text-amber-700",
+    bg: "bg-amber-200 dark:bg-amber-950/30",
     format: (v: number) => v.toLocaleString("en-IN"),
   },
   {
-    key:   "totalRevenue",
+    key: "totalRevenue",
     label: "Total Revenue",
-    icon:  IndianRupee,
-    color: "text-violet-600",
-    bg:    "bg-violet-50 dark:bg-violet-950/30",
+    icon: IndianRupee,
+    color: "text-purple-700",
+    bg: "bg-purple-200 dark:bg-purple-950/30",
     format: (v: number) =>
       `₹${v.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`,
   },
@@ -76,8 +76,13 @@ function StatCardsSkeleton() {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 function AdminPage() {
-  const { data: authData }   = authClient.useSession();
-  const { data: chartsData, isLoading, refetch, isFetching } = useDashboardCharts();
+  const { data: authData } = authClient.useSession();
+  const {
+    data: chartsData,
+    isLoading,
+    refetch,
+    isFetching,
+  } = useDashboardCharts();
 
   const summary = chartsData?.summary;
 
@@ -93,41 +98,48 @@ function AdminPage() {
             Here&apos;s what&apos;s happening with Mohan Cabs today.
           </p>
         </div>
-        <button
+        <Button
+          variant="primary"
           onClick={() => refetch()}
-          disabled={isFetching}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-muted hover:bg-surface transition-colors disabled:opacity-50"
+          isDisabled={isFetching}
         >
           <RefreshCcw size={13} className={isFetching ? "animate-spin" : ""} />
           Refresh
-        </button>
+        </Button>
       </div>
 
       {/* Stat cards */}
       {isLoading ? (
         <StatCardsSkeleton />
-      ) : summary && (
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-          {STAT_DEFS.map(({ key, label, icon: Icon, color, bg, format }) => {
-            const rawVal  = summary[key as keyof typeof summary];
-            const numVal  = typeof rawVal === "string" ? parseFloat(rawVal) : Number(rawVal);
-            return (
-              <Card key={key}>
-                <Card.Content className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${bg}`}>
-                      <Icon size={20} className={color} />
+      ) : (
+        summary && (
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 ">
+            {STAT_DEFS.map(({ key, label, icon: Icon, color, bg, format }) => {
+              const rawVal = summary[key as keyof typeof summary];
+              const numVal =
+                typeof rawVal === "string"
+                  ? parseFloat(rawVal)
+                  : Number(rawVal);
+              return (
+                <Card key={key}>
+                  <Card.Content>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${bg}`}
+                      >
+                        <Icon size={20} className={color} />
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted">{label}</p>
+                        <p className="text-xl font-bold">{format(numVal)}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs text-muted">{label}</p>
-                      <p className="text-xl font-bold">{format(numVal)}</p>
-                    </div>
-                  </div>
-                </Card.Content>
-              </Card>
-            );
-          })}
-        </div>
+                  </Card.Content>
+                </Card>
+              );
+            })}
+          </div>
+        )
       )}
 
       {/* Charts */}

@@ -2,14 +2,15 @@
 
 import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import {
-  Drawer,
-  Input,
-  Badge,
-  Separator,
-} from "@heroui/react";
+import { Drawer, Input, Badge, Separator } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
-import { UserPlus, Search, AlertTriangle, Car, CheckCircle2 } from "lucide-react";
+import {
+  UserPlus,
+  Search,
+  AlertTriangle,
+  Car,
+  CheckCircle2,
+} from "lucide-react";
 import { request } from "@/lib/api-client";
 import { queryClient } from "@/lib/query-client";
 import { toast } from "@heroui/react";
@@ -55,8 +56,8 @@ function DriverCard({
         selected
           ? "border-accent bg-accent/5"
           : driver.hasConflict
-          ? "border-warning/40 bg-warning/5 hover:border-warning/60"
-          : "border-divider hover:border-accent/40 hover:bg-surface-muted"
+            ? "border-warning/40 bg-warning/5 hover:border-warning/60"
+            : "border-divider hover:border-accent/40 hover:bg-surface-muted"
       }`}
     >
       <div className="flex items-center gap-3">
@@ -66,7 +67,9 @@ function DriverCard({
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm font-semibold truncate">{driver.name || "—"}</p>
+            <p className="text-sm font-semibold truncate">
+              {driver.name || "—"}
+            </p>
             {driver.hasConflict && (
               <span className="inline-flex items-center gap-1 text-[10px] font-bold text-warning bg-warning/10 px-1.5 py-0.5 rounded-full shrink-0">
                 <AlertTriangle size={9} /> Conflict
@@ -81,7 +84,9 @@ function DriverCard({
           <p className="text-xs text-muted truncate">{driver.phone}</p>
         </div>
         <div className="text-right shrink-0 space-y-0.5">
-          <p className="text-xs font-semibold capitalize">{driver.vehicleType}</p>
+          <p className="text-xs font-semibold capitalize">
+            {driver.vehicleType}
+          </p>
           <p className="text-[10px] text-muted">
             {driver.vehicleNumber} · {driver.ac ? "AC" : "Non-AC"}
           </p>
@@ -145,7 +150,7 @@ function AssignDriverDrawer({
       )
     : drivers;
 
-  const available   = filtered.filter((d) => !d.hasConflict);
+  const available = filtered.filter((d) => !d.hasConflict);
   const withConflict = filtered.filter((d) => d.hasConflict);
 
   return (
@@ -162,8 +167,12 @@ function AssignDriverDrawer({
                   <UserPlus size={16} className="text-accent" />
                 </div>
                 <div>
-                  <Drawer.Heading className="text-base font-bold">Assign Driver</Drawer.Heading>
-                  <p className="text-xs text-muted">Select a driver for this booking</p>
+                  <Drawer.Heading className="text-base font-bold">
+                    Assign Driver
+                  </Drawer.Heading>
+                  <p className="text-xs text-muted">
+                    Select a driver for this booking
+                  </p>
                 </div>
               </div>
             </Drawer.Header>
@@ -171,7 +180,10 @@ function AssignDriverDrawer({
             <Separator />
 
             <div className="px-4 pt-3 pb-2 relative">
-              <Search size={14} className="text-muted absolute left-7 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search
+                size={14}
+                className="text-muted absolute left-7 top-1/2 -translate-y-1/2 pointer-events-none"
+              />
               <Input
                 placeholder="Search by name or vehicle number…"
                 value={search}
@@ -196,7 +208,9 @@ function AssignDriverDrawer({
                 <div className="flex flex-col items-center justify-center py-12 text-center gap-2">
                   <Car size={32} className="text-muted opacity-40" />
                   <p className="text-sm font-semibold">No drivers found</p>
-                  <p className="text-xs text-muted">Try adjusting your search</p>
+                  <p className="text-xs text-muted">
+                    Try adjusting your search
+                  </p>
                 </div>
               ) : (
                 <>
@@ -211,7 +225,9 @@ function AssignDriverDrawer({
                           driver={d}
                           selected={selectedId === d.id}
                           onSelect={() =>
-                            setSelectedId((prev) => (prev === d.id ? null : d.id))
+                            setSelectedId((prev) =>
+                              prev === d.id ? null : d.id,
+                            )
                           }
                         />
                       ))}
@@ -230,7 +246,9 @@ function AssignDriverDrawer({
                           driver={d}
                           selected={selectedId === d.id}
                           onSelect={() =>
-                            setSelectedId((prev) => (prev === d.id ? null : d.id))
+                            setSelectedId((prev) =>
+                              prev === d.id ? null : d.id,
+                            )
                           }
                         />
                       ))}

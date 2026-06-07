@@ -9,7 +9,8 @@ import { IconStar } from "@/constants/icons";
 function StarRating({ value }: { value: number }) {
   return (
     <span className="text-warning font-bold tracking-tight">
-      {"★".repeat(value)}{"☆".repeat(5 - value)}
+      {"★".repeat(value)}
+      {"☆".repeat(5 - value)}
     </span>
   );
 }
@@ -34,19 +35,16 @@ function LoadingSkeleton() {
 export default function DriverReviewsTab({ driverId }: { driverId: string }) {
   const { data, isLoading } = useQuery({
     queryKey: ["driver-reviews", driverId],
-    queryFn: () => request<{ success: boolean; data: any[] }>(
-      `/api/reviews/admin?driverId=${driverId}`
-    ),
+    queryFn: () =>
+      request<{ success: boolean; data: any[] }>(
+        `/api/reviews/admin?driverId=${driverId}`,
+      ),
   });
 
   const reviews = data?.data ?? [];
 
   return (
     <Tabs.Panel className="pt-2 px-0" id="reviews">
-      {!isLoading && reviews.length > 0 && (
-        <p className="text-sm font-semibold text-muted mb-3">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</p>
-      )}
-
       {isLoading ? (
         <LoadingSkeleton />
       ) : reviews.length === 0 ? (
@@ -55,26 +53,41 @@ export default function DriverReviewsTab({ driverId }: { driverId: string }) {
             <IconStar size={24} className="text-muted" />
           </div>
           <p className="text-sm font-semibold">No reviews yet</p>
-          <p className="text-xs text-muted">This driver hasn&apos;t received any reviews.</p>
+          <p className="text-xs text-muted">
+            This driver hasn&apos;t received any reviews.
+          </p>
         </div>
       ) : (
         <div className="space-y-3">
           {reviews.map((r: any) => (
-            <div key={r.id} className="rounded-xl border border-border bg-surface p-4 space-y-1.5">
+            <div
+              key={r.id}
+              className="rounded-xl border border-border bg-surface p-4 space-y-1.5"
+            >
               <div className="flex items-center justify-between">
-                <span className="font-mono text-xs text-primary font-semibold">{r.bookingRef}</span>
+                <span className="font-mono text-xs text-primary font-semibold">
+                  {r.bookingRef}
+                </span>
                 <span className="text-xs text-muted">
                   {r.submittedAt
-                    ? new Date(r.submittedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+                    ? new Date(r.submittedAt).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })
                     : "—"}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <StarRating value={r.rating} />
-                <span className="text-xs text-muted">{r.pickupName} → {r.dropName}</span>
+                <span className="text-xs text-muted">
+                  {r.pickupName} → {r.dropName}
+                </span>
               </div>
               {r.comment && (
-                <p className="text-sm text-foreground leading-relaxed">&quot;{r.comment}&quot;</p>
+                <p className="text-sm text-foreground leading-relaxed">
+                  &quot;{r.comment}&quot;
+                </p>
               )}
               <p className="text-xs text-muted">Rider: {r.customerName}</p>
             </div>

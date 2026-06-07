@@ -24,7 +24,10 @@ export type AdminPayment = {
 
 const columnHelper = createColumnHelper<AdminPayment>();
 
-export const STATUS_COLOR: Record<string, "default" | "success" | "warning" | "danger" | "accent"> = {
+export const STATUS_COLOR: Record<
+  string,
+  "default" | "success" | "warning" | "danger" | "accent"
+> = {
   paid: "success",
   cash_collected: "success",
   created: "warning",
@@ -50,7 +53,7 @@ export const paymentColumns: ColumnDef<AdminPayment, any>[] = [
       return (
         <Link
           href={`/admin/payments/${id}`}
-          className="text-accent font-mono text-xs font-bold hover:underline underline-offset-2"
+          className="text-accent font-mono font-bold hover:underline underline-offset-2"
         >
           {id.slice(0, 8).toUpperCase()}…
         </Link>
@@ -59,41 +62,43 @@ export const paymentColumns: ColumnDef<AdminPayment, any>[] = [
     meta: { isRowHeader: true },
   }),
   columnHelper.accessor("bookingId", {
-    header: "Ride ID",
-    cell: ({ getValue }) => {
-      const id = getValue() as string;
+    header: "Booking",
+    cell: (row) => {
+      const id = row.row.original.bookingRef;
       return (
         <Link
           href={`/admin/bookings/${id}`}
-          className="text-muted-foreground font-mono text-xs hover:text-accent hover:underline underline-offset-2"
+          className="text-accent font-mono font-bold hover:underline underline-offset-2"
         >
           {id}
         </Link>
       );
     },
   }),
-  columnHelper.accessor("rzpPaymentId", {
-    header: "Razorpay ID",
-    cell: ({ getValue, row }) => {
-      const rzpId = getValue() as string | null;
-      const orderId = row.original.rzpOrderId;
-      return (
-        <div className="font-mono text-xs">
-          {rzpId ? (
-            <span className="text-foreground">{rzpId}</span>
-          ) : (
-            <span className="text-muted-foreground">{orderId}</span>
-          )}
-        </div>
-      );
-    },
-  }),
+  // columnHelper.accessor("rzpPaymentId", {
+  //   header: "Razorpay ID",
+  //   cell: ({ getValue, row }) => {
+  //     const rzpId = getValue() as string | null;
+  //     const orderId = row.original.rzpOrderId;
+  //     return (
+  //       <div className="font-mono text-xs">
+  //         {rzpId ? (
+  //           <span className="text-foreground">{rzpId}</span>
+  //         ) : (
+  //           <span className="text-muted-foreground">{orderId}</span>
+  //         )}
+  //       </div>
+  //     );
+  //   },
+  // }),
   columnHelper.accessor("userName", {
     header: "Paid By",
     cell: ({ getValue, row }) => (
       <div>
         <p className="font-medium text-sm">{getValue()}</p>
-        <p className="text-xs text-muted-foreground">{row.original.userPhone}</p>
+        <p className="text-xs text-muted-foreground">
+          {row.original.userPhone}
+        </p>
       </div>
     ),
   }),
@@ -104,7 +109,9 @@ export const paymentColumns: ColumnDef<AdminPayment, any>[] = [
         <p className="font-semibold">
           ₹{parseFloat(getValue()).toLocaleString("en-IN")}
         </p>
-        <p className="text-xs text-muted-foreground capitalize">{row.original.mode}</p>
+        <p className="text-xs text-muted-foreground capitalize">
+          {row.original.mode}
+        </p>
       </div>
     ),
   }),
@@ -126,7 +133,11 @@ export const paymentColumns: ColumnDef<AdminPayment, any>[] = [
   columnHelper.accessor("status", {
     header: "Status",
     cell: ({ getValue }) => (
-      <Chip size="sm" color={STATUS_COLOR[getValue()] ?? "default"} variant="soft">
+      <Chip
+        size="sm"
+        color={STATUS_COLOR[getValue()] ?? "default"}
+        variant="soft"
+      >
         {STATUS_LABEL[getValue()] ?? getValue()}
       </Chip>
     ),

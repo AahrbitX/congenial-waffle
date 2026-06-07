@@ -10,9 +10,7 @@ import { SplashScreen } from "@/components/ui/SplashScreen";
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        {children}
-      </AuthProvider>
+      <AuthProvider>{children}</AuthProvider>
       <Toast.Provider />
       <ReactQueryDevtools />
       <SplashScreen />

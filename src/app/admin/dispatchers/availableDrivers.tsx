@@ -108,7 +108,9 @@ export default function AvailableDrivers({ tripId, pageLoading }: Props) {
       toast.success("Driver assigned successfully");
       queryClient.invalidateQueries({ queryKey: ["dispatchers"] });
       queryClient.invalidateQueries({ queryKey: ["dispatcher-trip", tripId] });
-      queryClient.invalidateQueries({ queryKey: ["dispatcher-drivers", tripId] });
+      queryClient.invalidateQueries({
+        queryKey: ["dispatcher-drivers", tripId],
+      });
     },
     onError: () => {
       setAssigningId(null);
@@ -122,7 +124,9 @@ export default function AvailableDrivers({ tripId, pageLoading }: Props) {
       <div className="h-full flex items-center justify-center px-6 text-center text-default-400">
         <div className="space-y-2">
           <p className="text-lg font-semibold">Select a Trip</p>
-          <p className="text-sm">Choose a trip from the queue to assign a driver.</p>
+          <p className="text-sm">
+            Choose a trip from the queue to assign a driver.
+          </p>
         </div>
       </div>
     );
@@ -224,35 +228,39 @@ export default function AvailableDrivers({ tripId, pageLoading }: Props) {
 
                 {/* Info block */}
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold leading-tight truncate">
-                    {driver.name}
-                  </p>
-
-                  {/* Status badge — only when flagged */}
-                  {(driver.hasConflict || !driver.isAvailable) && (
-                    <div className="mt-0.5">
-                      {driver.hasConflict ? (
-                        <Chip size="sm" color="warning" variant="soft" className="text-[11px]">
-                          Same-day ride
-                        </Chip>
-                      ) : (
-                        <Chip size="sm" color="danger" variant="soft" className="text-[11px]">
-                          Marked busy
-                        </Chip>
-                      )}
-                    </div>
-                  )}
+                  <div className="text-sm font-semibold leading-tight truncate flex items-center gap-4">
+                    {driver.name}{" "}
+                    {(driver.hasConflict || !driver.isAvailable) && (
+                      <div>
+                        {driver.hasConflict ? (
+                          <span className="text-xs text-warning font-semibold">
+                            Same-day ride
+                          </span>
+                        ) : (
+                          <span className="text-xs  font-semibold text-danger">
+                            Marked busy
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
                   {/* Attribute chips */}
                   <div className="flex items-center gap-1.5 mt-1.5 overflow-hidden">
-                    <Chip size="sm" className="shrink-0 capitalize px-2 text-[11px]">
+                    <Chip
+                      size="sm"
+                      className="shrink-0 capitalize px-2 text-xs"
+                    >
                       {driver.vehicleType}
                     </Chip>
-                    <Chip size="sm" className="shrink-0 px-2 text-[11px]">
+                    <Chip size="sm" className="shrink-0 px-2 text-xs">
                       {driver.ac ? "AC" : "Non-AC"}
                     </Chip>
                     {driver.vehicleNumber && (
-                      <Chip size="sm" className="px-2 text-[11px] max-w-[100px] truncate">
+                      <Chip
+                        size="sm"
+                        className="px-2 text-xs max-w-[100px] truncate"
+                      >
                         {driver.vehicleNumber}
                       </Chip>
                     )}
@@ -262,7 +270,7 @@ export default function AvailableDrivers({ tripId, pageLoading }: Props) {
                 {/* Assign button */}
                 <CustomButton
                   size="sm"
-                  variant={driver.hasConflict ? "secondary" : "primary"}
+                  variant={driver.hasConflict ? "outline" : "primary"}
                   onPress={() => assignMutation.mutate(driver.id)}
                   isLoading={assigningId === driver.id}
                   isDisabled={assignMutation.isPending}
@@ -447,21 +455,20 @@ function DriverCardSkeleton() {
     <Card variant="default">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3 flex-1">
-          <Skeleton className="h-10 w-10 rounded-full" />
+          <Skeleton className="size-8 rounded-full" />
 
-          <div className="flex-1 space-y-3">
-            <Skeleton className="h-5 w-40 rounded-md" />
+          <div className="flex-1 space-y-1.5">
+            <Skeleton className="h-4 w-40 rounded-md" />
 
             <div className="flex gap-2 flex-wrap">
-              <Skeleton className="h-6 w-20 rounded-full" />
-              <Skeleton className="h-6 w-20 rounded-full" />
-              <Skeleton className="h-6 w-20 rounded-full" />
-              <Skeleton className="h-6 w-24 rounded-full" />
+              <Skeleton className="h-4 w-20 rounded-full" />
+              <Skeleton className="h-4 w-20 rounded-full" />
+              <Skeleton className="h-4 w-20 rounded-full" />
             </div>
           </div>
         </div>
 
-        <Skeleton className="h-9 w-20 rounded-lg" />
+        <Skeleton className="h-9 w-20 rounded-full" />
       </div>
     </Card>
   );

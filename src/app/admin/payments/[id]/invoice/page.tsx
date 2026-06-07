@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { request } from "@/lib/api-client";
 import Image from "next/image";
 import { ASSETS } from "@/constants/assets";
+import { Button } from "@heroui/react";
 
 type TransactionDetail = {
   id: string;
@@ -66,22 +67,25 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 export default function InvoicePage() {
   const { id } = useParams<{ id: string }>();
 
-  const { data, isLoading } = useQuery<{ success: boolean; data: TransactionDetail }>({
+  const { data, isLoading } = useQuery<{
+    success: boolean;
+    data: TransactionDetail;
+  }>({
     queryKey: ["admin-payment-invoice", id],
     queryFn: () => request(`/api/payments/admin/${id}`),
     enabled: !!id,
   });
 
   // Auto-trigger print once data is loaded
-  useEffect(() => {
-    if (data?.data) {
-      setTimeout(() => window.print(), 400);
-    }
-  }, [data?.data]);
+  // useEffect(() => {
+  //   if (data?.data) {
+  //     setTimeout(() => window.print(), 400);
+  //   }
+  // }, [data?.data]);
 
   if (isLoading || !data?.data) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center py-16">
         <p className="text-gray-400 text-sm">Preparing invoice…</p>
       </div>
     );
@@ -95,23 +99,20 @@ export default function InvoicePage() {
   return (
     <>
       {/* Print button — hidden in print */}
-      <div className="no-print flex justify-end p-4 bg-gray-50 border-b border-gray-200">
-        <button
-          onClick={() => window.print()}
-          className="bg-blue-600 text-white text-sm font-semibold px-5 py-2 rounded-lg hover:bg-blue-700"
-        >
-          Print Invoice
-        </button>
-      </div>
+      <Button
+        onPress={() => window.print()}
+        className={"absolute top-20 right-8 print:hidden"}
+      >
+        Print Invoice
+      </Button>
 
       {/* Invoice */}
       <div
         id="invoice"
         className="mx-auto max-w-2xl bg-white p-10 font-sans text-gray-800"
-        style={{ minHeight: "100vh" }}
       >
         {/* Header */}
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex items-start justify-between mb-4">
           <div>
             <Image
               src={ASSETS.logos.primary.src}
@@ -132,10 +133,10 @@ export default function InvoicePage() {
         </div>
 
         {/* Divider */}
-        <div className="border-t-2 border-gray-900 mb-6" />
+        <div className="border-t-1 border-gray-300 mb-4" />
 
         {/* Bill To + Payment Info */}
-        <div className="flex justify-between mb-8">
+        <div className="flex justify-between mb-4">
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
               Bill To
@@ -160,31 +161,39 @@ export default function InvoicePage() {
         </div>
 
         {/* Journey Details Table */}
-        <div className="mb-6">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+        <div className="mb-4">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
             Journey Details
           </p>
           <table className="w-full">
             <tbody>
-              <Row label="Booking Ref" value={tx.bookingRef || tx.bookingId.slice(0, 12)} />
+              <Row
+                label="Booking Ref"
+                value={tx.bookingRef || tx.bookingId.slice(0, 12)}
+              />
               <Row label="Journey Date" value={tx.journeyDate} />
               <Row label="Journey Time" value={tx.journeyTime} />
               <Row label="From" value={tx.pickupName} />
               <Row label="To" value={tx.dropName} />
-              <Row label="Vehicle" value={<span className="capitalize">{tx.vehicleType}</span>} />
+              <Row
+                label="Vehicle"
+                value={<span className="capitalize">{tx.vehicleType}</span>}
+              />
               <Row label="Passengers" value={tx.members} />
             </tbody>
           </table>
         </div>
 
         {/* Payment Summary Box */}
-        <div className="bg-gray-50 rounded-xl p-5 mb-8">
+        <div className=" mb-4">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
             Payment Summary
           </p>
           <div className="flex justify-between text-sm mb-2">
             <span className="text-gray-500">Total Fare</span>
-            <span className="font-medium">₹{parseFloat(tx.totalFare).toLocaleString("en-IN")}</span>
+            <span className="font-medium">
+              ₹{parseFloat(tx.totalFare).toLocaleString("en-IN")}
+            </span>
           </div>
           <div className="flex justify-between text-sm mb-2">
             <span className="text-gray-500">
@@ -193,13 +202,18 @@ export default function InvoicePage() {
                 ({tx.mode === "partial" ? "Advance" : "Full"})
               </span>
             </span>
-            <span className="font-medium">₹{parseFloat(tx.amount).toLocaleString("en-IN")}</span>
+            <span className="font-medium">
+              ₹{parseFloat(tx.amount).toLocaleString("en-IN")}
+            </span>
           </div>
           {tx.mode === "partial" && (
-            <div className="flex justify-between text-sm mb-2 text-amber-700">
+            <div className="flex justify-between text-sm mb-2 text-amber-600">
               <span>Balance Due</span>
               <span className="font-medium">
-                ₹{(parseFloat(tx.totalFare) - parseFloat(tx.amount)).toLocaleString("en-IN")}
+                ₹
+                {(
+                  parseFloat(tx.totalFare) - parseFloat(tx.amount)
+                ).toLocaleString("en-IN")}
               </span>
             </div>
           )}
@@ -231,9 +245,64 @@ export default function InvoicePage() {
 
       <style>{`
         @media print {
-          .no-print { display: none !important; }
-          body { margin: 0; }
-          #invoice { padding: 24px; max-width: 100%; }
+          html,
+          body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: auto;
+          }
+
+          #invoice,
+          #invoice * {
+            visibility: visible;
+          }
+
+          #invoice {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            max-width: 100%;
+            padding: 24px;
+            margin: 0;
+            background: white;
+          }
+
+          .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 16px;
+          }
+
+          .invoice-footer {
+            margin-top: 32px;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 12px;
+            text-align: center;
+            font-size: 11px;
+            color: #6b7280;
+          }
+
+          .no-print {
+            display: none !important;
+          }
+
+          @page {
+            size: A4;
+            margin: 12mm;
+          }
+
+          ::-webkit-scrollbar {
+            display: none;
+          }
+
+          * {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+          }
         }
       `}</style>
     </>
