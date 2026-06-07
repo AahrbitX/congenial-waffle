@@ -10,9 +10,9 @@ import { saveMarketingConsent } from "@/api/user.api";
 
 const slideVariants = {
   enterFromRight: { opacity: 0, x: 40 },
-  enterFromLeft:  { opacity: 0, x: -40 },
-  center:         { opacity: 1, x: 0 },
-  exitToLeft:     { opacity: 0, x: -40 },
+  enterFromLeft: { opacity: 0, x: -40 },
+  center: { opacity: 1, x: 0 },
+  exitToLeft: { opacity: 0, x: -40 },
 };
 
 interface OtpLoginFlowProps {
@@ -40,11 +40,16 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
   }
 
   const handleSendOtp = async () => {
-    if (!phone.trim()) { setOtpError("Please enter your phone number."); return; }
+    if (!phone.trim()) {
+      setOtpError("Please enter your phone number.");
+      return;
+    }
     setOtpError("");
     setOtpLoading(true);
 
-    const { error } = await authClient.phoneNumber.sendOtp({ phoneNumber: phone.trim() });
+    const { error } = await authClient.phoneNumber.sendOtp({
+      phoneNumber: phone.trim(),
+    });
 
     if (error) {
       setOtpError(error.message || "Failed to send OTP.");
@@ -57,7 +62,10 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
   };
 
   const handleVerifyOtp = async () => {
-    if (otp.length !== 6) { setOtpError("Please enter the 6-digit OTP."); return; }
+    if (otp.length !== 6) {
+      setOtpError("Please enter the 6-digit OTP.");
+      return;
+    }
     setOtpError("");
     setOtpLoading(true);
 
@@ -89,7 +97,10 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
 
   const handleOnboardingSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    if (!name.trim()) { setObError("Full name is required."); return; }
+    if (!name.trim()) {
+      setObError("Full name is required.");
+      return;
+    }
     setObError("");
     setObLoading(true);
 
@@ -105,13 +116,12 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
     }
 
     syncConsentToDb();
-    onSuccess();  // onboarding: role is always "user"
+    onSuccess(); // onboarding: role is always "user"
   };
 
   return (
     <div className="overflow-hidden">
       <AnimatePresence mode="wait" initial={false}>
-
         {!showOnboarding ? (
           <motion.div
             key="otp"
@@ -122,7 +132,7 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
             transition={{ duration: 0.35, ease: "easeInOut" }}
             className="flex flex-col gap-4"
           >
-            <div>
+            <div className="px-1">
               <Label htmlFor="otp-phone">Phone Number</Label>
               <Input
                 id="otp-phone"
@@ -136,7 +146,7 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
               />
             </div>
 
-            <div>
+            <div className="px-1">
               <Label htmlFor="otp-code" className="mb-2">
                 One-Time Password (OTP)
               </Label>
@@ -160,18 +170,37 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
               </InputOTP>
             </div>
 
-            {otpError && <p className="text-center text-sm text-danger">{otpError}</p>}
+            {otpError && (
+              <p className="text-center text-sm text-danger">{otpError}</p>
+            )}
 
             {!otpSent ? (
               <>
-                <Button className="mt-4 w-full" size="lg" onPress={handleSendOtp} isLoading={otpLoading} disabled={otpLoading}>
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onPress={handleSendOtp}
+                  isLoading={otpLoading}
+                  disabled={otpLoading}
+                >
                   Send OTP
                 </Button>
                 <p className="text-center text-xs text-[var(--color-text-tertiary)]">
                   By continuing, you agree to our{" "}
-                  <a href="/terms" className="underline underline-offset-2 hover:text-primary transition-colors">Terms &amp; Conditions</a>
-                  {" "}and{" "}
-                  <a href="/privacy" className="underline underline-offset-2 hover:text-primary transition-colors">Privacy Policy</a>.
+                  <a
+                    href="/terms"
+                    className="underline underline-offset-2 hover:text-primary transition-colors"
+                  >
+                    Terms &amp; Conditions
+                  </a>{" "}
+                  and{" "}
+                  <a
+                    href="/privacy"
+                    className="underline underline-offset-2 hover:text-primary transition-colors"
+                  >
+                    Privacy Policy
+                  </a>
+                  .
                 </p>
               </>
             ) : (
@@ -188,16 +217,18 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
                 <button
                   type="button"
                   className="text-center text-xs text-muted hover:underline"
-                  onClick={() => { setOtpSent(false); setOtp(""); setOtpError(""); }}
+                  onClick={() => {
+                    setOtpSent(false);
+                    setOtp("");
+                    setOtpError("");
+                  }}
                 >
                   Change phone number
                 </button>
               </div>
             )}
           </motion.div>
-
         ) : (
-
           <motion.div
             key="onboarding"
             variants={slideVariants}
@@ -211,9 +242,15 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
               <div className="relative">
                 <Avatar className="size-16">
                   <Avatar.Fallback>
-                    {name
-                      ? name.split(" ").map((n: string) => n[0]).join("").toUpperCase()
-                      : <IconUser size={22} />}
+                    {name ? (
+                      name
+                        .split(" ")
+                        .map((n: string) => n[0])
+                        .join("")
+                        .toUpperCase()
+                    ) : (
+                      <IconUser size={22} />
+                    )}
                   </Avatar.Fallback>
                 </Avatar>
                 <button
@@ -223,10 +260,15 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
                   <IconCamera size={12} />
                 </button>
               </div>
-              <span className="text-xs text-muted">Profile photo (optional)</span>
+              <span className="text-xs text-muted">
+                Profile photo (optional)
+              </span>
             </div>
 
-            <form className="flex flex-col gap-4" onSubmit={handleOnboardingSubmit}>
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={handleOnboardingSubmit}
+            >
               <div>
                 <Label>Phone Number</Label>
                 <p className="mt-2 rounded-xl border border-[var(--color-border)] px-3 py-2 text-sm text-muted">
@@ -262,29 +304,51 @@ export function OtpLoginFlow({ onSuccess }: OtpLoginFlowProps) {
                 />
               </div>
 
-              {obError && <p className="text-center text-sm text-danger">{obError}</p>}
+              {obError && (
+                <p className="text-center text-sm text-danger">{obError}</p>
+              )}
 
-              <Button className="w-full" size="lg" type="submit" isLoading={obLoading} disabled={obLoading}>
+              <Button
+                className="w-full"
+                size="lg"
+                type="submit"
+                isLoading={obLoading}
+                disabled={obLoading}
+              >
                 Get Started →
               </Button>
 
               <p className="text-center text-xs text-[var(--color-text-tertiary)]">
                 By creating an account, you agree to our{" "}
-                <a href="/terms" className="underline underline-offset-2 hover:text-primary transition-colors">Terms &amp; Conditions</a>
-                {" "}and{" "}
-                <a href="/privacy" className="underline underline-offset-2 hover:text-primary transition-colors">Privacy Policy</a>.
+                <a
+                  href="/terms"
+                  className="underline underline-offset-2 hover:text-primary transition-colors"
+                >
+                  Terms &amp; Conditions
+                </a>{" "}
+                and{" "}
+                <a
+                  href="/privacy"
+                  className="underline underline-offset-2 hover:text-primary transition-colors"
+                >
+                  Privacy Policy
+                </a>
+                .
               </p>
 
               <button
                 type="button"
                 className="text-center text-xs text-muted hover:underline"
-                onClick={() => { setShowOnboarding(false); setOtp(""); setOtpSent(false); }}
+                onClick={() => {
+                  setShowOnboarding(false);
+                  setOtp("");
+                  setOtpSent(false);
+                }}
               >
                 ← Back
               </button>
             </form>
           </motion.div>
-
         )}
       </AnimatePresence>
     </div>

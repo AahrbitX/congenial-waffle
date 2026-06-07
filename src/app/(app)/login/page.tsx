@@ -11,7 +11,7 @@ export default function LoginPage() {
   return (
     <Surface
       variant="secondary"
-      className="relative min-h-screen w-full overflow-hidden flex items-center justify-center px-4 py-10"
+      className="relative min-h-[100svh] w-full overflow-hidden flex items-center justify-center px-4 py-10"
     >
       {/* Hero-section blobs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -30,20 +30,31 @@ export default function LoginPage() {
 
       {/* Login card */}
       <div className="relative z-10 w-full max-w-[420px]">
-        <Card className="w-full h-auto p-2 border-none flex flex-col items-center justify-start">
-          <Card.Header className="flex flex-col items-center justify-center gap-2 pb-2 pt-6">
+        <Card className="w-full h-auto flex flex-col items-center justify-start">
+          <Card.Header className="flex flex-col items-center justify-center gap-2 pt-6">
             <div className="flex items-center gap-2">
-              <Image src={ASSETS.logos.minimal.src} alt={ASSETS.logos.minimal.alt} width={36} height={36} />
-              <Image src={ASSETS.logos.darkFullName.src} alt={ASSETS.logos.darkFullName.alt} width={120} height={32} className="object-contain" />
+              <Image
+                src={ASSETS.logos.minimal.src}
+                alt={ASSETS.logos.minimal.alt}
+                width={36}
+                height={36}
+              />
+              <Image
+                src={ASSETS.logos.darkFullName.src}
+                alt={ASSETS.logos.darkFullName.alt}
+                width={120}
+                height={32}
+                className="object-contain"
+              />
             </div>
-            <div className="flex flex-col items-center mt-1">
+            <div className="flex flex-col items-center">
               <p className="text-small text-default-500">
                 Select your preferred login method
               </p>
             </div>
           </Card.Header>
 
-          <div className="p-4 w-full grow">
+          <Card.Content className="w-full grow">
             <Tabs aria-label="Login Options" className="w-full max-w-md">
               <Tabs.ListContainer>
                 <Tabs.List aria-label="Login Methods">
@@ -57,18 +68,18 @@ export default function LoginPage() {
                   </Tabs.Tab>
                 </Tabs.List>
               </Tabs.ListContainer>
-              <Tabs.Panel className="pt-4 h-full" id="otp">
+              <Tabs.Panel className="pt-2 h-full px-1" id="otp">
                 <Suspense>
                   <PhoneLoginForm />
                 </Suspense>
               </Tabs.Panel>
-              <Tabs.Panel className="pt-4" id="password">
+              <Tabs.Panel className="pt-2 h-full px-1" id="password">
                 <Suspense>
                   <PasswordLoginForm />
                 </Suspense>
               </Tabs.Panel>
             </Tabs>
-          </div>
+          </Card.Content>
         </Card>
       </div>
     </Surface>

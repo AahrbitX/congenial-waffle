@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, MapPin, Users, Award, Clock, Star } from "lucide-react";
+import { TextAnimate } from "@/components/ui/text-animate";
+import { buttonVariants, Card, Surface } from "@heroui/react";
 
 // ─── Scroll Animation Hook ────────────────────────────────────────────────────
 
@@ -132,45 +134,64 @@ function HeroSection() {
   return (
     <section className="bg-white">
       {/* Text content with split background — full width so right-0 hits viewport edge */}
-      <div className="relative overflow-hidden pt-28 sm:pt-36 pb-12 sm:pb-16">
-        <div className="absolute top-0 right-0 w-[50vw] h-full bg-[#f5f7ff] rounded-bl-[80px] -z-0" />
-
-        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-16">
+      <div className="relative overflow-hidden pt-24 sm:pt-36 pb-4 sm:pb-8">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8">
           {/* Tag */}
-          <span className="text-[11px] font-bold tracking-[0.2em] text-blue-500 uppercase">
+          <p className="text-xs font-bold tracking-[0.2em] text-blue-500 uppercase text-center sm:text-left">
             About Us
-          </span>
+          </p>
 
           {/* Heading */}
-          <h1 className="text-[clamp(2.4rem,6vw,5.5rem)] font-black leading-[1.05] tracking-tight text-[#0f0f0f] mt-4 max-w-2xl">
-            Your ride,{" "}
-            <span className="text-blue-500 italic">your rules.</span>
-            <br />
-            Our promise.
+          <h1 className="text-center sm:text-left mb-3 text-4xl font-black leading-[1.05] tracking-[-0.04em] text-black sm:text-5xl md:text-[3.4rem] lg:text-[3.6rem] md:mr-10 mt-4 max-w-xl">
+            <TextAnimate once as="span" animation="blurIn">
+              {"Your ride, "}
+            </TextAnimate>
+            <TextAnimate
+              once
+              as="span"
+              animation="blurIn"
+              className="text-primary"
+            >
+              {"Your rules. "}
+            </TextAnimate>
+            <TextAnimate once as="span" animation="blurIn">
+              {"Our Promises"}
+            </TextAnimate>
           </h1>
 
           {/* Paragraph */}
-          <p className="text-gray-400 text-[15px] mt-5 max-w-lg leading-relaxed">
+          <TextAnimate
+            as="p"
+            className="text-muted text-center md:text-left mt-5 max-w-lg leading-relaxed"
+          >
             Headquartered in Trivandrum, Kerala — trusted across the state since
             2005. Over two decades of punctual, safe, and honest cab service.
-          </p>
+          </TextAnimate>
 
           {/* CTA */}
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 mt-8 text-sm font-bold text-blue-500 border border-blue-200 rounded-full px-5 py-2.5 hover:bg-blue-50 transition-colors group"
-          >
-            Book a ride
-            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-          </Link>
+          <div className="text-center sm:text-left">
+            <Link
+              href="/"
+              className={
+                buttonVariants({ variant: "primary", size: "lg" }) +
+                "  mt-8 mx-auto md:mx-0 inline-flex items-center gap-3 group"
+              }
+            >
+              Book a ride
+              <ArrowRight
+                size={14}
+                className="group-hover:translate-x-1 transition-transform"
+              />
+            </Link>
+          </div>
         </div>
       </div>
 
       {/* Stats — clean white, no background overlap */}
-      <div className="max-w-7xl mx-auto px-6 sm:px-16 grid grid-cols-2 sm:grid-cols-4 gap-6 border-t border-gray-100 py-10">
+      <div className="max-w-7xl mx-auto px-6 sm:px-16 grid grid-cols-2 sm:grid-cols-4 gap-6 border-t border-gray-100 py-10 text-center sm:text-left">
         {STATS.map(({ value, label }) => (
           <div key={label}>
-            <p className="text-3xl sm:text-4xl font-black text-[#0f0f0f] tracking-tight">
+            <p className="text-3xl sm:text-4xl font-black tracking-tight">
               {value}
             </p>
             <p className="text-sm text-gray-400 font-medium mt-1">{label}</p>
@@ -199,14 +220,14 @@ function TimelineItem({
   const { ref, inView } = useInView(0.3);
   const isLeft = side === "left";
 
-  const Card = (
-    <div className="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6 shadow-sm sm:max-w-sm w-full">
-      <p className="text-xs font-bold text-blue-500 tracking-widest mb-2 uppercase">
+  const CardItem = (
+    <Card className="gap-2">
+      <p className="text-xs font-bold text-blue-500 tracking-widest uppercase">
         {year}
       </p>
-      <p className="text-base font-extrabold text-[#0f0f0f] mb-1">{title}</p>
-      <p className="text-[13px] text-gray-500 leading-relaxed">{desc}</p>
-    </div>
+      <p className="text-xl font-bold">{title}</p>
+      <p className="text-sm text-muted leading-relaxed">{desc}</p>
+    </Card>
   );
 
   return (
@@ -217,7 +238,9 @@ function TimelineItem({
       style={{ transitionDelay: `${index * 100}ms` }}
     >
       {/* Left slot — desktop only */}
-      <div className="hidden sm:flex justify-end">{isLeft ? Card : null}</div>
+      <div className="hidden sm:flex justify-end">
+        {isLeft ? CardItem : null}
+      </div>
 
       {/* Center dot */}
       <div className="flex justify-center items-center">
@@ -226,8 +249,8 @@ function TimelineItem({
 
       {/* Right slot — always on mobile, right-side only on desktop */}
       <div className="flex justify-start">
-        <div className="sm:hidden w-full">{Card}</div>
-        <div className="hidden sm:block">{!isLeft ? Card : null}</div>
+        <div className="sm:hidden w-full">{CardItem}</div>
+        <div className="hidden sm:block">{!isLeft ? CardItem : null}</div>
       </div>
     </div>
   );
@@ -259,16 +282,16 @@ function TimelineSection() {
   }, []);
 
   return (
-    <section className="py-16 sm:py-24 px-6 sm:px-16 bg-[#f8f9fe]">
+    <section className="py-8 sm:py-16 px-6 sm:px-16 bg-[#f8f9fe]">
       <div className="max-w-5xl mx-auto">
         <div
           ref={headRef}
           className={`text-center mb-12 sm:mb-16 transition-all duration-700 ${headIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
         >
-          <span className="text-[11px] font-bold tracking-[0.2em] text-blue-500 uppercase">
+          <span className="text-sm font-bold tracking-[0.2em] text-blue-500 uppercase">
             Our Journey
           </span>
-          <h2 className="text-[clamp(2rem,4vw,3rem)] font-black tracking-tight text-[#0f0f0f] mt-3">
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight mt-3">
             Two decades, one road.
           </h2>
           <p className="text-gray-400 text-[15px] mt-3 max-w-md mx-auto">
@@ -306,13 +329,14 @@ function TestimonialCard({
 }) {
   const { ref, inView } = useInView(0.2);
   return (
-    <div
+    <Card
       ref={ref}
-      className={`border border-gray-100 rounded-2xl p-6 shadow-sm transition-all duration-700 ease-out
+      variant="secondary"
+      className={` duration-700 ease-out
         ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       style={{ transitionDelay: `${index * 100}ms` }}
     >
-      <div className="flex gap-0.5 mb-4">
+      <div className="flex gap-0.5">
         {Array.from({ length: 5 }).map((_, s) => (
           <Star
             key={s}
@@ -325,7 +349,7 @@ function TestimonialCard({
           />
         ))}
       </div>
-      <p className="text-[13px] text-gray-500 leading-[1.8] mb-5">
+      <p className="text-[13px] text-gray-500 leading-[1.8]">
         &ldquo;{t.text}&rdquo;
       </p>
       <div className="flex items-center gap-3">
@@ -340,7 +364,7 @@ function TestimonialCard({
           <p className="text-[11px] text-gray-400">{t.location}</p>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -350,20 +374,21 @@ function TestimonialsSection() {
   const { ref: headRef, inView: headIn } = useInView(0.2);
 
   return (
-    <section className="py-16 sm:py-24 px-6 sm:px-16 bg-white">
+    <section className="py-8 sm:py-16 px-6 sm:px-16 bg-white">
       <div className="max-w-7xl mx-auto">
         <div
           ref={headRef}
-          className={`mb-10 sm:mb-14 transition-all duration-700 ${headIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+          className={`mb-6 sm:mb-8 transition-all duration-700 ${headIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
         >
-          <span className="text-[11px] font-bold tracking-[0.2em] text-blue-500 uppercase">
+          <p className="text-sm font-bold tracking-[0.2em] text-blue-500 uppercase text-center sm:text-left">
             Reviews
-          </span>
-          <h2 className="text-[clamp(2rem,4vw,3rem)] font-black tracking-tight text-[#0f0f0f] mt-3">
+          </p>
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight mt-3 text-center sm:text-left">
             What our riders say.
           </h2>
-          <p className="text-gray-400 text-[15px] mt-3 max-w-lg leading-relaxed">
-            Real experiences from real people across Kerala — families, commuters, and frequent travellers.
+          <p className="text-gray-400 text-[15px] mt-3 max-w-lg leading-relaxed text-center sm:text-left">
+            Real experiences from real people across Kerala — families,
+            commuters, and frequent travellers.
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -391,23 +416,23 @@ function ValueCard({
 }) {
   const { ref, inView } = useInView(0.2);
   return (
-    <div
+    <Card
       ref={ref}
       className={`group transition-all duration-700 ease-out ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       style={{ transitionDelay: `${index * 100}ms` }}
     >
-      <p className="text-[11px] font-bold text-gray-300 tracking-widest mb-6">
+      <p className="text-sm font-bold text-muted tracking-widest">
         0{index + 1}
       </p>
-      <div className="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center mb-5 group-hover:bg-blue-500 transition-colors">
+      <div className="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500 transition-colors">
         <Icon
           size={20}
           className="text-blue-500 group-hover:text-white transition-colors"
         />
       </div>
-      <p className="text-base font-extrabold text-[#0f0f0f] mb-2">{title}</p>
+      <p className="text-base font-extrabold text-[#0f0f0f]">{title}</p>
       <p className="text-[13px] text-gray-500 leading-relaxed">{desc}</p>
-    </div>
+    </Card>
   );
 }
 
@@ -417,20 +442,21 @@ function ValuesSection() {
   const { ref: headRef, inView: headIn } = useInView(0.2);
 
   return (
-    <section className="py-16 sm:py-24 px-6 sm:px-16 bg-[#f8f9fe]">
+    <Surface variant="secondary" className="py-8 sm:py-16 px-6 sm:px-16 ">
       <div className="max-w-7xl mx-auto">
         <div
           ref={headRef}
-          className={`mb-10 sm:mb-14 transition-all duration-700 ${headIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+          className={`mb-6 sm:mb-10 transition-all duration-700 ${headIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
         >
-          <span className="text-[11px] font-bold tracking-[0.2em] text-blue-500 uppercase">
+          <p className="text-sm font-bold tracking-[0.2em] text-blue-500 uppercase text-center sm:text-left">
             What We Stand For
-          </span>
-          <h2 className="text-[clamp(2rem,4vw,3rem)] font-black tracking-tight text-[#0f0f0f] mt-3">
+          </p>
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight mt-3 text-center sm:text-left">
             Built on four pillars.
           </h2>
-          <p className="text-gray-400 text-[15px] mt-3 max-w-lg leading-relaxed">
-            The values that have guided every ride, every driver, and every decision since day one.
+          <p className="text-gray-400 text-[15px] mt-3 max-w-lg leading-relaxed text-center sm:text-left">
+            The values that have guided every ride, every driver, and every
+            decision since day one.
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -445,7 +471,7 @@ function ValuesSection() {
           ))}
         </div>
       </div>
-    </section>
+    </Surface>
   );
 }
 
@@ -453,9 +479,9 @@ function ValuesSection() {
 
 function CtaSection() {
   return (
-    <section className="py-16 sm:py-24 px-6 sm:px-16 bg-blue-500">
+    <section className="py-10 sm:py-16 px-6 sm:px-16 bg-blue-500">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8">
-        <h2 className="text-[clamp(1.8rem,5vw,4rem)] font-black text-white leading-tight tracking-tight max-w-xl">
+        <h2 className="text-[clamp(1.8rem,5vw,4rem)] font-black text-white leading-tight tracking-normal max-w-xl">
           Ready to experience the difference?
         </h2>
         <Link
