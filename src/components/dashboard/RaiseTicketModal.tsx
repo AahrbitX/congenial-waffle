@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
-import { Modal, Button, TextArea, Input, Label } from "@heroui/react";
+import { Drawer, Modal, Button, TextArea, Input, Label } from "@heroui/react";
 
 import { useDashboard } from "@/context/DashboardContext";
 import { raiseTicket } from "@/api/rides.api";
@@ -40,11 +38,6 @@ export function RaiseTicketModal() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  useEffect(() => {
-    if (!isMobile) return;
-    document.body.style.overflow = !!ticketRide ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [isMobile, ticketRide]);
 
   const submit = useMutation({
     mutationFn: () =>
@@ -73,12 +66,7 @@ export function RaiseTicketModal() {
     subject.trim().length >= 3 && description.trim().length >= 5;
 
   const sheetContent = (
-    <div className={`w-full flex flex-col ${isMobile ? "max-h-[88svh]" : "max-w-lg max-h-[90vh]"}`}>
-      {isMobile && (
-        <div className="flex justify-center pt-4 pb-2 shrink-0">
-          <div className="h-1 w-12 rounded-full bg-gray-300" />
-        </div>
-      )}
+    <div className="w-full flex flex-col max-h-[90vh]">
       {submitted ? (
         <Modal.Body>
           <div className="flex flex-col items-center gap-4 text-center py-8">
@@ -180,33 +168,20 @@ export function RaiseTicketModal() {
   );
 
   if (isMobile) {
-    return createPortal(
-      <AnimatePresence>
-        {!!ticketRide && (
-          <>
-            <motion.div
-              key="bd"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[9998]"
-              onClick={closeTicketModal}
-            />
-            <motion.div
-              key="sheet"
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 280 }}
-              className="fixed inset-x-0 bottom-0 z-[9999] flex flex-col rounded-t-3xl bg-white shadow-2xl"
-            >
+    return (
+      <Drawer
+        isOpen={!!ticketRide}
+        onOpenChange={(open) => { if (!open) closeTicketModal(); }}
+      >
+        <Drawer.Backdrop className="bg-black/40 backdrop-blur-sm">
+          <Drawer.Content placement="bottom">
+            <Drawer.Dialog className="p-0 pt-2">
+              <Drawer.Handle />
               {sheetContent}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>,
-      document.body,
+            </Drawer.Dialog>
+          </Drawer.Content>
+        </Drawer.Backdrop>
+      </Drawer>
     );
   }
 
@@ -215,7 +190,7 @@ export function RaiseTicketModal() {
       isOpen={!!ticketRide}
       onOpenChange={(open) => { if (!open) closeTicketModal(); }}
     >
-      <Modal.Backdrop>
+      <Modal.Backdrop className="bg-black/40 backdrop-blur-sm">
         <Modal.Container>
           <Modal.Dialog className="max-w-lg">
             {sheetContent}

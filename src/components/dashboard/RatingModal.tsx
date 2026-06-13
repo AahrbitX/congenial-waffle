@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
 import {
   IconCheckCircle,
   IconMapPin,
@@ -15,7 +13,7 @@ import {
 } from "@/constants/icons";
 import { useDashboard } from "@/context/DashboardContext";
 import { useSubmitReview } from "@/hooks/useRides";
-import { Modal, Button, Chip, TextArea } from "@heroui/react";
+import { Drawer, Modal, Button, Chip, TextArea } from "@heroui/react";
 
 const ASPECTS = [
   { key: "punctuality" as const, label: "Punctuality", icon: IconClock    },
@@ -148,11 +146,6 @@ export function RatingModal() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  useEffect(() => {
-    if (!isMobile) return;
-    document.body.style.overflow = !!ratingRide ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [isMobile, ratingRide]);
 
   const setAspect = (key: AspectKey, value: number) =>
     setAspects((prev) => ({ ...prev, [key]: value }));
@@ -193,12 +186,7 @@ export function RatingModal() {
     );
 
   const sheetContent = (
-    <div className={`w-full flex flex-col ${isMobile ? "max-h-[88svh]" : "max-w-md max-h-[90vh]"}`}>
-      {isMobile && (
-        <div className="flex justify-center pt-4 pb-2 shrink-0">
-          <div className="h-1 w-12 rounded-full bg-gray-300" />
-        </div>
-      )}
+    <div className="w-full flex flex-col max-h-[90vh]">
       {submitted ? (
         <div className="flex flex-col items-center justify-center py-12 px-8 gap-4 text-center">
           <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center">
@@ -331,33 +319,20 @@ export function RatingModal() {
   );
 
   if (isMobile) {
-    return createPortal(
-      <AnimatePresence>
-        {!!ratingRide && (
-          <>
-            <motion.div
-              key="bd"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[9998]"
-              onClick={closeRatingModal}
-            />
-            <motion.div
-              key="sheet"
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 280 }}
-              className="fixed inset-x-0 bottom-0 z-[9999] flex flex-col rounded-t-3xl bg-white shadow-2xl"
-            >
+    return (
+      <Drawer
+        isOpen={!!ratingRide}
+        onOpenChange={(open) => { if (!open) closeRatingModal(); }}
+      >
+        <Drawer.Backdrop className="bg-black/40 backdrop-blur-sm">
+          <Drawer.Content placement="bottom">
+            <Drawer.Dialog className="p-0 pt-2">
+              <Drawer.Handle />
               {sheetContent}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>,
-      document.body,
+            </Drawer.Dialog>
+          </Drawer.Content>
+        </Drawer.Backdrop>
+      </Drawer>
     );
   }
 
@@ -366,7 +341,7 @@ export function RatingModal() {
       isOpen={!!ratingRide}
       onOpenChange={(open) => { if (!open) closeRatingModal(); }}
     >
-      <Modal.Backdrop>
+      <Modal.Backdrop className="bg-black/40 backdrop-blur-sm">
         <Modal.Container>
           <Modal.Dialog className="sm:max-w-md">
             {sheetContent}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
@@ -54,6 +53,7 @@ import {
   IconLocate,
 } from "@/constants/icons";
 import {
+  Drawer,
   FieldError,
   Input,
   Label,
@@ -211,13 +211,6 @@ export function BookRideModal({
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // Lock background scroll when the mobile sheet is open
-  useEffect(() => {
-    if (!isMobile) return;
-    const shouldLock = (isOpen || confirmed || verifying) && !rzpActive;
-    document.body.style.overflow = shouldLock ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [isMobile, isOpen, confirmed, verifying, rzpActive]);
 
   // Re-seed when modal reopens with new data
   useEffect(() => {
@@ -532,13 +525,7 @@ export function BookRideModal({
         : "Confirm Booking";
 
   const sheetContent = (
-    <div className={`w-full flex flex-col ${isMobile ? "max-h-[88svh]" : "max-w-lg max-h-[90vh]"}`}>
-      {/* Drag handle — mobile only */}
-      {isMobile && (
-        <div className="flex justify-center pt-4 pb-2 shrink-0">
-          <div className="h-1 w-12 rounded-full bg-gray-300" />
-        </div>
-      )}
+    <div className="w-full flex flex-col max-h-[90vh]">
               {/* ── Verifying payment loader ───────────────────────────── */}
               {verifying ? (
                 <div className="flex flex-col items-center justify-center py-14 px-8 gap-5 text-center">
@@ -693,28 +680,13 @@ export function BookRideModal({
                           <p className="text-sm mb-1">AC Preference</p>
                           <div className="flex gap-2">
                             {[
-                              {
-                                label: "AC",
-                                val: true as boolean | null,
-                                icon: true,
-                              },
-                              {
-                                label: "Non-AC",
-                                val: false as boolean | null,
-                                icon: false,
-                              },
-                              {
-                                label: "Any",
-                                val: null as boolean | null,
-                                icon: false,
-                              },
+                              { label: "AC",     val: true  as boolean | null, icon: true  },
+                              { label: "Non-AC", val: false as boolean | null, icon: false },
+                              { label: "Any",    val: null  as boolean | null, icon: false },
                             ].map(({ label, val, icon }) => (
                               <button
                                 key={label}
-                                onClick={() => {
-                                  setAcPref(val);
-                                  setVehicle("");
-                                }}
+                                onClick={() => { setAcPref(val); setVehicle(""); }}
                                 className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold border transition-all ${
                                   acPref === val
                                     ? "bg-primary text-white border-primary"
@@ -773,10 +745,7 @@ export function BookRideModal({
                             </p>
                             {distLoading && (
                               <span className="flex items-center gap-1 text-xs text-primary font-semibold">
-                                <IconLoader
-                                  size={10}
-                                  className="animate-spin"
-                                />
+                                <IconLoader size={10} className="animate-spin" />
                                 Calculating fare…
                               </span>
                             )}
@@ -913,49 +882,34 @@ export function BookRideModal({
             </div>
   );
 
-  // Mobile: framer-motion portal bottom sheet (proper slide-up animation)
+  // Mobile: HeroUI Drawer bottom sheet
   if (isMobile) {
-    return createPortal(
-      <AnimatePresence>
-        {!rzpActive && (
-          <>
-            {/* Transparent tap-to-close overlay */}
-            <motion.div
-              key="bd"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[9998]"
-              onClick={handleClose}
-            />
-            {/* Bottom sheet */}
-            <motion.div
-              key="sheet"
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 280 }}
-              className="fixed inset-x-0 bottom-0 z-[9999] flex flex-col rounded-t-3xl bg-white shadow-2xl"
-            >
+    return (
+      <Drawer
+        isOpen={(isOpen || confirmed || verifying) && !rzpActive}
+        onOpenChange={(open) => { if (!open) handleClose(); }}
+      >
+        <Drawer.Backdrop className="bg-black/40 backdrop-blur-sm">
+          <Drawer.Content placement="bottom">
+            <Drawer.Dialog className="p-0 pt-2">
+              <Drawer.Handle />
               {sheetContent}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>,
-      document.body,
+            </Drawer.Dialog>
+          </Drawer.Content>
+        </Drawer.Backdrop>
+      </Drawer>
     );
   }
 
-  // Desktop: HeroUI Modal (unchanged)
+  // Desktop: HeroUI Modal
   return (
     <Modal
       isOpen={(isOpen || confirmed || verifying) && !rzpActive}
       onOpenChange={(open) => { if (!open) handleClose(); }}
     >
-      <Modal.Backdrop isDismissable={false}>
+      <Modal.Backdrop isDismissable={false} className="bg-black/40 backdrop-blur-sm">
         <Modal.Container>
-          <Modal.Dialog>
+          <Modal.Dialog className="max-w-lg">
             {sheetContent}
           </Modal.Dialog>
         </Modal.Container>
