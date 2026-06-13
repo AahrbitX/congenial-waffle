@@ -11,6 +11,7 @@ import { authClient } from "@/lib/auth-client";
 import {
   forwardGeocode,
   reverseGeocode,
+  geocodeAddress,
   getRouteDistance,
   type GeoResult,
 } from "@/utils/geocoding";
@@ -278,20 +279,14 @@ export function BookRideModal({
       let dLat = form.destinationLat,
         dLng = form.destinationLng;
 
-      // Geocode if coords are missing
+      // Geocode if coords are missing — use the geocoding API (more reliable than autocomplete)
       if (!pLat || !pLng) {
-        const r = await forwardGeocode(form.pickup);
-        if (r[0]) {
-          pLat = r[0].lat;
-          pLng = r[0].lng;
-        }
+        const r = await geocodeAddress(form.pickup);
+        if (r[0]) { pLat = r[0].lat; pLng = r[0].lng; }
       }
       if (!dLat || !dLng) {
-        const r = await forwardGeocode(form.destination);
-        if (r[0]) {
-          dLat = r[0].lat;
-          dLng = r[0].lng;
-        }
+        const r = await geocodeAddress(form.destination);
+        if (r[0]) { dLat = r[0].lat; dLng = r[0].lng; }
       }
 
       if (cancelled || !pLat || !pLng || !dLat || !dLng) {

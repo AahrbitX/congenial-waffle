@@ -1,5 +1,3 @@
-const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
-
 export interface GeoResult {
   name: string;
   lat: number;
@@ -27,22 +25,32 @@ export async function getRouteDistance(
 }
 
 export async function reverseGeocode(lat: number, lng: number): Promise<string> {
-  const res = await fetch(
-    `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${TOKEN}&country=IN&language=en`
-  );
+  const res  = await fetch(`/api/places/reverse-geocode?latlng=${lat},${lng}`);
   const data = await res.json();
-  return (data.features?.[0]?.place_name as string) ?? "";
+  const result = data.results?.[0];
+  return (result?.formatted_address ?? result?.name ?? "") as string;
 }
 
+/** Autocomplete suggestions for real-time search dropdowns */
 export async function forwardGeocode(query: string): Promise<GeoResult[]> {
   if (!query.trim()) return [];
-  const res = await fetch(
-    `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${TOKEN}&country=IN&language=en&limit=5`
-  );
+  const res  = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(query)}`);
   const data = await res.json();
-  return (data.features ?? []).map((f: any) => ({
-    name: f.place_name as string,
-    lng: f.center[0] as number,
-    lat: f.center[1] as number,
+  return (data.predictions ?? []).map((p: any) => ({
+    name: p.description as string,
+    lat:  p.geometry?.location?.lat as number,
+    lng:  p.geometry?.location?.lng as number,
+  }));
+}
+
+/** Geocode a complete address string into coordinates */
+export async function geocodeAddress(address: string): Promise<GeoResult[]> {
+  if (!address.trim()) return [];
+  const res  = await fetch(`/api/places/geocode?address=${encodeURIComponent(address)}`);
+  const data = await res.json();
+  return (data.geocodingResults ?? []).map((r: any) => ({
+    name: r.formatted_address as string,
+    lat:  r.geometry?.location?.lat as number,
+    lng:  r.geometry?.location?.lng as number,
   }));
 }

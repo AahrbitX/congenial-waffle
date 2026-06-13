@@ -1,18 +1,19 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import Map, { Marker, NavigationControl } from "react-map-gl/mapbox";
-import "mapbox-gl/dist/mapbox-gl.css";
+import Map, { Marker, NavigationControl } from "react-map-gl/maplibre";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { Button } from "@/components/ui/Button";
-import { IconMapPin, IconSearch, IconLoader } from "@/constants/icons";
-import { forwardGeocode, reverseGeocode } from "@/utils/geocoding";
-import type { GeoResult } from "@/utils/geocoding";
+import { IconMapPin, IconLoader } from "@/constants/icons";
+import { reverseGeocode } from "@/utils/geocoding";
 
 type MapMoveEvent = { viewState: { latitude: number; longitude: number; zoom: number } };
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const TOKEN        = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
+const API_KEY      = process.env.NEXT_PUBLIC_OLA_MAPS_API_KEY!;
+const STYLE_URL    = `https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard/style.json?api_key=${API_KEY}`;
+const BROKEN_LAYER = "3d_model_data";
 const DEFAULT_LNG  = 76.9366;
 const DEFAULT_LAT  = 8.5241; // Trivandrum
 
@@ -26,75 +27,30 @@ interface LocationPickerMapProps {
   onCancel: () => void;
 }
 
-// ── Search box ────────────────────────────────────────────────────────────────
-
-function PlaceSearch({ onPlace }: { onPlace: (name: string, coords: LatLng) => void }) {
-  const [query,    setQuery]    = useState("");
-  const [results,  setResults]  = useState<GeoResult[]>([]);
-  const [loading,  setLoading]  = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleChange = (val: string) => {
-    setQuery(val);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!val.trim()) { setResults([]); return; }
-    debounceRef.current = setTimeout(async () => {
-      setLoading(true);
-      const r = await forwardGeocode(val);
-      setResults(r);
-      setLoading(false);
-    }, 350);
-  };
-
-  const handleSelect = (r: GeoResult) => {
-    setQuery(r.name);
-    setResults([]);
-    onPlace(r.name, { lat: r.lat, lng: r.lng });
-  };
-
-  return (
-    <div className="relative">
-      <div className="relative">
-        <IconSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => handleChange(e.target.value)}
-          placeholder="Search for a location…"
-          className="w-full pl-8 pr-8 py-2 text-sm rounded-xl border border-border bg-background text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30"
-        />
-        {loading && (
-          <IconLoader size={13} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-text-muted" />
-        )}
-      </div>
-
-      {results.length > 0 && (
-        <ul className="absolute z-50 mt-1 w-full bg-background border border-border rounded-xl shadow-lg overflow-hidden">
-          {results.map((r) => (
-            <li key={r.name}>
-              <button
-                type="button"
-                onClick={() => handleSelect(r)}
-                className="w-full flex items-start gap-2 px-3 py-2.5 text-sm text-left hover:bg-border/30 transition-colors"
-              >
-                <IconMapPin size={13} className="mt-0.5 shrink-0 text-primary" />
-                <span className="line-clamp-2 text-text-primary">{r.name}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function LocationPickerMap({ initialAddress, onConfirm, onCancel }: LocationPickerMapProps) {
-  const [coords,   setCoords]   = useState<LatLng>({ lat: DEFAULT_LAT, lng: DEFAULT_LNG });
-  const [address,  setAddress]  = useState(initialAddress ?? "");
-  const [locating, setLocating] = useState(true);
-  const [viewport, setViewport] = useState({ latitude: DEFAULT_LAT, longitude: DEFAULT_LNG, zoom: 14 });
+  const [coords,    setCoords]    = useState<LatLng>({ lat: DEFAULT_LAT, lng: DEFAULT_LNG });
+  const [address,   setAddress]   = useState(initialAddress ?? "");
+  const [locating,  setLocating]  = useState(true);
+  const [viewport,  setViewport]  = useState({ latitude: DEFAULT_LAT, longitude: DEFAULT_LNG, zoom: 14 });
+  const [mapStyle,  setMapStyle]  = useState<object | null>(null);
+  const styleFetched = useRef(false);
+
+  // Fetch & pre-filter style so the broken 3d_model_data layer never reaches MapLibre
+  useEffect(() => {
+    if (styleFetched.current) return;
+    styleFetched.current = true;
+    fetch(STYLE_URL)
+      .then((r) => r.json())
+      .then((style) =>
+        setMapStyle({
+          ...style,
+          layers: (style.layers ?? []).filter((l: any) => l.id !== BROKEN_LAYER),
+        })
+      )
+      .catch(() => setMapStyle({}));
+  }, []);
 
   // Auto-detect GPS on mount
   useEffect(() => {
@@ -122,31 +78,28 @@ export function LocationPickerMap({ initialAddress, onConfirm, onCancel }: Locat
     setAddress(addr);
   }, []);
 
-  const handlePlace = useCallback((name: string, loc: LatLng) => {
-    setAddress(name);
-    setCoords(loc);
-    setViewport((v) => ({ ...v, latitude: loc.lat, longitude: loc.lng, zoom: 15 }));
-  }, []);
-
   return (
     <div className="flex flex-col gap-3 mt-2">
-      {/* Search */}
-      <PlaceSearch onPlace={handlePlace} />
-
       {/* Map */}
       <div className="h-56 rounded-xl overflow-hidden border border-border">
-        {locating ? (
+        {locating || !mapStyle ? (
           <div className="h-full flex items-center justify-center bg-border/20 text-sm text-text-muted gap-2">
             <IconLoader size={16} className="animate-spin" />
-            Detecting your location…
+            {locating ? "Detecting your location…" : "Loading map…"}
           </div>
         ) : (
           <Map
             {...viewport}
             onMove={(e: MapMoveEvent) => setViewport(e.viewState)}
-            mapStyle="mapbox://styles/mapbox/streets-v12"
-            mapboxAccessToken={TOKEN}
+            mapStyle={mapStyle}
             style={{ width: "100%", height: "100%" }}
+            transformRequest={(url) => {
+              if (url.startsWith("https://api.olamaps.io")) {
+                const sep = url.includes("?") ? "&" : "?";
+                return { url: `${url}${sep}api_key=${API_KEY}` };
+              }
+              return { url };
+            }}
           >
             <NavigationControl position="top-right" showCompass={false} />
             <Marker
