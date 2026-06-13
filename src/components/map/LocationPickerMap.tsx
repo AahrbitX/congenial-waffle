@@ -93,7 +93,7 @@ export function LocationPickerMap({ initialAddress, onConfirm, onCancel }: Locat
             onMove={(e: MapMoveEvent) => setViewport(e.viewState)}
             mapStyle={mapStyle}
             style={{ width: "100%", height: "100%" }}
-            transformRequest={(url) => {
+            transformRequest={(url: string) => {
               if (url.startsWith("https://api.olamaps.io")) {
                 const sep = url.includes("?") ? "&" : "?";
                 return { url: `${url}${sep}api_key=${API_KEY}` };
