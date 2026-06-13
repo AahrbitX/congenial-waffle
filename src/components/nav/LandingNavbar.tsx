@@ -300,9 +300,16 @@ export default function LandingNavbar() {
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 text-text-secondary hover:bg-border/30 rounded-lg transition-colors"
+              className={`overflow-hidden whitespace-nowrap rounded-full bg-white transition-all duration-300 border ${isOpen ? "w-10 pr-2.5 pl-2 py-2" : "p-2 px-4 w-26"} `}
             >
-              {isOpen ? <X size={22} /> : <Menu size={22} />}
+              {isOpen ? (
+                <X size={22} />
+              ) : (
+                <span className="text-accent flex items-center gap-2">
+                  <Menu size={20} className="shrink-0" />
+                  Menu
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -310,7 +317,7 @@ export default function LandingNavbar() {
 
       {/* Mobile Navigation */}
       {isOpen && (
-        <div className="md:hidden border-t border-border bg-background rounded-2xl mt-1 px-4 py-3 space-y-1 shadow-lg">
+        <div className="md:hidden border-t border-border bg-background rounded-3xl mt-1 px-4 py-3 space-y-1 shadow-lg">
           <Link
             href="/"
             onClick={() => setIsOpen(false)}

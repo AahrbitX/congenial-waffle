@@ -132,7 +132,7 @@ const VALUES = [
 
 function HeroSection() {
   return (
-    <section className="bg-white">
+    <section>
       {/* Text content with split background — full width so right-0 hits viewport edge */}
       <div className="relative overflow-hidden pt-24 sm:pt-36 pb-4 sm:pb-8">
         <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8">
@@ -162,7 +162,7 @@ function HeroSection() {
           {/* Paragraph */}
           <TextAnimate
             as="p"
-            className="text-muted text-center md:text-left mt-5 max-w-lg leading-relaxed"
+            className="text-sm md:text-base text-muted text-center md:text-left mt-5 max-w-lg leading-relaxed"
           >
             Headquartered in Trivandrum, Kerala — trusted across the state since
             2005. Over two decades of punctual, safe, and honest cab service.

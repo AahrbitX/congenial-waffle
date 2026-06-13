@@ -77,7 +77,7 @@ export function ServiceDetail({ slug }: ServiceDetailProps) {
           <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-16">
             <Link
               href="/services"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-accent transition-colors mb-4"
+              className="inline-flex items-center gap-1.5 text-sm mt-2 mb-6 font-semibold text-muted hover:text-accent transition-colors"
             >
               <ArrowLeft size={13} /> All Services
             </Link>

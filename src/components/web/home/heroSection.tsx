@@ -2,7 +2,13 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeftRight, ArrowRight, MapPin, Plane, RotateCcw } from "lucide-react";
+import {
+  ArrowLeftRight,
+  ArrowRight,
+  MapPin,
+  Plane,
+  RotateCcw,
+} from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { Button } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
@@ -13,18 +19,18 @@ import { TextAnimate } from "@/components/ui/text-animate";
 // ─── Booking widget constants ─────────────────────────────────────────────────
 
 const SERVICE_TABS = [
-  { id: "local"      as ServiceTab, label: "Local",      Icon: MapPin        },
+  { id: "local" as ServiceTab, label: "Local", Icon: MapPin },
   { id: "outstation" as ServiceTab, label: "Outstation", Icon: ArrowLeftRight },
-  { id: "airport"    as ServiceTab, label: "Airport",    Icon: Plane         },
+  { id: "airport" as ServiceTab, label: "Airport", Icon: Plane },
 ];
 
 const TRIP_TABS: { id: TripTab; label: string; Icon: typeof ArrowRight }[] = [
-  { id: "oneway",    label: "One Way",    Icon: ArrowRight  },
-  { id: "roundtrip", label: "Round Trip", Icon: RotateCcw   },
+  { id: "oneway", label: "One Way", Icon: ArrowRight },
+  { id: "roundtrip", label: "Round Trip", Icon: RotateCcw },
 ];
 
 const DIRECTION_TABS = [
-  { id: "to"   as const, label: "To Airport"   },
+  { id: "to" as const, label: "To Airport" },
   { id: "from" as const, label: "From Airport" },
 ];
 
@@ -51,12 +57,12 @@ const stagger = {
 
 function HeroSectionImpl() {
   const [serviceTab, setServiceTab] = useState<ServiceTab>("local");
-  const [tripTab,        setTripTab]        = useState<TripTab>("oneway");
-  const [direction,      setDirection]      = useState<"to" | "from">("to");
-  const [pickup,     setPickup]     = useState("");
+  const [tripTab, setTripTab] = useState<TripTab>("oneway");
+  const [direction, setDirection] = useState<"to" | "from">("to");
+  const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
-  const [date,       setDate]       = useState("");
-  const [time,       setTime]       = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
   const [returnDate, setReturnDate] = useState("");
   const [returnTime, setReturnTime] = useState("");
 
@@ -72,13 +78,15 @@ function HeroSectionImpl() {
   }
 
   const sectionRef = useRef<HTMLElement>(null);
-  const bodyRef    = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const [bodyHeight, setBodyHeight] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     const el = bodyRef.current;
     if (!el) return;
-    const ro = new ResizeObserver(([entry]) => setBodyHeight(entry.contentRect.height));
+    const ro = new ResizeObserver(([entry]) =>
+      setBodyHeight(entry.contentRect.height),
+    );
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
@@ -157,7 +165,7 @@ function HeroSectionImpl() {
               >
                 <Button
                   onPress={() => openBooking()}
-                  className="h-11 rounded-xl bg-[var(--color-primary)] sm:px-7 text-[14px] font-bold text-[var(--color-text-inverted)] hover:bg-[var(--color-primary-hover)]"
+                  className="h-11 rounded-xl bg-primary sm:px-7 text-[14px] font-bold text-[var(--color-text-inverted)] hover:bg-[var(--color-primary-hover)]"
                 >
                   Book Now <ChevronRight />
                 </Button>
@@ -189,10 +197,9 @@ function HeroSectionImpl() {
           <motion.div
             initial={{ opacity: 0, y: 30, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.65, delay: 0.25, ease: EASE }}
-            className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-xl"
+            transition={{ duration: 0.55, delay: 0.25, ease: EASE }}
+            className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-sm"
           >
-
             {/* ── Service tabs ─────────────────────────────────────────────── */}
             <div className="flex border-b border-[var(--color-border)]">
               {SERVICE_TABS.map(({ id, label, Icon }) => (
@@ -205,19 +212,27 @@ function HeroSectionImpl() {
                   {serviceTab === id && (
                     <motion.span
                       layoutId="service-underline"
-                      transition={{ type: "spring", stiffness: 400, damping: 32 }}
-                      className="absolute bottom-0 inset-x-2 h-0.5 rounded-full bg-[var(--color-primary)]"
+                      transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 32,
+                      }}
+                      className="absolute bottom-0 inset-x-2 h-0.5 rounded-full bg-primary"
                     />
                   )}
                   <Icon
                     size={15}
                     className={`shrink-0 transition-colors duration-150 ${
-                      serviceTab === id ? "text-[var(--color-primary)]" : "text-muted"
+                      serviceTab === id ? "text-primary" : "text-muted"
                     }`}
                   />
-                  <span className={`text-[11px] sm:text-[12px] font-semibold transition-colors duration-150 ${
-                    serviceTab === id ? "text-[var(--color-primary)]" : "text-[var(--color-text-secondary)]"
-                  }`}>
+                  <span
+                    className={`text-[11px] sm:text-[12px] font-semibold transition-colors duration-150 ${
+                      serviceTab === id
+                        ? "text-primary"
+                        : "text-[var(--color-text-secondary)]"
+                    }`}
+                  >
                     {label}
                   </span>
                 </button>
@@ -230,183 +245,228 @@ function HeroSectionImpl() {
               transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
               style={{ overflow: "hidden" }}
             >
-            <div ref={bodyRef} style={{ position: "relative" }}>
-            <AnimatePresence initial={false}>
-              <motion.div
-                key={serviceTab}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0, position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
-                transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-                className="space-y-3 p-4 sm:p-5 w-full"
-              >
-
-                {/* Trip tabs (local / outstation) */}
-                {serviceTab !== "airport" && (
-                  <div className="flex gap-1 rounded-full border border-[var(--color-border)] bg-[var(--background)] p-1">
-                    {TRIP_TABS.map(({ id, label, Icon }) => (
-                      <button
-                        key={id}
-                        onClick={() => { setTripTab(id); if (id === "oneway") setReturnDate(""); }}
-                        className="relative flex-1 rounded-full py-2 text-xs font-semibold z-0"
-                      >
-                        {tripTab === id && (
-                          <motion.span
-                            layoutId={`trip-pill-${serviceTab}`}
-                            transition={{ type: "spring", stiffness: 400, damping: 32 }}
-                            className="absolute inset-0 rounded-full bg-[var(--color-primary)] shadow-sm"
-                            style={{ zIndex: -1 }}
-                          />
-                        )}
-                        <span className={`relative flex items-center justify-center gap-1.5 transition-colors duration-150 ${
-                          tripTab === id ? "text-white" : "text-[var(--color-text-secondary)]"
-                        }`}>
-                          <Icon size={12} strokeWidth={2.5} />
-                          {label}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Airport direction toggle */}
-                {serviceTab === "airport" && (
-                  <div className="flex gap-1 rounded-full border border-[var(--color-border)] bg-[var(--background)] p-1">
-                    {DIRECTION_TABS.map(({ id, label }) => (
-                      <button
-                        key={id}
-                        onClick={() => setDirection(id)}
-                        className="relative flex-1 rounded-full py-2 text-xs font-semibold z-0"
-                      >
-                        {direction === id && (
-                          <motion.span
-                            layoutId="direction-pill"
-                            transition={{ type: "spring", stiffness: 400, damping: 32 }}
-                            className="absolute inset-0 rounded-full bg-[var(--color-primary)] shadow-sm"
-                            style={{ zIndex: -1 }}
-                          />
-                        )}
-                        <span className={`relative flex items-center justify-center gap-1.5 transition-colors duration-150 ${
-                          direction === id ? "text-white" : "text-[var(--color-text-secondary)]"
-                        }`}>
-                          {label}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Pickup / Your Address */}
-                <div>
-                  <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-muted">
-                    {serviceTab === "airport"
-                      ? (direction === "to" ? "Your Pickup Address" : "Your Drop Address")
-                      : serviceTab === "outstation" ? "From City" : "Pickup Location"}
-                  </p>
-                  <LocationInput
-                    value={pickup}
-                    onChange={setPickup}
-                    placeholder={serviceTab === "airport" ? "Enter your address" : "Enter pickup location"}
-                    onBeforeOpen={(open) => requireAuth(open)}
-                  />
-                </div>
-
-                {/* Destination (not for airport) */}
-                {serviceTab !== "airport" && (
-                  <div>
-                    <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-muted">
-                      {serviceTab === "outstation" ? "To City" : "Destination"}
-                    </p>
-                    <LocationInput
-                      value={destination}
-                      onChange={setDestination}
-                      placeholder="Enter destination"
-                      onBeforeOpen={(open) => requireAuth(open)}
-                    />
-                  </div>
-                )}
-
-                {/* Date + Time */}
-                <div>
-                  <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-muted">
-                    {serviceTab === "airport" ? "Flight Date & Time" : "Journey Date & Time"}
-                  </p>
-                  <div className="grid grid-cols-2 gap-2.5">
-                    <input
-                      type="date"
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 text-[13px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)]"
-                    />
-                    <input
-                      type="time"
-                      value={time}
-                      onChange={(e) => setTime(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 text-[13px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)]"
-                    />
-                  </div>
-                </div>
-
-                {/* Return date — fade in/out; height is driven by outer ResizeObserver */}
+              <div ref={bodyRef} style={{ position: "relative" }}>
                 <AnimatePresence initial={false}>
-                  {serviceTab !== "airport" && tripTab === "roundtrip" && (
-                    <motion.div
-                      key="return-date"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-                    >
+                  <motion.div
+                    key={serviceTab}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{
+                      opacity: 0,
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                    }}
+                    transition={{ duration: 0.9, ease: [0.4, 0, 0.2, 1] }}
+                    className="space-y-3 p-4 sm:p-5 w-full"
+                  >
+                    {/* Trip tabs (local / outstation) */}
+                    {serviceTab !== "airport" && (
+                      <div className="flex gap-1 rounded-full border border-[var(--color-border)] bg-[var(--background)] p-1">
+                        {TRIP_TABS.map(({ id, label, Icon }) => (
+                          <button
+                            key={id}
+                            onClick={() => {
+                              setTripTab(id);
+                              if (id === "oneway") setReturnDate("");
+                            }}
+                            className="relative flex-1 rounded-full py-2 text-xs font-semibold z-0"
+                          >
+                            {tripTab === id && (
+                              <motion.span
+                                layoutId={`trip-pill-${serviceTab}`}
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 400,
+                                  damping: 32,
+                                }}
+                                className="absolute inset-0 rounded-full bg-primary shadow-sm"
+                                style={{ zIndex: -1 }}
+                              />
+                            )}
+                            <span
+                              className={`relative flex items-center justify-center gap-1.5 transition-colors duration-150 ${
+                                tripTab === id
+                                  ? "text-white"
+                                  : "text-[var(--color-text-secondary)]"
+                              }`}
+                            >
+                              <Icon size={12} strokeWidth={2.5} />
+                              {label}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Airport direction toggle */}
+                    {serviceTab === "airport" && (
+                      <div className="flex gap-1 rounded-full border border-[var(--color-border)] bg-[var(--background)] p-1">
+                        {DIRECTION_TABS.map(({ id, label }) => (
+                          <button
+                            key={id}
+                            onClick={() => setDirection(id)}
+                            className="relative flex-1 rounded-full py-2 text-xs font-semibold z-0"
+                          >
+                            {direction === id && (
+                              <motion.span
+                                layoutId="direction-pill"
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 400,
+                                  damping: 32,
+                                }}
+                                className="absolute inset-0 rounded-full bg-primary shadow-sm"
+                                style={{ zIndex: -1 }}
+                              />
+                            )}
+                            <span
+                              className={`relative flex items-center justify-center gap-1.5 transition-colors duration-150 ${
+                                direction === id
+                                  ? "text-white"
+                                  : "text-[var(--color-text-secondary)]"
+                              }`}
+                            >
+                              {label}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Pickup / Your Address */}
+                    <div>
+                      <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-muted">
+                        {serviceTab === "airport"
+                          ? direction === "to"
+                            ? "Your Pickup Address"
+                            : "Your Drop Address"
+                          : serviceTab === "outstation"
+                            ? "From City"
+                            : "Pickup Location"}
+                      </p>
+                      <LocationInput
+                        value={pickup}
+                        onChange={setPickup}
+                        placeholder={
+                          serviceTab === "airport"
+                            ? "Enter your address"
+                            : "Enter pickup location"
+                        }
+                        onBeforeOpen={(open) => requireAuth(open)}
+                      />
+                    </div>
+
+                    {/* Destination (not for airport) */}
+                    {serviceTab !== "airport" && (
                       <div>
                         <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-muted">
-                          Return Date &amp; Time
+                          {serviceTab === "outstation"
+                            ? "To City"
+                            : "Destination"}
                         </p>
-                        <div className="grid grid-cols-2 gap-2.5">
-                          <input
-                            type="date"
-                            value={returnDate}
-                            onChange={(e) => setReturnDate(e.target.value)}
-                            className="h-9 w-full rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 text-[13px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)]"
-                          />
-                          <input
-                            type="time"
-                            value={returnTime}
-                            onChange={(e) => setReturnTime(e.target.value)}
-                            className="h-9 w-full rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 text-[13px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)]"
-                          />
-                        </div>
+                        <LocationInput
+                          value={destination}
+                          onChange={setDestination}
+                          placeholder="Enter destination"
+                          onBeforeOpen={(open) => requireAuth(open)}
+                        />
                       </div>
-                    </motion.div>
-                  )}
+                    )}
+
+                    {/* Date + Time */}
+                    <div>
+                      <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-muted">
+                        {serviceTab === "airport"
+                          ? "Flight Date & Time"
+                          : "Journey Date & Time"}
+                      </p>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <input
+                          type="date"
+                          value={date}
+                          onChange={(e) => setDate(e.target.value)}
+                          className="h-9 w-full rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 text-[13px] text-[var(--color-text-primary)] outline-none focus:border-primary"
+                        />
+                        <input
+                          type="time"
+                          value={time}
+                          onChange={(e) => setTime(e.target.value)}
+                          className="h-9 w-full rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 text-[13px] text-[var(--color-text-primary)] outline-none focus:border-primary"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Return date — fade in/out; height is driven by outer ResizeObserver */}
+                    <AnimatePresence initial={false}>
+                      {serviceTab !== "airport" && tripTab === "roundtrip" && (
+                        <motion.div
+                          key="return-date"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 0.22,
+                            ease: [0.4, 0, 0.2, 1],
+                          }}
+                        >
+                          <div>
+                            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-muted">
+                              Return Date &amp; Time
+                            </p>
+                            <div className="grid grid-cols-2 gap-2.5">
+                              <input
+                                type="date"
+                                value={returnDate}
+                                onChange={(e) => setReturnDate(e.target.value)}
+                                className="h-9 w-full rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 text-[13px] text-[var(--color-text-primary)] outline-none focus:border-primary"
+                              />
+                              <input
+                                type="time"
+                                value={returnTime}
+                                onChange={(e) => setReturnTime(e.target.value)}
+                                className="h-9 w-full rounded-xl border border-[var(--color-border)] bg-[var(--background)] px-3 text-[13px] text-[var(--color-text-primary)] outline-none focus:border-primary"
+                              />
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* CTA */}
+                    <Button
+                      onPress={() =>
+                        openBooking({
+                          serviceId:
+                            serviceTab === "local" ? "city-taxi" : serviceTab,
+                          serviceTab,
+                          tripTab:
+                            serviceTab !== "airport" ? tripTab : undefined,
+                          pickup,
+                          destination:
+                            serviceTab !== "airport" ? destination : undefined,
+                          date: date || undefined,
+                          time: time || undefined,
+                          returnDate:
+                            serviceTab !== "airport" && tripTab === "roundtrip"
+                              ? returnDate || undefined
+                              : undefined,
+                          returnTime:
+                            serviceTab !== "airport" && tripTab === "roundtrip"
+                              ? returnTime || undefined
+                              : undefined,
+                        })
+                      }
+                      fullWidth
+                    >
+                      Explore Cabs
+                    </Button>
+                  </motion.div>
                 </AnimatePresence>
-
-                {/* CTA */}
-                <Button
-                  onPress={() => openBooking({
-                    serviceId:   serviceTab === "local" ? "city-taxi" : serviceTab,
-                    serviceTab,
-                    tripTab:     serviceTab !== "airport" ? tripTab : undefined,
-                    pickup,
-                    destination: serviceTab !== "airport" ? destination : undefined,
-                    date:        date || undefined,
-                    time:        time || undefined,
-                    returnDate:  serviceTab !== "airport" && tripTab === "roundtrip"
-                                   ? returnDate || undefined
-                                   : undefined,
-                    returnTime:  serviceTab !== "airport" && tripTab === "roundtrip"
-                                   ? returnTime || undefined
-                                   : undefined,
-                  })}
-                  className="mt-1 h-12 w-full rounded-xl bg-[var(--color-primary)] text-[15px] font-bold text-[var(--color-text-inverted)] hover:bg-[var(--color-primary-hover)]"
-                >
-                  Explore Cabs
-                </Button>
-
-              </motion.div>
-            </AnimatePresence>
-            </div>
+              </div>
             </motion.div>
-
           </motion.div>
         </motion.div>
       </div>
