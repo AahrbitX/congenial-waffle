@@ -1,14 +1,21 @@
 import React from "react";
-import { Car, CalendarDays, Clock, Users, Wind, Thermometer } from "lucide-react";
-import { Card, Separator, cn } from "@heroui/react";
+import {
+  Car,
+  CalendarDays,
+  Clock,
+  Users,
+  Wind,
+  Thermometer,
+} from "lucide-react";
+import { Card, Separator } from "@heroui/react";
 
 type InfoData = {
   requestedAt: string;
   vehicleType: string;
-  ac:          boolean;
+  ac: boolean;
   journeyDate: string;
   journeyTime: string;
-  members:     number;
+  members: number;
 };
 
 type Props = {
@@ -19,9 +26,9 @@ function formatDate(dateStr: string) {
   if (!dateStr) return "—";
   return new Date(dateStr).toLocaleDateString("en-IN", {
     weekday: "short",
-    day:     "2-digit",
-    month:   "short",
-    year:    "numeric",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
   });
 }
 
@@ -37,10 +44,10 @@ function formatTime(timeStr: string) {
 function formatRequestedAt(iso: string) {
   if (!iso) return "—";
   return new Date(iso).toLocaleString("en-IN", {
-    day:    "2-digit",
-    month:  "short",
-    year:   "numeric",
-    hour:   "2-digit",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
     minute: "2-digit",
   });
 }
@@ -48,24 +55,24 @@ function formatRequestedAt(iso: string) {
 export default function RideInformation({ info }: Props) {
   const fields = [
     {
-      icon:  <CalendarDays size={15} className="text-primary" />,
+      icon: <CalendarDays size={16} className="text-primary" />,
       label: "Journey Date",
       value: formatDate(info.journeyDate),
     },
     {
-      icon:  <Clock size={15} className="text-primary" />,
+      icon: <Clock size={16} className="text-primary" />,
       label: "Pickup Time",
       value: formatTime(info.journeyTime),
     },
     {
-      icon:  <Car size={15} className="text-primary" />,
+      icon: <Car size={16} className="text-primary" />,
       label: "Vehicle Type",
       value: info.vehicleType
         ? info.vehicleType.charAt(0).toUpperCase() + info.vehicleType.slice(1)
         : "—",
     },
     {
-      icon:  <Users size={15} className="text-primary" />,
+      icon: <Users size={16} className="text-primary" />,
       label: "Passengers",
       value: `${info.members} seat${info.members !== 1 ? "s" : ""}`,
     },
@@ -73,47 +80,40 @@ export default function RideInformation({ info }: Props) {
 
   return (
     <Card className="gap-2">
-      <Card.Header>
-        <Card.Title>Trip Information</Card.Title>
+      <Card.Header className="flex flex-row items-center justify-between">
+        <Card.Title className="flex items-center gap-2">
+          Trip Information{" "}
+          <div className="flex items-center gap-2">
+            {info.ac ? (
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600">
+                <Thermometer size={12} />
+                AC
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-surface-muted text-text-secondary">
+                <Wind size={12} />
+                Non-AC
+              </span>
+            )}
+          </div>
+        </Card.Title>
+        <span className="text-sm text-muted">
+          Requested {formatRequestedAt(info.requestedAt)}
+        </span>
       </Card.Header>
       <Separator />
 
-      <Card.Content className="space-y-4">
-        {/* AC badge */}
-        <div className="flex items-center gap-2">
-          {info.ac ? (
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600">
-              <Thermometer size={12} />
-              AC
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-surface-muted text-text-secondary">
-              <Wind size={12} />
-              Non-AC
-            </span>
-          )}
-          <span className="text-xs text-text-tertiary">
-            Requested {formatRequestedAt(info.requestedAt)}
-          </span>
-        </div>
-
+      <Card.Content className="space-y-4 mt-1">
         {/* Fields grid */}
         <div className="grid grid-cols-2 gap-3">
           {fields.map((f) => (
-            <div
-              key={f.label}
-              className="flex items-start gap-2.5 rounded-xl bg-surface-muted/60 p-3"
-            >
-              <div className="mt-0.5 shrink-0">{f.icon}</div>
+            <Card key={f.label} className="flex-row" variant="secondary">
+              <div className="mt-1 shrink-0">{f.icon}</div>
               <div>
-                <p className="text-[11px] text-text-tertiary uppercase tracking-wide font-medium">
-                  {f.label}
-                </p>
-                <p className="text-sm font-semibold text-text-primary mt-0.5">
-                  {f.value}
-                </p>
+                <p className="text-xs text-muted font-medium">{f.label}</p>
+                <p className="text-sm font-semibold mt-0.5">{f.value}</p>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       </Card.Content>

@@ -46,7 +46,7 @@ function EditDriver({ driverData }: { driverData: Record<string, any> }) {
 
   return (
     <Modal isOpen={isOpen} onOpenChange={setIsOpen}>
-      <Button onPress={() => setIsOpen(true)}>
+      <Button size="sm" onPress={() => setIsOpen(true)}>
         <Edit size={18} />
         Edit Driver
       </Button>

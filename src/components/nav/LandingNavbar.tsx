@@ -127,11 +127,7 @@ function ServicesDropdown() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium transition-colors ${
-          open
-            ? "text-primary bg-primary-soft"
-            : "text-text-secondary hover:text-text-primary hover:bg-border/30"
-        }`}
+        className={`flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium transition-colors text-text-secondary hover:text-text-primary hover:bg-border/30`}
       >
         Services
         <ChevronDown
@@ -141,11 +137,11 @@ function ServicesDropdown() {
       </button>
 
       {open && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[580px] bg-background rounded-2xl shadow-xl border border-border p-5 z-50">
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[580px] bg-background rounded-2xl shadow-xl border border-border p-2 py-4 z-50">
           <div className="grid grid-cols-2 gap-x-8">
             {/* Book A Ride */}
             <div>
-              <p className="text-[10px] font-bold tracking-[0.15em] text-text-muted uppercase mb-3">
+              <p className="text-xs font-semibold text-muted mb-3 pl-2">
                 Book A Ride
               </p>
               <div className="space-y-1">
@@ -154,21 +150,19 @@ function ServicesDropdown() {
                     key={label}
                     href={href}
                     onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-border/30 transition-colors group"
+                    className="flex items-center gap-3 px-2 py-2.5 rounded-xl hover:bg-border/30 transition-colors group"
                   >
                     <div className="w-8 h-8 rounded-lg bg-border/40 flex items-center justify-center shrink-0 group-hover:bg-primary-soft transition-colors">
                       <Icon
-                        size={15}
+                        size={16}
                         className="text-text-secondary group-hover:text-primary transition-colors"
                       />
                     </div>
                     <div>
-                      <p className="text-[13px] font-semibold text-text-primary leading-none">
+                      <p className="text-sm font-semibold text-text-primary leading-none">
                         {label}
                       </p>
-                      <p className="text-[11px] text-text-muted mt-0.5">
-                        {desc}
-                      </p>
+                      <p className="text-xs text-text-muted mt-0.5">{desc}</p>
                     </div>
                   </Link>
                 ))}
@@ -177,7 +171,7 @@ function ServicesDropdown() {
 
             {/* Special Services */}
             <div>
-              <p className="text-[10px] font-bold tracking-[0.15em] text-text-muted uppercase mb-3">
+              <p className="text-xs font-semibold text-muted mb-3 pl-2">
                 Special Services
               </p>
               <div className="space-y-1">
@@ -186,21 +180,19 @@ function ServicesDropdown() {
                     key={label}
                     href={href}
                     onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-border/30 transition-colors group"
+                    className="flex items-center gap-3 px-2 py-2.5 rounded-xl hover:bg-border/30 transition-colors group"
                   >
                     <div className="w-8 h-8 rounded-lg bg-border/40 flex items-center justify-center shrink-0 group-hover:bg-primary-soft transition-colors">
                       <Icon
-                        size={15}
+                        size={16}
                         className="text-text-secondary group-hover:text-primary transition-colors"
                       />
                     </div>
                     <div>
-                      <p className="text-[13px] font-semibold text-text-primary leading-none">
+                      <p className="text-sm font-semibold text-text-primary leading-none">
                         {label}
                       </p>
-                      <p className="text-[11px] text-text-muted mt-0.5">
-                        {desc}
-                      </p>
+                      <p className="text-xs text-text-muted mt-0.5">{desc}</p>
                     </div>
                   </Link>
                 ))}
@@ -209,11 +201,11 @@ function ServicesDropdown() {
           </div>
 
           {/* Footer link */}
-          <div className="mt-4 pt-4 border-t border-border text-center">
+          <div className="mt-2 pt-2 border-t border-border text-center">
             <Link
               href="/services"
               onClick={() => setOpen(false)}
-              className="text-[13px] font-semibold text-primary hover:text-primary-hover transition-colors inline-flex items-center gap-1"
+              className="text-sm  font-semibold text-primary hover:text-primary-hover transition-colors inline-flex items-center gap-1"
             >
               View all services
               <ChevronDown size={13} className="-rotate-90" />
@@ -322,18 +314,18 @@ export default function LandingNavbar() {
           <Link
             href="/"
             onClick={() => setIsOpen(false)}
-            className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-text-secondary hover:bg-border/30"
+            className="flex items-center px-2 py-2.5 text-sm font-medium rounded-lg text-text-secondary hover:bg-border/30"
           >
             Home
           </Link>
           <Link
             href="/about"
             onClick={() => setIsOpen(false)}
-            className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-text-secondary hover:bg-border/30"
+            className="flex items-center px-2 py-2.5 text-sm font-medium rounded-lg text-text-secondary hover:bg-border/30"
           >
             About Us
           </Link>
-          <div className="px-3 pt-1 pb-0.5 text-[10px] font-bold tracking-widest text-text-muted uppercase">
+          <div className="px-2 pt-1 pb-0.5 text-xs font-semibold tracking-widest text-text-muted uppercase">
             Book A Ride
           </div>
           {BOOK_A_RIDE.map(({ label, href }) => (
@@ -341,7 +333,7 @@ export default function LandingNavbar() {
               key={label}
               href={href}
               onClick={() => setIsOpen(false)}
-              className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-text-secondary hover:bg-border/30 pl-5"
+              className="flex items-center px-2 py-2.5 text-sm font-medium rounded-lg text-text-secondary hover:bg-border/30 pl-4"
             >
               {label}
             </Link>

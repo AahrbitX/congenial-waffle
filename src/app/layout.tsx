@@ -27,7 +27,9 @@ export const metadata: Metadata = {
     "Mohan Cabs",
     "taxi service Nagercoil",
   ],
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://mohancabs.com"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://mohancabs.com",
+  ),
   openGraph: {
     type: "website",
     siteName: "Mohan Cabs",

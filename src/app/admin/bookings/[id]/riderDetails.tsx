@@ -53,7 +53,7 @@ export default function RiderDetails({ rider }: Props) {
             <Phone />
           </Button>
         </div>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-4 px-1">
           {details.map((detail) => (
             <div
               key={detail.label}

@@ -32,20 +32,28 @@ interface TripDetailsProps {
 type DispatcherTrip = {
   id: string;
   bookingRef: string;
+
   customerName: string;
   customerPhone: string;
-  createdAt: string;
+
   journeyDate: string;
   journeyTime: string;
-  vehicleType: string;
+  createdAt: string;
+
   ac: boolean;
   seats: number;
   fare: string;
   status: string;
+  vehicleType: string;
+
   pickupName: string;
-  pickupZone: string;
+  pickupLat: string;
+  pickupLng: string;
+
   dropName: string;
-  dropZone: string;
+  dropLat: string;
+  dropLng: string;
+
   qrToken?: string;
   driverId?: string | null;
 };
@@ -70,7 +78,9 @@ export default function TripDetails({ tripId, pageLoading }: TripDetailsProps) {
       <div className="h-full flex items-center justify-center px-6 text-center text-default-400">
         <div className="space-y-2">
           <p className="text-lg font-semibold">Select a Trip</p>
-          <p className="text-sm">Choose a trip from the queue to view ride details</p>
+          <p className="text-sm">
+            Choose a trip from the queue to view ride details
+          </p>
         </div>
       </div>
     );
@@ -96,9 +106,10 @@ export default function TripDetails({ tripId, pageLoading }: TripDetailsProps) {
   }
 
   const trip = data;
-  const driverLink = trip.qrToken && trip.driverId
-    ? `${window.location.origin}/driver/${trip.qrToken}`
-    : null;
+  const driverLink =
+    trip.qrToken && trip.driverId
+      ? `${window.location.origin}/driver/${trip.qrToken}`
+      : null;
 
   function handleCopy() {
     if (!driverLink) return;
@@ -107,24 +118,18 @@ export default function TripDetails({ tripId, pageLoading }: TripDetailsProps) {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  const pickup = `${trip.pickupName}, ${trip.pickupZone}`;
-  const drop = `${trip.dropName}, ${trip.dropZone}`;
+  const pickup = trip.pickupName;
+  const drop = trip.dropName;
 
-  const dirUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(
-    pickup,
-  )}&destination=${encodeURIComponent(drop)}&travelmode=driving`;
+  const dirUrl = `https://www.google.com/maps/dir/?api=1&origin=${trip.pickupLat},${trip.pickupLng}&origin_place_id=&destination=${trip.dropLat},${trip.dropLng}&travelmode=driving`;
 
-  const pickUpUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    pickup,
-  )}`;
+  const pickUpUrl = `https://www.google.com/maps/search/?api=1&query=${trip.pickupLat},${trip.pickupLng}`;
 
-  const dropUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    drop,
-  )}`;
+  const dropUrl = `https://www.google.com/maps/search/?api=1&query=${trip.dropLat},${trip.dropLng}`;
 
   return (
     <div className="flex flex-col h-full bg-content1 overflow-y-auto scrollbar-thin p-6 gap-3">
-      <Surface className="p-3 flex items-center justify-between rounded-xl border border-divider bg-accent/10">
+      <Surface className="p-3 flex items-center justify-between rounded-xl  bg-accent/10">
         <div className="flex items-center gap-4">
           <Avatar color="accent" variant="soft">
             <Avatar.Fallback>
@@ -190,7 +195,7 @@ export default function TripDetails({ tripId, pageLoading }: TripDetailsProps) {
           <div className="absolute left-[11px] top-2 w-[1.5px] h-[calc(100%-20px)] bg-default-200" />
 
           <div className="flex items-center justify-between relative pl-6">
-            <div className="absolute left-0 top-1.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-white ring-1 ring-accent" />
+            <div className="absolute left-0 top-2.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-white ring-1 ring-accent" />
 
             <div>
               <span className="text-xs text-muted">Pick Up</span>
@@ -211,7 +216,7 @@ export default function TripDetails({ tripId, pageLoading }: TripDetailsProps) {
           </div>
 
           <div className="flex items-center justify-between relative pl-6">
-            <div className="absolute left-0 top-1.5 w-2.5 h-2.5 rounded bg-default-900 border-2 border-white ring-1 ring-default-900" />
+            <div className="absolute left-0 top-2.5 w-2.5 h-2.5 rounded bg-default-900 border-2 border-white ring-1 ring-default-900" />
 
             <div>
               <span className="text-xs text-muted">Drop Off</span>
@@ -251,13 +256,31 @@ export default function TripDetails({ tripId, pageLoading }: TripDetailsProps) {
         <>
           <Separator className="my-2" />
           <div className="flex flex-col gap-2">
-            <p className="text-xs font-semibold text-default-500 uppercase tracking-wider">Driver Tracking Link</p>
+            <p className="text-xs font-semibold text-default-500 uppercase tracking-wider">
+              Driver Tracking Link
+            </p>
             <div className="flex items-center gap-2 rounded-xl border border-divider bg-content2 px-3 py-2">
-              <p className="flex-1 truncate text-xs font-mono text-default-600">{driverLink}</p>
-              <Button isIconOnly size="sm" variant="secondary" onPress={handleCopy}>
-                {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+              <p className="flex-1 truncate text-xs font-mono text-default-600">
+                {driverLink}
+              </p>
+              <Button
+                isIconOnly
+                size="sm"
+                variant="secondary"
+                onPress={handleCopy}
+              >
+                {copied ? (
+                  <Check size={14} className="text-success" />
+                ) : (
+                  <Copy size={14} />
+                )}
               </Button>
-              <Button isIconOnly size="sm" variant="secondary" onPress={() => window.open(driverLink, "_blank")}>
+              <Button
+                isIconOnly
+                size="sm"
+                variant="secondary"
+                onPress={() => window.open(driverLink, "_blank")}
+              >
                 <ExternalLink size={14} />
               </Button>
             </div>

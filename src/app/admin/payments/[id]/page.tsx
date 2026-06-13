@@ -45,10 +45,18 @@ type TransactionDetail = {
   dropName: string;
 };
 
-function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+function DetailRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
   return (
     <div className="flex items-start justify-between py-2.5">
-      <span className="text-sm text-muted-foreground w-40 shrink-0">{label}</span>
+      <span className="text-sm text-muted-foreground w-40 shrink-0">
+        {label}
+      </span>
       <span className="text-sm font-medium text-right">{value ?? "—"}</span>
     </div>
   );
@@ -69,7 +77,10 @@ function fmt(dateStr: string | null) {
 export default function TransactionDetailPage() {
   const { id } = useParams<{ id: string }>();
 
-  const { data, isLoading } = useQuery<{ success: boolean; data: TransactionDetail }>({
+  const { data, isLoading } = useQuery<{
+    success: boolean;
+    data: TransactionDetail;
+  }>({
     queryKey: ["admin-payment", id],
     queryFn: () => request(`/api/payments/admin/${id}`),
     enabled: !!id,
@@ -77,7 +88,10 @@ export default function TransactionDetailPage() {
 
   if (isLoading) {
     return (
-      <Surface className="h-full overflow-y-auto p-4 scrollbar-thin" variant="secondary">
+      <Surface
+        className="h-full overflow-y-auto p-4 scrollbar-thin"
+        variant="secondary"
+      >
         <Skeleton className="h-5 w-40 rounded mb-6" />
         <div className="flex items-center gap-3 mb-6">
           <div className="space-y-2">
@@ -88,7 +102,9 @@ export default function TransactionDetailPage() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <Card>
-            <Card.Header><Skeleton className="h-5 w-36 rounded" /></Card.Header>
+            <Card.Header>
+              <Skeleton className="h-5 w-36 rounded" />
+            </Card.Header>
             <Card.Content className="pt-0 space-y-3">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="flex justify-between py-2">
@@ -100,7 +116,9 @@ export default function TransactionDetailPage() {
           </Card>
           <div className="flex flex-col gap-4">
             <Card>
-              <Card.Header><Skeleton className="h-5 w-36 rounded" /></Card.Header>
+              <Card.Header>
+                <Skeleton className="h-5 w-36 rounded" />
+              </Card.Header>
               <Card.Content className="pt-0 space-y-3">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="flex justify-between py-2">
@@ -111,7 +129,9 @@ export default function TransactionDetailPage() {
               </Card.Content>
             </Card>
             <Card>
-              <Card.Header><Skeleton className="h-5 w-24 rounded" /></Card.Header>
+              <Card.Header>
+                <Skeleton className="h-5 w-24 rounded" />
+              </Card.Header>
               <Card.Content className="pt-0 space-y-3">
                 {Array.from({ length: 2 }).map((_, i) => (
                   <div key={i} className="flex justify-between py-2">
@@ -137,35 +157,42 @@ export default function TransactionDetailPage() {
   }
 
   return (
-    <Surface className="h-full overflow-y-auto p-4 scrollbar-thin" variant="secondary">
+    <Surface
+      className="h-full overflow-y-auto p-4 scrollbar-thin"
+      variant="secondary"
+    >
       {/* Breadcrumb */}
       <Breadcrumbs className="mb-4">
         <Breadcrumbs.Item href="/admin/payments">Payments</Breadcrumbs.Item>
         <Breadcrumbs.Item>{tx.id.slice(0, 8).toUpperCase()}…</Breadcrumbs.Item>
       </Breadcrumbs>
 
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-start gap-3 mb-6">
         <div>
           <h1 className="text-xl font-bold font-mono">{tx.id}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Transaction Detail</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Transaction Detail
+          </p>
         </div>
         <Chip
           size="sm"
           color={STATUS_COLOR[tx.status] ?? "default"}
           variant="soft"
+          className="mt-1"
         >
           {STATUS_LABEL[tx.status] ?? tx.status}
         </Chip>
-        {(tx.status === "paid" || tx.status === "cash_collected") && (
-          <Button
-            variant="secondary"
-            className="ml-auto"
-            onPress={() => window.open(`/admin/payments/${tx.id}/invoice`, "_blank")}
-          >
-            <Printer size={15} />
-            Print Invoice
-          </Button>
-        )}
+        <Button
+          variant="primary"
+          className="ml-auto"
+          isDisabled={tx.status !== "paid" && tx.status !== "cash_collected"}
+          onPress={() =>
+            window.open(`/admin/payments/${tx.id}/invoice`, "_blank")
+          }
+        >
+          <Printer size={15} />
+          Print Invoice
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -175,7 +202,10 @@ export default function TransactionDetailPage() {
             <Card.Title className="text-base">Payment Details</Card.Title>
           </Card.Header>
           <Card.Content className="pt-0">
-            <DetailRow label="Transaction ID" value={<span className="font-mono text-xs">{tx.id}</span>} />
+            <DetailRow
+              label="Transaction ID"
+              value={<span className="font-mono text-xs">{tx.id}</span>}
+            />
             <Separator />
             <DetailRow
               label="Razorpay Order ID"
@@ -188,7 +218,9 @@ export default function TransactionDetailPage() {
                 tx.rzpPaymentId ? (
                   <span className="font-mono text-xs">{tx.rzpPaymentId}</span>
                 ) : (
-                  <span className="text-muted-foreground text-xs">Not captured</span>
+                  <span className="text-muted-foreground text-xs">
+                    Not captured
+                  </span>
                 )
               }
             />
@@ -198,7 +230,10 @@ export default function TransactionDetailPage() {
               value={`₹${parseFloat(tx.amount).toLocaleString("en-IN")} (${tx.mode})`}
             />
             <Separator />
-            <DetailRow label="Method" value={<span className="capitalize">{tx.paymentMethod}</span>} />
+            <DetailRow
+              label="Method"
+              value={<span className="capitalize">{tx.paymentMethod}</span>}
+            />
             <Separator />
             <DetailRow label="Currency" value={tx.currency} />
             <Separator />
@@ -208,13 +243,19 @@ export default function TransactionDetailPage() {
             {tx.cashVerifiedAt && (
               <>
                 <Separator />
-                <DetailRow label="Cash Verified At" value={fmt(tx.cashVerifiedAt)} />
+                <DetailRow
+                  label="Cash Verified At"
+                  value={fmt(tx.cashVerifiedAt)}
+                />
               </>
             )}
             {tx.adminVerifiedAt && (
               <>
                 <Separator />
-                <DetailRow label="Admin Verified At" value={fmt(tx.adminVerifiedAt)} />
+                <DetailRow
+                  label="Admin Verified At"
+                  value={fmt(tx.adminVerifiedAt)}
+                />
               </>
             )}
           </Card.Content>
@@ -247,11 +288,17 @@ export default function TransactionDetailPage() {
               <Separator />
               <DetailRow label="Drop" value={tx.dropName} />
               <Separator />
-              <DetailRow label="Vehicle" value={<span className="capitalize">{tx.vehicleType}</span>} />
+              <DetailRow
+                label="Vehicle"
+                value={<span className="capitalize">{tx.vehicleType}</span>}
+              />
               <Separator />
               <DetailRow label="Members" value={tx.members} />
               <Separator />
-              <DetailRow label="Total Fare" value={`₹${parseFloat(tx.totalFare).toLocaleString("en-IN")}`} />
+              <DetailRow
+                label="Total Fare"
+                value={`₹${parseFloat(tx.totalFare).toLocaleString("en-IN")}`}
+              />
               <Separator />
               <DetailRow
                 label="Booking Status"

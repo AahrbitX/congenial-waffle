@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Driver } from "@/types/driver";
 import { tableDateParser } from "@/utils/tableDateParser";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
+import { Chip } from "@heroui/react";
 
 const columnHelper = createColumnHelper<Driver>();
 
@@ -28,6 +29,20 @@ export const driverColumns: ColumnDef<Driver, any>[] = [
   }),
   columnHelper.accessor("phoneNumber", {
     header: "Phone",
+  }),
+  columnHelper.accessor("isAvailable", {
+    header: "Availability",
+    cell: ({ getValue }) => {
+      return (
+        <Chip
+          size="sm"
+          variant="soft"
+          color={getValue() ? "success" : "danger"}
+        >
+          {getValue() ? "Available" : "Unavailable"}
+        </Chip>
+      );
+    },
   }),
   columnHelper.accessor("createdAt", {
     header: "Joined At",

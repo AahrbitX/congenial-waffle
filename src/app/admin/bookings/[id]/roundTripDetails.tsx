@@ -4,30 +4,32 @@ import { Card, Separator } from "@heroui/react";
 import StatusIndicator from "@/components/data/statusIndicator";
 
 type Leg = {
-  id:          string;
-  bookingRef:  string;
-  status:      string;
-  legType:     string;
+  id: string;
+  bookingRef: string;
+  status: string;
+  legType: string;
   journeyDate: string;
   journeyTime: string;
-  driverName:  string | null;
+  driverName: string | null;
 };
 
 type Props = {
-  bookingRef:      string;
-  status:          string;
-  legType:         string;
-  journeyDate:     string;
-  journeyTime:     string;
-  driverName?:     string | null;
+  bookingRef: string;
+  status: string;
+  legType: string;
+  journeyDate: string;
+  journeyTime: string;
+  driverName?: string | null;
   linkedBookingId: string;
-  linkedLeg:       Leg | null;
+  linkedLeg: Leg | null;
 };
 
 function formatDate(d: string) {
   if (!d) return "—";
   return new Date(d).toLocaleDateString("en-IN", {
-    day: "2-digit", month: "short", year: "numeric",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
   });
 }
 
@@ -43,7 +45,14 @@ function LegCell({
   isCurrent,
   href,
 }: {
-  leg: { bookingRef: string; status: string; legType: string; journeyDate: string; journeyTime: string; driverName?: string | null };
+  leg: {
+    bookingRef: string;
+    status: string;
+    legType: string;
+    journeyDate: string;
+    journeyTime: string;
+    driverName?: string | null;
+  };
   isCurrent: boolean;
   href?: string;
 }) {
@@ -56,9 +65,10 @@ function LegCell({
       }`}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className={`text-[10px] font-bold uppercase tracking-widest ${isCurrent ? "text-accent" : "text-muted-foreground"}`}>
+        <span
+          className={`text-xs font-semibold  ${isCurrent ? "text-accent" : "text-muted-foreground"}`}
+        >
           {leg.legType === "outbound" ? "Outbound" : "Return"}
-          {isCurrent && " · This booking"}
         </span>
         <StatusIndicator status={leg.status} />
       </div>
@@ -70,9 +80,13 @@ function LegCell({
       </p>
 
       {leg.driverName ? (
-        <p className="text-xs text-muted-foreground">Driver: {leg.driverName}</p>
+        <p className="text-xs text-muted-foreground">
+          Driver: {leg.driverName}
+        </p>
       ) : (
-        <p className="text-xs text-muted-foreground/50 italic">No driver assigned</p>
+        <p className="text-xs text-muted-foreground/50 italic">
+          No driver assigned
+        </p>
       )}
 
       {!isCurrent && (
@@ -84,14 +98,24 @@ function LegCell({
   );
 
   if (!isCurrent && href) {
-    return <Link href={href} className="block h-full">{inner}</Link>;
+    return (
+      <Link href={href} className="block h-full">
+        {inner}
+      </Link>
+    );
   }
   return inner;
 }
 
 export default function RoundTripDetails({
-  bookingRef, status, legType, journeyDate, journeyTime,
-  driverName, linkedBookingId, linkedLeg,
+  bookingRef,
+  status,
+  legType,
+  journeyDate,
+  journeyTime,
+  driverName,
+  linkedBookingId,
+  linkedLeg,
 }: Props) {
   return (
     <Card className="gap-2">
@@ -105,7 +129,14 @@ export default function RoundTripDetails({
       <Card.Content>
         <div className="grid grid-cols-2 gap-2">
           <LegCell
-            leg={{ bookingRef, status, legType, journeyDate, journeyTime, driverName }}
+            leg={{
+              bookingRef,
+              status,
+              legType,
+              journeyDate,
+              journeyTime,
+              driverName,
+            }}
             isCurrent
           />
 
@@ -117,7 +148,9 @@ export default function RoundTripDetails({
             />
           ) : (
             <div className="rounded-xl p-3 border border-dashed border-border flex items-center justify-center">
-              <p className="text-xs text-muted-foreground italic">Linked leg unavailable</p>
+              <p className="text-xs text-muted-foreground italic">
+                Linked leg unavailable
+              </p>
             </div>
           )}
         </div>

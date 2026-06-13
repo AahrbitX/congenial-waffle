@@ -25,19 +25,19 @@ import UserDropdown from "@/components/nav/userDropdown";
 import { ASSETS } from "@/constants/assets";
 
 const navLinks = [
-  { name: "Dashboard",   href: "/admin",             icon: LayoutDashboard },
-  { name: "Bookings",    href: "/admin/bookings",    icon: CalendarCheck },
+  { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { name: "Bookings", href: "/admin/bookings", icon: CalendarCheck },
   { name: "Dispatchers", href: "/admin/dispatchers", icon: Users },
-  { name: "Users",       href: "/admin/users",       icon: User },
-  { name: "Drivers",     href: "/admin/drivers",     icon: Car },
-  { name: "Payments",    href: "/admin/payments",    icon: BadgeIndianRupee },
-  { name: "Reviews",     href: "/admin/reviews",     icon: Star },
-  { name: "Settings",    href: "/admin/settings",    icon: Settings },
+  { name: "Users", href: "/admin/users", icon: User },
+  { name: "Drivers", href: "/admin/drivers", icon: Car },
+  { name: "Payments", href: "/admin/payments", icon: BadgeIndianRupee },
+  { name: "Reviews", href: "/admin/reviews", icon: Star },
+  { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathName = usePathname();
-  const router   = useRouter();
+  const router = useRouter();
 
   // waitForSession() in the login forms populates the session atom before
   // router.push(), so useSession() reads it synchronously here — no extra
@@ -73,9 +73,8 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="h-screen overflow-hidden">
       <div className="flex flex-col w-full h-full bg-background">
-
         {/* ── Header ── */}
-        <div className="h-16 shrink-0 border-b border-divider px-4 flex items-center justify-between">
+        <div className="h-16 shrink-0 border-b border-divider px-4 flex items-center justify-between print:hidden">
           <Link
             className={buttonVariants({ variant: "outline", isIconOnly: true })}
             href="/"
@@ -83,27 +82,39 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
             <Home size={12} />
           </Link>
           <div className="flex items-center gap-2 ml-2">
-            <Image src={ASSETS.logos.minimal.src} alt={ASSETS.logos.minimal.alt} width={30} height={30} />
-            <Image src={ASSETS.logos.darkFullName.src} alt={ASSETS.logos.darkFullName.alt} width={110} height={28} className="object-contain" />
+            <Image
+              src={ASSETS.logos.minimal.src}
+              alt={ASSETS.logos.minimal.alt}
+              width={30}
+              height={30}
+            />
+            <Image
+              src={ASSETS.logos.darkFullName.src}
+              alt={ASSETS.logos.darkFullName.alt}
+              width={110}
+              height={28}
+              className="object-contain"
+            />
           </div>
           <UserDropdown showDashboard={false} hideLoginButton />
         </div>
 
         {/* ── Body ── */}
         <div className="flex flex-1 min-h-0">
-
           {/* ── Sidebar (desktop) ── */}
           <div
-            className={`relative hidden md:block shrink-0 transition-[width] duration-200 ${
-              collapsed ? "w-14" : "w-[216px]"
+            className={`relative hidden md:block shrink-0 transition-[width] duration-200 print:hidden ${
+              collapsed ? "w-16" : "w-[216px]"
             }`}
           >
             {/* Panel (overflow-hidden hides text during width transition) */}
-            <div className={`flex flex-col h-full border-r border-divider py-4 overflow-hidden ${
-              collapsed ? "px-1" : "px-2"
-            }`}>
+            <div
+              className={`flex flex-col h-full border-r border-divider py-4 overflow-hidden ${
+                collapsed ? "px-1" : "px-2"
+              }`}
+            >
               {/* Nav links */}
-              <nav className="flex-1 flex flex-col gap-1">
+              <nav className="flex-1 flex flex-col gap-1 items-center">
                 {navLinks.map((link) => {
                   const Icon = link.icon;
                   const isActive =
@@ -116,9 +127,9 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
                       href={link.href}
                       title={collapsed ? link.name : undefined}
                       className={buttonVariants({
-                        variant:    isActive ? "secondary" : "ghost",
+                        variant: isActive ? "secondary" : "ghost",
                         isIconOnly: collapsed,
-                        fullWidth:  !collapsed,
+                        fullWidth: !collapsed,
                         className: `${isActive ? "bg-accent text-white" : ""} ${
                           collapsed
                             ? "justify-center"
@@ -127,7 +138,9 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
                       })}
                     >
                       <Icon size={18} className="shrink-0" />
-                      {!collapsed && <span className="truncate">{link.name}</span>}
+                      {!collapsed && (
+                        <span className="truncate">{link.name}</span>
+                      )}
                     </Link>
                   );
                 })}
@@ -149,13 +162,19 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
               title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
               className="absolute -right-3 top-5 z-20 w-6 h-6 rounded-full bg-background border border-divider shadow-sm flex items-center justify-center text-muted hover:text-foreground transition-colors"
             >
-              {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+              {collapsed ? (
+                <ChevronRight size={12} />
+              ) : (
+                <ChevronLeft size={12} />
+              )}
             </button>
           </div>
 
           {/* ── Main content ── */}
           <div className="flex-1 min-h-0 overflow-hidden">
-            <section className={`h-full overflow-y-auto min-h-0 ${hideSidebar ? "scrollbar-hide" : ""}`}>
+            <section
+              className={`h-full overflow-y-auto min-h-0 ${hideSidebar ? "scrollbar-hide" : ""}`}
+            >
               {children}
             </section>
           </div>

@@ -21,38 +21,41 @@ export function PersonalDetailsSkeleton() {
 
 export function PersonalDetails({ user }: { user: any }) {
   const memberSince = user.createdAt
-    ? new Date(user.createdAt).toLocaleDateString("en-IN", { month: "short", year: "numeric" })
+    ? new Date(user.createdAt).toLocaleDateString("en-IN", {
+        month: "short",
+        year: "numeric",
+      })
     : "—";
 
   const dob = user.dob
-    ? new Date(user.dob).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+    ? new Date(user.dob).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
     : "—";
 
   return (
-    <Card className="p-6 h-full row-span-2" variant="default">
+    <Card className="w-full row-span-2" variant="default">
       <Card.Header>
-        <Card.Title className="font-semibold text-accent">Personal Details</Card.Title>
+        <Card.Title className="font-semibold text-accent">
+          Personal Details
+        </Card.Title>
       </Card.Header>
       <Separator />
 
-      <div className="grid grid-cols-2 gap-y-3 gap-x-4 mt-2">
-        <DetailItem label="Full Name"     value={user.name        ?? "—"} />
-        <DetailItem label="User ID"       value={user.id ? `...${user.id.slice(-8)}` : "—"} />
-        <DetailItem label="Phone"         value={user.phoneNumber ?? "—"} />
-        <DetailItem label="Email"         value={user.email       ?? "—"} />
-        <DetailItem label="Role"          value={user.role        ?? "—"} />
+      <div className="grid grid-cols-2 gap-y-3 gap-x-4">
+        <DetailItem label="Full Name" value={user.name ?? "—"} />
+        <DetailItem label="Phone" value={user.phoneNumber ?? "—"} />
         <DetailItem label="Date of Birth" value={dob} />
-        <DetailItem label="Member Since"  value={memberSince} />
-        <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-muted font-medium">Email Verified</span>
-          <Chip size="sm" color={user.emailVerified ? "success" : "warning"} variant="soft">
-            {user.emailVerified ? "Verified" : "Unverified"}
-          </Chip>
-        </div>
+        <DetailItem label="Member Since" value={memberSince} />
+        <DetailItem label="Gender" value={user.gender ?? "—"} />
         {user.banned && (
           <div className="col-span-2 flex flex-col gap-0.5">
             <span className="text-xs text-muted font-medium">Ban Reason</span>
-            <span className="text-sm font-semibold text-danger">{user.bannedReason ?? "No reason provided"}</span>
+            <span className="text-sm font-semibold text-danger">
+              {user.bannedReason ?? "No reason provided"}
+            </span>
           </div>
         )}
       </div>

@@ -11,12 +11,7 @@ import {
   Skeleton,
   Surface,
 } from "@heroui/react";
-import {
-  BadgeIndianRupee,
-  Banknote,
-  Clock,
-  CreditCard,
-} from "lucide-react";
+import { BadgeIndianRupee, Banknote, Clock, CreditCard } from "lucide-react";
 import { request } from "@/lib/api-client";
 import { DataTable } from "@/components/dataTable/dynamic";
 import { AdminPayment, paymentColumns } from "./columns";
@@ -55,10 +50,10 @@ function StatCardsSkeleton() {
 }
 
 export default function AdminPaymentsPage() {
-  const [page, setPage]               = useState(1);
-  const [search, setSearch]           = useState("");
-  const [statusFilter, setStatus]     = useState("");
-  const [methodFilter, setMethod]     = useState("");
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatus] = useState("");
+  const [methodFilter, setMethod] = useState("");
 
   const hasFilters = !!(search || statusFilter || methodFilter);
 
@@ -72,8 +67,11 @@ export default function AdminPaymentsPage() {
   const { data, isLoading } = useQuery<AdminPaymentsResponse>({
     queryKey: ["admin-payments", page, search, statusFilter, methodFilter],
     queryFn: () => {
-      const params = new URLSearchParams({ page: String(page), pageSize: "20" });
-      if (search)       params.set("search", search);
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: "10",
+      });
+      if (search) params.set("search", search);
       if (statusFilter) params.set("status", statusFilter);
       if (methodFilter) params.set("method", methodFilter);
       return request(`/api/payments/admin?${params.toString()}`);
@@ -89,34 +87,37 @@ export default function AdminPaymentsPage() {
           value: `₹${parseFloat(summary.totalRevenue || "0").toLocaleString("en-IN")}`,
           icon: BadgeIndianRupee,
           color: "text-emerald-600",
-          bg: "bg-emerald-50",
+          bg: "bg-emerald-200",
         },
         {
           label: "Total Transactions",
           value: summary.totalTransactions.toLocaleString("en-IN"),
           icon: CreditCard,
           color: "text-blue-600",
-          bg: "bg-blue-50",
+          bg: "bg-blue-200",
         },
         {
           label: "Cash Payments",
           value: summary.cashPayments.toLocaleString("en-IN"),
           icon: Banknote,
           color: "text-amber-600",
-          bg: "bg-amber-50",
+          bg: "bg-amber-200",
         },
         {
           label: "Pending",
           value: summary.pendingPayments.toLocaleString("en-IN"),
           icon: Clock,
           color: "text-rose-600",
-          bg: "bg-rose-50",
+          bg: "bg-rose-200",
         },
       ]
     : [];
 
   return (
-    <Surface className="h-full flex flex-col overflow-hidden p-4" variant="secondary">
+    <Surface
+      className="h-full overflow-y-auto p-4 scrollbar-thin"
+      variant="secondary"
+    >
       {/* Header */}
       <div className="flex items-center justify-between mb-4 shrink-0">
         <h1 className="text-2xl font-bold">Payments</h1>
@@ -125,34 +126,41 @@ export default function AdminPaymentsPage() {
       {/* Stat Cards */}
       {isLoading ? (
         <StatCardsSkeleton />
-      ) : statCards.length > 0 && (
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6 shrink-0">
-          {statCards.map(({ label, value, icon: Icon, color, bg }) => (
-            <Card key={label}>
-              <Card.Content className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${bg} shrink-0`}>
-                    <Icon size={20} className={color} />
+      ) : (
+        statCards.length > 0 && (
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6 shrink-0">
+            {statCards.map(({ label, value, icon: Icon, color, bg }) => (
+              <Card key={label}>
+                <Card.Content>
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${bg} shrink-0`}
+                    >
+                      <Icon size={20} className={color} />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">{label}</p>
+                      <p className="text-xl font-bold">{value}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">{label}</p>
-                    <p className="text-xl font-bold">{value}</p>
-                  </div>
-                </div>
-              </Card.Content>
-            </Card>
-          ))}
-        </div>
+                </Card.Content>
+              </Card>
+            ))}
+          </div>
+        )
       )}
 
       {/* Filters */}
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2 shrink-0">
+      <Card>
         <div className="flex items-center gap-2 flex-wrap">
           <SearchField
             name="search"
             variant="secondary"
             value={search}
-            onChange={(v) => { setSearch(v); setPage(1); }}
+            onChange={(v) => {
+              setSearch(v);
+              setPage(1);
+            }}
           >
             <SearchField.Group>
               <SearchField.SearchIcon />
@@ -166,7 +174,10 @@ export default function AdminPaymentsPage() {
             placeholder="All Statuses"
             variant="secondary"
             selectedKey={statusFilter}
-            onSelectionChange={(key) => { setStatus(key as string ?? ""); setPage(1); }}
+            onSelectionChange={(key) => {
+              setStatus((key as string) ?? "");
+              setPage(1);
+            }}
           >
             <Select.Trigger>
               <Select.Value />
@@ -174,13 +185,34 @@ export default function AdminPaymentsPage() {
             </Select.Trigger>
             <Select.Popover>
               <ListBox>
-                <ListBox.Item id="" textValue="All Statuses">All Statuses<ListBox.ItemIndicator /></ListBox.Item>
-                <ListBox.Item id="paid" textValue="Paid">Paid<ListBox.ItemIndicator /></ListBox.Item>
-                <ListBox.Item id="cash_collected" textValue="Cash Collected">Cash Collected<ListBox.ItemIndicator /></ListBox.Item>
-                <ListBox.Item id="created" textValue="Not Paid">Not Paid<ListBox.ItemIndicator /></ListBox.Item>
-                <ListBox.Item id="cash_pending" textValue="Cash Pending">Cash Pending<ListBox.ItemIndicator /></ListBox.Item>
-                <ListBox.Item id="refunded" textValue="Refunded">Refunded<ListBox.ItemIndicator /></ListBox.Item>
-                <ListBox.Item id="failed" textValue="Failed">Failed<ListBox.ItemIndicator /></ListBox.Item>
+                <ListBox.Item id="" textValue="All Statuses">
+                  All Statuses
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="paid" textValue="Paid">
+                  Paid
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="cash_collected" textValue="Cash Collected">
+                  Cash Collected
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="created" textValue="Not Paid">
+                  Not Paid
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="cash_pending" textValue="Cash Pending">
+                  Cash Pending
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="refunded" textValue="Refunded">
+                  Refunded
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="failed" textValue="Failed">
+                  Failed
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
               </ListBox>
             </Select.Popover>
           </Select>
@@ -190,7 +222,10 @@ export default function AdminPaymentsPage() {
             placeholder="All Methods"
             variant="secondary"
             selectedKey={methodFilter}
-            onSelectionChange={(key) => { setMethod(key as string ?? ""); setPage(1); }}
+            onSelectionChange={(key) => {
+              setMethod((key as string) ?? "");
+              setPage(1);
+            }}
           >
             <Select.Trigger>
               <Select.Value />
@@ -198,29 +233,40 @@ export default function AdminPaymentsPage() {
             </Select.Trigger>
             <Select.Popover>
               <ListBox>
-                <ListBox.Item id="" textValue="All Methods">All Methods<ListBox.ItemIndicator /></ListBox.Item>
-                <ListBox.Item id="online" textValue="Online">Online<ListBox.ItemIndicator /></ListBox.Item>
-                <ListBox.Item id="cash" textValue="Cash">Cash<ListBox.ItemIndicator /></ListBox.Item>
+                <ListBox.Item id="" textValue="All Methods">
+                  All Methods
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="online" textValue="Online">
+                  Online
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="cash" textValue="Cash">
+                  Cash
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
               </ListBox>
             </Select.Popover>
           </Select>
         </div>
 
         {hasFilters && (
-          <Button variant="secondary" onPress={resetFilters}>Reset Filter</Button>
+          <Button variant="secondary" onPress={resetFilters}>
+            Reset Filter
+          </Button>
         )}
-      </div>
+        <div className="flex-1 min-h-0">
+          <DataTable<AdminPayment>
+            isLoading={isLoading}
+            data={data?.data ?? []}
+            columns={paymentColumns}
+            pagination={data?.pagination}
+            onPageChange={(p) => setPage(p)}
+          />
+        </div>
+      </Card>
 
       {/* Table */}
-      <div className="flex-1 min-h-0">
-        <DataTable<AdminPayment>
-          isLoading={isLoading}
-          data={data?.data ?? []}
-          columns={paymentColumns}
-          pagination={data?.pagination}
-          onPageChange={(p) => setPage(p)}
-        />
-      </div>
     </Surface>
   );
 }

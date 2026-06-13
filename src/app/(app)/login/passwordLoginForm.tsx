@@ -45,7 +45,10 @@ export default function PasswordLoginForm() {
       // the layout has the data before we navigate.
       const session = await waitForSession();
       const redirect = searchParams.get("redirect");
-      const defaultDest = (session?.user as any)?.role === "admin" ? "/admin" : "/dashboard/overview";
+      const defaultDest =
+        (session?.user as any)?.role === "admin"
+          ? "/admin"
+          : "/dashboard/overview";
       const dest = redirect?.startsWith("/") ? redirect : defaultDest;
       router.push(`/redirecting?to=${encodeURIComponent(dest)}`);
     } catch (err: any) {
@@ -56,7 +59,7 @@ export default function PasswordLoginForm() {
 
   return (
     <form className="flex flex-col gap-4" onSubmit={handleLogin}>
-      <div>
+      <div className="px-1">
         <Label htmlFor="phone" className="">
           Phone Number
         </Label>
@@ -71,7 +74,7 @@ export default function PasswordLoginForm() {
           disabled={loading}
         />
       </div>
-      <div>
+      <div className="px-1">
         <Label htmlFor="password" className="">
           Password
         </Label>
@@ -87,9 +90,32 @@ export default function PasswordLoginForm() {
         />
       </div>
       {error && <div className="text-center text-danger">{error}</div>}
-      <Button className="w-full " size="lg" type="submit" isLoading={loading} disabled={loading}>
+      <Button
+        className="w-full "
+        size="lg"
+        type="submit"
+        isLoading={loading}
+        disabled={loading}
+      >
         Sign In
-      </Button>
+      </Button>{" "}
+      <p className="text-center text-xs text-[var(--color-text-tertiary)]">
+        By continuing, you agree to our{" "}
+        <a
+          href="/terms"
+          className="underline underline-offset-2 hover:text-primary transition-colors"
+        >
+          Terms &amp; Conditions
+        </a>{" "}
+        and{" "}
+        <a
+          href="/privacy"
+          className="underline underline-offset-2 hover:text-primary transition-colors"
+        >
+          Privacy Policy
+        </a>
+        .
+      </p>
     </form>
   );
 }

@@ -78,7 +78,6 @@ const SECTIONS = [
 export default function SafetyPage() {
   return (
     <main className="w-full bg-white">
-
       {/* Hero */}
       <section className="min-h-[40vh] flex flex-col justify-end px-8 sm:px-16 pt-36 pb-16 bg-white overflow-hidden relative">
         <div className="absolute top-0 right-0 w-[55vw] h-full bg-[#f5f7ff] rounded-bl-[80px] -z-0" />
@@ -88,11 +87,13 @@ export default function SafetyPage() {
             Trust &amp; Safety · Mohan Cabs
           </span>
           <h1 className="mt-3 text-[clamp(2.5rem,6vw,5rem)] font-black leading-[1.05] tracking-tight text-[#0f0f0f]">
-            Your Safety<br />
+            Your Safety
+            <br />
             <span className="text-blue-500 italic">Comes First.</span>
           </h1>
           <p className="mt-4 text-gray-400 text-[15px] max-w-lg">
-            Learn about the measures we take to keep every journey safe, comfortable, and reliable.
+            Learn about the measures we take to keep every journey safe,
+            comfortable, and reliable.
           </p>
         </div>
       </section>
@@ -101,14 +102,22 @@ export default function SafetyPage() {
       <section className="py-20 px-8 sm:px-16 bg-[#f8f9fe]">
         <div className="max-w-4xl mx-auto space-y-12">
           {SECTIONS.map(({ number, title, content }) => (
-            <div key={number} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+            <div
+              key={number}
+              className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8"
+            >
               <p className="text-[11px] font-bold text-blue-500 tracking-widest uppercase mb-3">
                 {number}
               </p>
-              <h2 className="text-xl font-black text-[#0f0f0f] mb-5">{title}</h2>
+              <h2 className="text-xl font-black text-[#0f0f0f] mb-5">
+                {title}
+              </h2>
               <div className="space-y-3">
                 {content.map((para, i) => (
-                  <p key={i} className="text-[14px] text-gray-500 leading-relaxed">
+                  <p
+                    key={i}
+                    className="text-[14px] text-gray-500 leading-relaxed"
+                  >
                     {para}
                   </p>
                 ))}
@@ -122,19 +131,25 @@ export default function SafetyPage() {
       <section className="py-16 px-8 sm:px-16 bg-blue-500">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div>
-            <h2 className="text-2xl font-black text-white">Have a safety concern?</h2>
-            <p className="text-blue-100 text-sm mt-1">Our support team is available 24/7.</p>
+            <h2 className="text-2xl font-black text-white">
+              Have a safety concern?
+            </h2>
+            <p className="text-blue-100 text-sm mt-1">
+              Our support team is available 24/7.
+            </p>
           </div>
           <Link
             href="/contact"
             className="inline-flex items-center gap-3 bg-white text-blue-500 font-extrabold text-[15px] px-8 py-4 rounded-full hover:bg-blue-50 transition-colors group shrink-0"
           >
             Contact Us
-            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            <ArrowRight
+              size={16}
+              className="group-hover:translate-x-1 transition-transform"
+            />
           </Link>
         </div>
       </section>
-
     </main>
   );
 }
