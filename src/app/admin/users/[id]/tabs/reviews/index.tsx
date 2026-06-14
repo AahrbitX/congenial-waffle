@@ -9,7 +9,8 @@ import { IconStar } from "@/constants/icons";
 function StarRating({ value }: { value: number }) {
   return (
     <span className="text-warning font-bold tracking-tight">
-      {"★".repeat(value)}{"☆".repeat(5 - value)}
+      {"★".repeat(value)}
+      {"☆".repeat(5 - value)}
     </span>
   );
 }
@@ -39,23 +40,32 @@ function EmptyState() {
         <IconStar size={24} className="text-muted" />
       </div>
       <p className="text-sm font-semibold text-foreground">No reviews yet</p>
-      <p className="text-xs text-muted max-w-xs">This user hasn&apos;t submitted any reviews.</p>
+      <p className="text-xs text-muted max-w-xs">
+        This user hasn&apos;t submitted any reviews.
+      </p>
     </div>
   );
 }
 
-export default function ReviewsTab({ userId }: { userId: string }) {
+export default function ReviewsTab({
+  userId,
+  panelId,
+}: {
+  userId: string;
+  panelId: string;
+}) {
   const { data, isLoading } = useQuery({
     queryKey: ["user-reviews", userId],
-    queryFn: () => request<{ success: boolean; data: any[] }>(
-      `/api/reviews/admin?userId=${userId}`
-    ),
+    queryFn: () =>
+      request<{ success: boolean; data: any[] }>(
+        `/api/reviews?userId=${userId}`,
+      ),
   });
 
   const reviews = data?.data ?? [];
 
   return (
-    <Tabs.Panel className="pt-2 px-0" id="reviews">
+    <Tabs.Panel className="pt-2 px-0" id={panelId}>
       {isLoading ? (
         <LoadingSkeleton />
       ) : reviews.length === 0 ? (
@@ -63,21 +73,34 @@ export default function ReviewsTab({ userId }: { userId: string }) {
       ) : (
         <div className="space-y-3">
           {reviews.map((r: any) => (
-            <div key={r.id} className="rounded-xl border border-border bg-surface p-4 space-y-1.5">
+            <div
+              key={r.id}
+              className="rounded-xl border border-border bg-surface p-4 space-y-1.5"
+            >
               <div className="flex items-center justify-between">
-                <span className="font-mono text-xs text-primary font-semibold">{r.bookingRef}</span>
+                <span className="font-mono text-xs text-primary font-semibold">
+                  {r.bookingRef}
+                </span>
                 <span className="text-xs text-muted">
                   {r.submittedAt
-                    ? new Date(r.submittedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+                    ? new Date(r.submittedAt).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })
                     : "—"}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <StarRating value={r.rating} />
-                <span className="text-xs text-muted">{r.pickupName} → {r.dropName}</span>
+                <span className="text-xs text-muted">
+                  {r.pickupName} → {r.dropName}
+                </span>
               </div>
               {r.comment && (
-                <p className="text-sm text-foreground leading-relaxed">&quot;{r.comment}&quot;</p>
+                <p className="text-sm text-foreground leading-relaxed">
+                  &quot;{r.comment}&quot;
+                </p>
               )}
               {r.driverName && (
                 <p className="text-xs text-muted">Driver: {r.driverName}</p>

@@ -83,7 +83,13 @@ interface Payment {
   status: string;
 }
 
-export default function PaymentsTab({ userId }: { userId: string }) {
+export default function PaymentsTab({
+  userId,
+  panelId,
+}: {
+  userId: string;
+  panelId: string;
+}) {
   const { data, isLoading } = useQuery({
     queryKey: ["user-payments", userId],
     queryFn: () =>
@@ -96,7 +102,7 @@ export default function PaymentsTab({ userId }: { userId: string }) {
   const payments = data?.data ?? [];
 
   return (
-    <Tabs.Panel id="payments" className="pt-2 px-0">
+    <Tabs.Panel id={panelId} className="pt-2 px-0">
       {isLoading ? (
         <LoadingSkeleton />
       ) : payments.length === 0 ? (

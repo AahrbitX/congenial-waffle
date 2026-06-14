@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Input, InputOTP, Label } from "@heroui/react";
+import { Description, Input, InputOTP, Label, Modal } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
 import { authClient } from "@/lib/auth-client";
 import { setPassword } from "@/api/user.api";
@@ -17,7 +17,12 @@ interface PasswordModalProps {
   phoneNumber: string;
 }
 
-export function PasswordModal({ isOpen, onClose, hasPassword, phoneNumber }: PasswordModalProps) {
+export function PasswordModal({
+  isOpen,
+  onClose,
+  hasPassword,
+  phoneNumber,
+}: PasswordModalProps) {
   const qc = useQueryClient();
 
   const [step, setStep] = useState<"send" | "verify" | "success">("send");
@@ -40,7 +45,9 @@ export function PasswordModal({ isOpen, onClose, hasPassword, phoneNumber }: Pas
   useEffect(() => {
     if (!isMobile) return;
     document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [isMobile]);
 
   function handleClose() {
@@ -56,7 +63,9 @@ export function PasswordModal({ isOpen, onClose, hasPassword, phoneNumber }: Pas
   async function handleSendOtp() {
     setLoading(true);
     setError("");
-    const { error: err } = await authClient.phoneNumber.sendOtp({ phoneNumber });
+    const { error: err } = await authClient.phoneNumber.sendOtp({
+      phoneNumber,
+    });
     if (err) {
       setError(err.message || "Failed to send OTP.");
       setLoading(false);
@@ -67,9 +76,18 @@ export function PasswordModal({ isOpen, onClose, hasPassword, phoneNumber }: Pas
   }
 
   async function handleSetPassword() {
-    if (otp.length !== 6) { setError("Please enter the 6-digit OTP."); return; }
-    if (newPassword.length < 8) { setError("Password must be at least 8 characters."); return; }
-    if (newPassword !== confirmPassword) { setError("Passwords do not match."); return; }
+    if (otp.length !== 6) {
+      setError("Please enter the 6-digit OTP.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -87,150 +105,167 @@ export function PasswordModal({ isOpen, onClose, hasPassword, phoneNumber }: Pas
   if (!isOpen) return null;
 
   return (
-    <div
-      className={`fixed inset-0 z-50 flex ${isMobile ? "items-end" : "items-center justify-center p-4 bg-black/40 backdrop-blur-sm"}`}
-      onClick={isMobile ? handleClose : undefined}
-    >
-      <motion.div
-        initial={isMobile ? { y: "100%" } : false}
-        animate={{ y: 0 }}
-        transition={{ type: "spring", damping: 28, stiffness: 280 }}
-        onClick={isMobile ? (e) => e.stopPropagation() : undefined}
-        className={isMobile
-          ? "w-full rounded-t-3xl bg-[var(--color-surface)] shadow-2xl max-h-[88svh] overflow-y-auto"
-          : "bg-[var(--color-surface)] rounded-3xl shadow-2xl w-full max-w-sm"
+    <Modal
+      isOpen={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          handleClose();
         }
-      >
-        {isMobile && (
-          <div className="flex justify-center pt-4 pb-2">
-            <div className="h-1 w-12 rounded-full bg-gray-300" />
-          </div>
-        )}
-        <div className={isMobile ? "px-5 pb-6 space-y-4" : "p-6 space-y-4"}>
+      }}
+    >
+      <Modal.Backdrop>
+        <Modal.Container size="sm">
+          <Modal.Dialog className="sm:max-w-md">
+            <Modal.CloseTrigger />
 
-        {step === "success" ? (
-          <div className="flex flex-col items-center gap-3 py-4 text-center">
-            <div className="w-16 h-16 rounded-full bg-[var(--color-success-light)] flex items-center justify-center">
-              <IconCheckCircle size={32} className="text-[var(--color-success)]" />
-            </div>
-            <p className="text-[18px] font-black text-primary">
-              {hasPassword ? "Password updated!" : "Password created!"}
-            </p>
-            <p className="text-sm text-muted">You can now sign in with your phone number and password.</p>
-          </div>
-        ) : (
-          <>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center shrink-0">
-                <IconLock size={20} className="text-primary" />
-              </div>
-              <div>
-                <p className="font-bold text-primary">{title}</p>
-                <p className="text-xs text-muted">
-                  {step === "send" ? "We'll send an OTP to verify it's you" : "Enter the OTP and your new password"}
-                </p>
-              </div>
-            </div>
+            {step === "success" ? (
+              <>
+                <Modal.Body>
+                  <div className="flex flex-col items-center gap-3 py-4 text-center">
+                    <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center">
+                      <IconCheckCircle size={32} className="text-success" />
+                    </div>
 
-            {step === "send" && (
-              <div>
-                <Label>Phone Number</Label>
-                <p className="mt-1 rounded-xl border border-[var(--color-border)] px-3 py-2 text-sm text-muted bg-[var(--color-surface-muted)]">
-                  {phoneNumber}
-                </p>
-              </div>
+                    <p className="text-lg font-bold">
+                      {hasPassword ? "Password updated!" : "Password created!"}
+                    </p>
+
+                    <p className="text-sm text-muted">
+                      You can now sign in with your phone number and password.
+                    </p>
+                  </div>
+                </Modal.Body>
+              </>
+            ) : (
+              <>
+                <Modal.Header>
+                  <Modal.Icon className="bg-primary/10 text-primary">
+                    <IconLock size={20} />
+                  </Modal.Icon>
+
+                  <div>
+                    <Modal.Heading>{title}</Modal.Heading>
+
+                    <Description>
+                      {step === "send"
+                        ? "We'll send an OTP to verify it's you"
+                        : "Enter the OTP and your new password"}
+                    </Description>
+                  </div>
+                </Modal.Header>
+
+                <Modal.Body className="space-y-4">
+                  {step === "send" && (
+                    <div>
+                      <Label>Phone Number</Label>
+
+                      <p className="mt-1 rounded-xl border border-border px-3 py-2 text-sm text-muted bg-surface-muted">
+                        {phoneNumber}
+                      </p>
+                    </div>
+                  )}
+
+                  {step === "verify" && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="mb-2">
+                          OTP sent to {phoneNumber}
+                        </Label>
+
+                        <InputOTP
+                          maxLength={6}
+                          value={otp}
+                          onChange={setOtp}
+                          variant="secondary"
+                          className="w-fit mt-2"
+                        >
+                          <InputOTP.Group>
+                            <InputOTP.Slot index={0} />
+                            <InputOTP.Slot index={1} />
+                            <InputOTP.Slot index={2} />
+                            <InputOTP.Separator />
+                            <InputOTP.Slot index={3} />
+                            <InputOTP.Slot index={4} />
+                            <InputOTP.Slot index={5} />
+                          </InputOTP.Group>
+                        </InputOTP>
+                      </div>
+
+                      <div className="flex items-start flex-col gap-2">
+                        <Label>New Password</Label>
+
+                        <Input
+                          type="password"
+                          variant="secondary"
+                          fullWidth
+                          placeholder="Minimum 8 characters"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          disabled={loading}
+                        />
+                      </div>
+
+                      <div className="flex items-start flex-col gap-2">
+                        <Label>Confirm Password</Label>
+
+                        <Input
+                          type="password"
+                          fullWidth
+                          variant="secondary"
+                          placeholder="Re-enter password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          disabled={loading}
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        className="w-full text-center text-xs text-muted hover:underline"
+                        onClick={() => {
+                          setStep("send");
+                          setOtp("");
+                          setError("");
+                        }}
+                      >
+                        ← Resend OTP
+                      </button>
+                    </div>
+                  )}
+
+                  {error && (
+                    <p className="text-sm text-danger text-center">{error}</p>
+                  )}
+                </Modal.Body>
+
+                <Modal.Footer>
+                  <Button slot="close" variant="outline" className="flex-1">
+                    Cancel
+                  </Button>
+
+                  {step === "send" ? (
+                    <Button
+                      onPress={handleSendOtp}
+                      isLoading={loading}
+                      className="flex-1"
+                    >
+                      Send OTP
+                    </Button>
+                  ) : (
+                    <Button
+                      onPress={handleSetPassword}
+                      isLoading={loading}
+                      className="flex-1"
+                    >
+                      {hasPassword ? "Reset" : "Create"}
+                    </Button>
+                  )}
+                </Modal.Footer>
+              </>
             )}
-
-            {step === "verify" && (
-              <div className="space-y-4">
-                <div>
-                  <Label className="mb-2">OTP sent to {phoneNumber}</Label>
-                  <InputOTP
-                    maxLength={6}
-                    value={otp}
-                    onChange={setOtp}
-                    className="w-full"
-                    variant="secondary"
-                  >
-                    <InputOTP.Group className="flex w-full items-center justify-center">
-                      <InputOTP.Slot index={0} />
-                      <InputOTP.Slot index={1} />
-                      <InputOTP.Slot index={2} />
-                      <InputOTP.Separator />
-                      <InputOTP.Slot index={3} />
-                      <InputOTP.Slot index={4} />
-                      <InputOTP.Slot index={5} />
-                    </InputOTP.Group>
-                  </InputOTP>
-                </div>
-                <div>
-                  <Label>New Password</Label>
-                  <Input
-                    type="password"
-                    variant="secondary"
-                    className="mt-1 w-full"
-                    placeholder="Minimum 8 characters"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-                <div>
-                  <Label>Confirm Password</Label>
-                  <Input
-                    type="password"
-                    variant="secondary"
-                    className="mt-1 w-full"
-                    placeholder="Re-enter password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-            )}
-
-            {error && <p className="text-sm text-danger text-center">{error}</p>}
-
-            <div className="flex gap-3 pt-1">
-              <Button
-                onPress={handleClose}
-                className="flex-1 rounded-xl font-semibold border border-[var(--color-border-strong)] text-[var(--color-text-secondary)]"
-              >
-                Cancel
-              </Button>
-              {step === "send" ? (
-                <Button
-                  onPress={handleSendOtp}
-                  isLoading={loading}
-                  className="flex-1 rounded-xl font-bold bg-[var(--color-primary)] text-white"
-                >
-                  Send OTP
-                </Button>
-              ) : (
-                <Button
-                  onPress={handleSetPassword}
-                  isLoading={loading}
-                  className="flex-1 rounded-xl font-bold bg-[var(--color-primary)] text-white"
-                >
-                  {hasPassword ? "Reset" : "Create"}
-                </Button>
-              )}
-            </div>
-
-            {step === "verify" && (
-              <button
-                type="button"
-                className="w-full text-center text-xs text-muted hover:underline"
-                onClick={() => { setStep("send"); setOtp(""); setError(""); }}
-              >
-                ← Resend OTP
-              </button>
-            )}
-          </>
-        )}
-        </div>
-      </motion.div>
-    </div>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+    </Modal>
   );
 }

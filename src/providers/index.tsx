@@ -2,10 +2,11 @@
 
 import { Toast } from "@heroui/react";
 import { queryClient } from "@/lib/query-client";
+import { AuthProvider } from "@/context/AuthContext";
+
+import { SplashScreen } from "@/components/ui/SplashScreen";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { AuthProvider } from "@/context/AuthContext";
-import { SplashScreen } from "@/components/ui/SplashScreen";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (

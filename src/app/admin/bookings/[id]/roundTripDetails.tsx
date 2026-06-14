@@ -128,30 +128,54 @@ export default function RoundTripDetails({
 
       <Card.Content>
         <div className="grid grid-cols-2 gap-2">
-          <LegCell
-            leg={{
-              bookingRef,
-              status,
-              legType,
-              journeyDate,
-              journeyTime,
-              driverName,
-            }}
-            isCurrent
-          />
+          {legType === "return" && linkedLeg ? (
+            <>
+              <LegCell
+                leg={linkedLeg}
+                isCurrent={false}
+                href={`/admin/bookings/${linkedBookingId}`}
+              />
 
-          {linkedLeg ? (
-            <LegCell
-              leg={linkedLeg}
-              isCurrent={false}
-              href={`/admin/bookings/${linkedBookingId}`}
-            />
+              <LegCell
+                leg={{
+                  bookingRef,
+                  status,
+                  legType,
+                  journeyDate,
+                  journeyTime,
+                  driverName,
+                }}
+                isCurrent
+              />
+            </>
           ) : (
-            <div className="rounded-xl p-3 border border-dashed border-border flex items-center justify-center">
-              <p className="text-xs text-muted-foreground italic">
-                Linked leg unavailable
-              </p>
-            </div>
+            <>
+              <LegCell
+                leg={{
+                  bookingRef,
+                  status,
+                  legType,
+                  journeyDate,
+                  journeyTime,
+                  driverName,
+                }}
+                isCurrent
+              />
+
+              {linkedLeg ? (
+                <LegCell
+                  leg={linkedLeg}
+                  isCurrent={false}
+                  href={`/admin/bookings/${linkedBookingId}`}
+                />
+              ) : (
+                <div className="rounded-xl p-3 border border-dashed border-border flex items-center justify-center">
+                  <p className="text-xs text-muted-foreground italic">
+                    Linked leg unavailable
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </Card.Content>

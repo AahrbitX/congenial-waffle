@@ -29,42 +29,6 @@ import ReviewsTab from "./tabs/reviews";
 import { PersonalDetailsSkeleton } from "./personalDetails";
 import SuspendModal from "./suspendModal";
 
-// ── Full-page skeleton ────────────────────────────────────────────────────────
-function PageSkeleton() {
-  return (
-    <>
-      {/* Header bar */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-4 w-40 rounded" />
-          <Skeleton className="h-5 w-20 rounded-full" />
-        </div>
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-8 w-16 rounded-lg" />
-          <Skeleton className="h-8 w-20 rounded-lg" />
-          <Skeleton className="h-8 w-16 rounded-lg" />
-        </div>
-      </div>
-
-      {/* Profile card */}
-      <ProfileHeaderSkeleton />
-
-      {/* Tabs list */}
-      <div className="flex gap-6 border-b border-border pb-2 mt-2 mb-4">
-        {["w-16", "w-24", "w-20", "w-16"].map((w, i) => (
-          <Skeleton key={i} className={`h-4 ${w} rounded`} />
-        ))}
-      </div>
-
-      {/* Tab content — mirrors the Overview tab grid */}
-      <div className="grid grid-cols-2 gap-4">
-        <PersonalDetailsSkeleton />
-      </div>
-    </>
-  );
-}
-
-// ── Main page ─────────────────────────────────────────────────────────────────
 function UserDetailsPage() {
   const params = useParams<{ id: string }>();
   const userId = params.id;
@@ -217,6 +181,7 @@ function UserDetailsPage() {
           <Card>
             <Tabs className="w-full">
               <Tabs.ListContainer className="max-w-xl">
+                {/* Tabs List */}
                 <Tabs.List aria-label="User details tabs">
                   <Tabs.Tab id="ride-history">
                     Ride History
@@ -234,9 +199,11 @@ function UserDetailsPage() {
                   </Tabs.Tab>
                 </Tabs.List>
               </Tabs.ListContainer>
-              <RideHistoryTab userId={userId} />
-              <PaymentsTab userId={userId} />
-              <ReviewsTab userId={userId} />
+
+              {/* Tab components */}
+              <RideHistoryTab userId={userId} panelId="ride-history" />
+              <PaymentsTab userId={userId} panelId="payments" />
+              <ReviewsTab userId={userId} panelId="reviews" />
             </Tabs>
           </Card>
         </>
@@ -246,3 +213,38 @@ function UserDetailsPage() {
 }
 
 export default UserDetailsPage;
+
+// ── Full-page skeleton ────────────────────────────────────────────────────────
+function PageSkeleton() {
+  return (
+    <>
+      {/* Header bar */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-4 w-40 rounded" />
+          <Skeleton className="h-5 w-20 rounded-full" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-8 w-16 rounded-lg" />
+          <Skeleton className="h-8 w-20 rounded-lg" />
+          <Skeleton className="h-8 w-16 rounded-lg" />
+        </div>
+      </div>
+
+      {/* Profile card */}
+      <ProfileHeaderSkeleton />
+
+      {/* Tabs list */}
+      <div className="flex gap-6 border-b border-border pb-2 mt-2 mb-4">
+        {["w-16", "w-24", "w-20", "w-16"].map((w, i) => (
+          <Skeleton key={i} className={`h-4 ${w} rounded`} />
+        ))}
+      </div>
+
+      {/* Tab content — mirrors the Overview tab grid */}
+      <div className="grid grid-cols-2 gap-4">
+        <PersonalDetailsSkeleton />
+      </div>
+    </>
+  );
+}

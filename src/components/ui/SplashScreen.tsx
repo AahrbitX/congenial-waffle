@@ -42,11 +42,11 @@ export function SplashScreen() {
             priority
           />
           {/* Animated loading bar */}
-          <div className="w-16 h-0.5 rounded-full bg-blue-100 overflow-hidden">
+          <div className="w-16 h-0.5 rounded-full bg-accent/10 overflow-hidden">
             <motion.div
-              className="h-full bg-blue-500 rounded-full"
+              className="h-full bg-accent rounded-full"
               initial={{ x: "-100%" }}
-              animate={{ x: "100%" }}
+              animate={{ x: "120%" }}
               transition={{ repeat: Infinity, duration: 1, ease: "easeInOut" }}
             />
           </div>
