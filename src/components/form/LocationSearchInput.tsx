@@ -4,9 +4,6 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { MapPin, X, Loader2, Map } from "lucide-react";
 import { cn } from "@heroui/react";
 import { LocationPickerMap } from "@/components/map/LocationPickerMap";
-import { forwardGeocode } from "@/utils/geocoding";
-
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
 
 export interface LocationResult {
   name: string;
@@ -80,29 +77,17 @@ export function LocationSearchInput({
     }
     setIsLoading(true);
     try {
-      const url = new URL(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json`,
-      );
-      url.searchParams.set("access_token", MAPBOX_TOKEN);
-      url.searchParams.set("country", "IN");
-      url.searchParams.set("language", "en");
-      url.searchParams.set("limit", "6");
-      url.searchParams.set("types", "address,place,locality,neighborhood,poi");
-
-      const res  = await fetch(url.toString());
+      const res  = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(q)}`);
       const data = await res.json();
 
-      const items: Suggestion[] = (data.features ?? []).map((f: any) => {
-        const postcodeCtx = (f.context ?? []).find((c: any) => c.id?.startsWith("postcode"));
-        return {
-          id:       f.id,
-          name:     f.text,
-          fullName: f.place_name,
-          zone:     postcodeCtx?.text ?? "",
-          lat:      f.center[1],
-          lng:      f.center[0],
-        };
-      });
+      const items: Suggestion[] = (data.predictions ?? []).map((p: any) => ({
+        id:       p.place_id ?? p.reference,
+        name:     p.structured_formatting?.main_text ?? p.description,
+        fullName: p.description,
+        zone:     "",
+        lat:      p.geometry?.location?.lat,
+        lng:      p.geometry?.location?.lng,
+      }));
 
       setSuggestions(items);
       setIsOpen(items.length > 0);

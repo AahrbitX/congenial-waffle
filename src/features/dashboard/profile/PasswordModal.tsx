@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Description, Input, InputOTP, Label, Modal } from "@heroui/react";
+import { Drawer, Input, InputOTP, Label } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
 import { authClient } from "@/lib/auth-client";
 import { setPassword } from "@/api/user.api";
@@ -41,14 +40,6 @@ export function PasswordModal({
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
-
-  useEffect(() => {
-    if (!isMobile) return;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isMobile]);
 
   function handleClose() {
     setStep("send");
@@ -104,168 +95,168 @@ export function PasswordModal({
 
   if (!isOpen) return null;
 
+  const content =
+    step === "success" ? (
+      <div className="flex flex-col items-center gap-3 py-4 text-center">
+        <div className="w-16 h-16 rounded-full bg-[var(--color-success-light)] flex items-center justify-center">
+          <IconCheckCircle size={32} className="text-[var(--color-success)]" />
+        </div>
+        <p className="text-[18px] font-black text-primary">
+          {hasPassword ? "Password updated!" : "Password created!"}
+        </p>
+        <p className="text-sm text-muted">
+          You can now sign in with your phone number and password.
+        </p>
+      </div>
+    ) : (
+      <>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center shrink-0">
+            <IconLock size={20} className="text-primary" />
+          </div>
+          <div>
+            <p className="font-bold text-primary">{title}</p>
+            <p className="text-xs text-muted">
+              {step === "send"
+                ? "We'll send an OTP to verify it's you"
+                : "Enter the OTP and your new password"}
+            </p>
+          </div>
+        </div>
+
+        {step === "send" && (
+          <div>
+            <Label>Phone Number</Label>
+            <p className="mt-1 rounded-xl border border-[var(--color-border)] px-3 py-2 text-sm text-muted bg-[var(--color-surface-muted)]">
+              {phoneNumber}
+            </p>
+          </div>
+        )}
+
+        {step === "verify" && (
+          <div className="space-y-4">
+            <div>
+              <Label className="mb-2">OTP sent to {phoneNumber}</Label>
+              <InputOTP
+                maxLength={6}
+                value={otp}
+                onChange={setOtp}
+                className="w-full"
+                variant="secondary"
+              >
+                <InputOTP.Group className="flex w-full items-center justify-center">
+                  <InputOTP.Slot index={0} />
+                  <InputOTP.Slot index={1} />
+                  <InputOTP.Slot index={2} />
+                  <InputOTP.Separator />
+                  <InputOTP.Slot index={3} />
+                  <InputOTP.Slot index={4} />
+                  <InputOTP.Slot index={5} />
+                </InputOTP.Group>
+              </InputOTP>
+            </div>
+            <div>
+              <Label>New Password</Label>
+              <Input
+                type="password"
+                variant="secondary"
+                className="mt-1 w-full"
+                placeholder="Minimum 8 characters"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+            <div>
+              <Label>Confirm Password</Label>
+              <Input
+                type="password"
+                variant="secondary"
+                className="mt-1 w-full"
+                placeholder="Re-enter password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+          </div>
+        )}
+
+        {error && <p className="text-sm text-danger text-center">{error}</p>}
+
+        <div className="flex gap-3 pt-1">
+          <Button
+            onPress={handleClose}
+            className="flex-1 rounded-xl font-semibold border border-[var(--color-border-strong)] text-[var(--color-text-secondary)]"
+          >
+            Cancel
+          </Button>
+          {step === "send" ? (
+            <Button
+              onPress={handleSendOtp}
+              isLoading={loading}
+              className="flex-1 rounded-xl font-bold bg-[var(--color-primary)] text-white"
+            >
+              Send OTP
+            </Button>
+          ) : (
+            <Button
+              onPress={handleSetPassword}
+              isLoading={loading}
+              className="flex-1 rounded-xl font-bold bg-[var(--color-primary)] text-white"
+            >
+              {hasPassword ? "Reset" : "Create"}
+            </Button>
+          )}
+        </div>
+
+        {step === "verify" && (
+          <button
+            type="button"
+            className="w-full text-center text-xs text-muted hover:underline"
+            onClick={() => {
+              setStep("send");
+              setOtp("");
+              setError("");
+            }}
+          >
+            ← Resend OTP
+          </button>
+        )}
+      </>
+    );
+
+  if (isMobile) {
+    return (
+      <Drawer
+        isOpen={isOpen}
+        onOpenChange={(open) => {
+          if (!open) handleClose();
+        }}
+      >
+        <Drawer.Backdrop className="bg-black/40 backdrop-blur-sm">
+          <Drawer.Content placement="bottom">
+            <Drawer.Dialog className="p-0 pt-2">
+              <Drawer.Handle />
+              <div className="px-5 pb-6 space-y-4">{content}</div>
+            </Drawer.Dialog>
+          </Drawer.Content>
+        </Drawer.Backdrop>
+      </Drawer>
+    );
+  }
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onOpenChange={(open) => {
-        if (!open) {
-          handleClose();
-        }
-      }}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+      onClick={handleClose}
     >
-      <Modal.Backdrop>
-        <Modal.Container size="sm">
-          <Modal.Dialog className="sm:max-w-md">
-            <Modal.CloseTrigger />
-
-            {step === "success" ? (
-              <>
-                <Modal.Body>
-                  <div className="flex flex-col items-center gap-3 py-4 text-center">
-                    <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center">
-                      <IconCheckCircle size={32} className="text-success" />
-                    </div>
-
-                    <p className="text-lg font-bold">
-                      {hasPassword ? "Password updated!" : "Password created!"}
-                    </p>
-
-                    <p className="text-sm text-muted">
-                      You can now sign in with your phone number and password.
-                    </p>
-                  </div>
-                </Modal.Body>
-              </>
-            ) : (
-              <>
-                <Modal.Header>
-                  <Modal.Icon className="bg-primary/10 text-primary">
-                    <IconLock size={20} />
-                  </Modal.Icon>
-
-                  <div>
-                    <Modal.Heading>{title}</Modal.Heading>
-
-                    <Description>
-                      {step === "send"
-                        ? "We'll send an OTP to verify it's you"
-                        : "Enter the OTP and your new password"}
-                    </Description>
-                  </div>
-                </Modal.Header>
-
-                <Modal.Body className="space-y-4">
-                  {step === "send" && (
-                    <div>
-                      <Label>Phone Number</Label>
-
-                      <p className="mt-1 rounded-xl border border-border px-3 py-2 text-sm text-muted bg-surface-muted">
-                        {phoneNumber}
-                      </p>
-                    </div>
-                  )}
-
-                  {step === "verify" && (
-                    <div className="space-y-4">
-                      <div>
-                        <Label className="mb-2">
-                          OTP sent to {phoneNumber}
-                        </Label>
-
-                        <InputOTP
-                          maxLength={6}
-                          value={otp}
-                          onChange={setOtp}
-                          variant="secondary"
-                          className="w-fit mt-2"
-                        >
-                          <InputOTP.Group>
-                            <InputOTP.Slot index={0} />
-                            <InputOTP.Slot index={1} />
-                            <InputOTP.Slot index={2} />
-                            <InputOTP.Separator />
-                            <InputOTP.Slot index={3} />
-                            <InputOTP.Slot index={4} />
-                            <InputOTP.Slot index={5} />
-                          </InputOTP.Group>
-                        </InputOTP>
-                      </div>
-
-                      <div className="flex items-start flex-col gap-2">
-                        <Label>New Password</Label>
-
-                        <Input
-                          type="password"
-                          variant="secondary"
-                          fullWidth
-                          placeholder="Minimum 8 characters"
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          disabled={loading}
-                        />
-                      </div>
-
-                      <div className="flex items-start flex-col gap-2">
-                        <Label>Confirm Password</Label>
-
-                        <Input
-                          type="password"
-                          fullWidth
-                          variant="secondary"
-                          placeholder="Re-enter password"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          disabled={loading}
-                        />
-                      </div>
-
-                      <button
-                        type="button"
-                        className="w-full text-center text-xs text-muted hover:underline"
-                        onClick={() => {
-                          setStep("send");
-                          setOtp("");
-                          setError("");
-                        }}
-                      >
-                        ← Resend OTP
-                      </button>
-                    </div>
-                  )}
-
-                  {error && (
-                    <p className="text-sm text-danger text-center">{error}</p>
-                  )}
-                </Modal.Body>
-
-                <Modal.Footer>
-                  <Button slot="close" variant="outline" className="flex-1">
-                    Cancel
-                  </Button>
-
-                  {step === "send" ? (
-                    <Button
-                      onPress={handleSendOtp}
-                      isLoading={loading}
-                      className="flex-1"
-                    >
-                      Send OTP
-                    </Button>
-                  ) : (
-                    <Button
-                      onPress={handleSetPassword}
-                      isLoading={loading}
-                      className="flex-1"
-                    >
-                      {hasPassword ? "Reset" : "Create"}
-                    </Button>
-                  )}
-                </Modal.Footer>
-              </>
-            )}
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-[var(--color-surface)] rounded-3xl shadow-2xl w-full max-w-sm"
+      >
+        <div className="p-6 space-y-4">{content}</div>
+      </div>
+    </div>
   );
 }

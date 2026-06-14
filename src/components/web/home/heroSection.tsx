@@ -474,6 +474,12 @@ function HeroSectionImpl() {
   );
 }
 
-// HeroSection is SSR-safe (no direct window/document access outside useEffect).
-// LocationInput inside already handles its own ssr:false for mapbox.
-export { HeroSectionImpl as HeroSection };
+// HeroSection contains AnimatePresence which adds extra wrapper layers on the
+// client that don't exist during SSR, shifting react-aria's ID counter and
+// causing hydration mismatches on every Button downstream. Skip SSR entirely.
+export function HeroSection() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return <section className="min-h-[100svh]" />;
+  return <HeroSectionImpl />;
+}
