@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { LocationPickerMap, type LatLng } from "./LocationPickerMap";
 import {
@@ -37,7 +38,9 @@ export function LocationInput({
   const [suggestions, setSuggestions] = useState<GeoResult[]>([]);
   const [loadingSug, setLoadingSug] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Recent places from ride history
   const { data: rides } = useRides();
@@ -58,13 +61,19 @@ export function LocationInput({
     return places.slice(0, 5);
   }, [rides]);
 
-  const openDropdown = () => setShowDropdown(true);
+  const openDropdown = () => {
+    if (inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      setDropdownRect({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+    }
+    setShowDropdown(true);
+  };
 
   const handleFocus = () => {
     if (onBeforeOpen) {
       onBeforeOpen(openDropdown);
     } else {
-      setShowDropdown(true);
+      openDropdown();
     }
   };
 
@@ -135,6 +144,7 @@ export function LocationInput({
       {/* Input row */}
       <div className="relative">
         <input
+          ref={inputRef}
           type="text"
           value={value}
           onChange={(e) => handleChange(e.target.value)}
@@ -169,9 +179,12 @@ export function LocationInput({
           <IconMapPin size={15} />
         </button>
 
-        {/* Dropdown */}
-        {dropdownVisible && (
-          <div className="absolute z-50 top-full mt-1 w-full bg-background border border-border rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto">
+        {/* Dropdown — portal so it floats above overflow:hidden containers */}
+        {dropdownVisible && dropdownRect && typeof document !== "undefined" && createPortal(
+          <div
+            style={{ position: "fixed", top: dropdownRect.top, left: dropdownRect.left, width: dropdownRect.width, zIndex: 9999 }}
+            className="bg-background border border-border rounded-xl shadow-xl overflow-hidden max-h-64 overflow-y-auto"
+          >
             {/* Recent section */}
             {showingRecent && (
               <>
@@ -183,15 +196,10 @@ export function LocationInput({
                     key={place}
                     type="button"
                     onMouseDown={() => handleSelectRecent(place)}
-                    className="w-full flex items-start gap-2 px-3 py-2 text-sm text-left hover:bg-border/30 transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-border/30 transition-colors"
                   >
-                    <IconClock
-                      size={13}
-                      className="mt-0.5 shrink-0 text-text-muted"
-                    />
-                    <span className="line-clamp-1 text-text-primary">
-                      {place}
-                    </span>
+                    <IconClock size={13} className="shrink-0 text-text-muted" />
+                    <span className="truncate text-text-primary">{place}</span>
                   </button>
                 ))}
               </>
@@ -214,21 +222,17 @@ export function LocationInput({
                       key={r.name}
                       type="button"
                       onMouseDown={() => handleSelectSuggestion(r)}
-                      className="w-full flex items-start gap-2 px-3 py-2 text-sm text-left hover:bg-border/30 transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-border/30 transition-colors"
                     >
-                      <IconMapPin
-                        size={13}
-                        className="mt-0.5 shrink-0 text-primary"
-                      />
-                      <span className="line-clamp-2 text-text-primary">
-                        {r.name}
-                      </span>
+                      <IconMapPin size={13} className="shrink-0 text-primary" />
+                      <span className="truncate text-text-primary">{r.name}</span>
                     </button>
                   ))
                 )}
               </>
             )}
-          </div>
+          </div>,
+          document.body
         )}
       </div>
 

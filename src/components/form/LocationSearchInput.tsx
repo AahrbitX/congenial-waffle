@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { MapPin, X, Loader2, Map } from "lucide-react";
 import { cn } from "@heroui/react";
 import { LocationPickerMap } from "@/components/map/LocationPickerMap";
@@ -47,6 +48,8 @@ export function LocationSearchInput({
   const [selected, setSelected]       = useState(!!value);
   const [showMap, setShowMap]         = useState(false);
 
+  const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null);
+
   const debounceRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef     = useRef<HTMLInputElement>(null);
@@ -90,6 +93,10 @@ export function LocationSearchInput({
       }));
 
       setSuggestions(items);
+      if (items.length > 0 && inputRef.current) {
+        const rect = inputRef.current.getBoundingClientRect();
+        setDropdownRect({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+      }
       setIsOpen(items.length > 0);
     } catch {
       setSuggestions([]);
@@ -187,29 +194,33 @@ export function LocationSearchInput({
         </button>
       </div>
 
-      {/* Search suggestions dropdown */}
-      {isOpen && suggestions.length > 0 && (
-        <div className="absolute z-50 mt-1 w-full rounded-xl border border-border bg-surface shadow-lg overflow-hidden">
-          {suggestions.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              onMouseDown={(e) => { e.preventDefault(); handleSelect(s); }}
-              className="w-full flex items-start gap-2.5 px-3 py-2.5 text-left hover:bg-surface-muted transition-colors group"
-            >
-              <MapPin size={14} className="text-text-tertiary group-hover:text-primary shrink-0 mt-0.5" />
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-text-primary truncate">{s.name}</p>
-                <p className="text-xs text-text-tertiary truncate">{s.fullName}</p>
-              </div>
-              {s.zone && (
-                <span className="ml-auto text-[10px] text-text-tertiary bg-surface-muted rounded px-1.5 py-0.5 shrink-0">
-                  {s.zone}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+      {/* Search suggestions dropdown — portal so it floats above modal/overflow containers */}
+      {isOpen && suggestions.length > 0 && dropdownRect && typeof document !== "undefined" && createPortal(
+        <div
+          style={{ position: "fixed", top: dropdownRect.top, left: dropdownRect.left, width: dropdownRect.width, zIndex: 9999 }}
+          className="bg-background border border-border rounded-xl shadow-xl overflow-hidden max-h-56 overflow-y-auto"
+        >
+          <p className="px-3 pt-2.5 pb-1 text-[10px] font-bold tracking-widest text-muted uppercase">Suggestions</p>
+          {isLoading ? (
+            <div className="flex items-center gap-2 px-3 py-2.5 text-sm text-muted">
+              <Loader2 size={13} className="animate-spin shrink-0" />
+              Searching…
+            </div>
+          ) : (
+            suggestions.slice(0, 6).map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onMouseDown={(e) => { e.preventDefault(); handleSelect(s); }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-border/30 transition-colors"
+              >
+                <MapPin size={13} className="shrink-0 text-primary" />
+                <span className="truncate">{s.fullName}</span>
+              </button>
+            ))
+          )}
+        </div>,
+        document.body
       )}
 
       {/* Inline map picker */}
