@@ -16,7 +16,7 @@ export default function TripCard({ trip, isActive, onSelect }: TripCardProps) {
     <div
       onClick={() => onSelect(trip.id)}
       className={cn(
-        "relative cursor-pointer border-b border-divider p-3 transition-all hover:bg-default-50",
+        "max-w-sm relative cursor-pointer border-b border-divider p-3 transition-all hover:bg-default-50",
         isActive ? "bg-accent/10" : "bg-transparent",
       )}
     >

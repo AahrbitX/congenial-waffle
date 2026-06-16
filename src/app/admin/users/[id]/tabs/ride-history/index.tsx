@@ -19,55 +19,13 @@ const STATUS_COLOR: Record<
   cancelled: "danger",
 };
 
-function LoadingSkeleton() {
-  return (
-    <div className="rounded-xl border border-border overflow-hidden">
-      <div className="grid grid-cols-12 gap-4 border-b border-border bg-surface px-4 py-3">
-        <Skeleton className="h-3 col-span-2 rounded" />
-        <Skeleton className="h-3 col-span-4 rounded" />
-        <Skeleton className="h-3 col-span-2 rounded" />
-        <Skeleton className="h-3 col-span-2 rounded" />
-        <Skeleton className="h-3 col-span-1 rounded" />
-        <Skeleton className="h-3 col-span-1 rounded" />
-      </div>
-
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div
-          key={i}
-          className="grid grid-cols-12 gap-4 px-4 py-4 border-b border-border last:border-0"
-        >
-          <Skeleton className="h-4 col-span-2 rounded" />
-
-          <div className="col-span-4 space-y-2">
-            <Skeleton className="h-4 w-full rounded" />
-            <Skeleton className="h-3 w-2/3 rounded" />
-          </div>
-
-          <Skeleton className="h-4 col-span-2 rounded" />
-          <Skeleton className="h-4 col-span-2 rounded" />
-          <Skeleton className="h-4 col-span-1 rounded" />
-          <Skeleton className="h-6 col-span-1 rounded-full" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-      <div className="w-14 h-14 rounded-full bg-default/60 flex items-center justify-center">
-        <IconCar size={24} className="text-muted" />
-      </div>
-      <p className="text-sm font-semibold text-foreground">No rides yet</p>
-      <p className="text-xs text-muted max-w-xs">
-        This user hasn&apos;t taken any rides.
-      </p>
-    </div>
-  );
-}
-
-export default function RideHistoryTab({ userId }: { userId: string }) {
+export default function RideHistoryTab({
+  userId,
+  panelId,
+}: {
+  userId: string;
+  panelId: string;
+}) {
   const { data, isLoading } = useQuery({
     queryKey: ["user-bookings", userId],
     queryFn: () =>
@@ -79,7 +37,7 @@ export default function RideHistoryTab({ userId }: { userId: string }) {
   const rides = data?.data ?? [];
 
   return (
-    <Tabs.Panel className="pt-2 px-0" id="ride-history">
+    <Tabs.Panel className="pt-2 px-0" id={panelId}>
       {isLoading ? (
         <LoadingSkeleton />
       ) : rides.length === 0 ? (
@@ -162,5 +120,53 @@ export default function RideHistoryTab({ userId }: { userId: string }) {
         </Table>
       )}
     </Tabs.Panel>
+  );
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="rounded-xl border border-border overflow-hidden">
+      <div className="grid grid-cols-12 gap-4 border-b border-border bg-surface px-4 py-3">
+        <Skeleton className="h-3 col-span-2 rounded" />
+        <Skeleton className="h-3 col-span-4 rounded" />
+        <Skeleton className="h-3 col-span-2 rounded" />
+        <Skeleton className="h-3 col-span-2 rounded" />
+        <Skeleton className="h-3 col-span-1 rounded" />
+        <Skeleton className="h-3 col-span-1 rounded" />
+      </div>
+
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div
+          key={i}
+          className="grid grid-cols-12 gap-4 px-4 py-4 border-b border-border last:border-0"
+        >
+          <Skeleton className="h-4 col-span-2 rounded" />
+
+          <div className="col-span-4 space-y-2">
+            <Skeleton className="h-4 w-full rounded" />
+            <Skeleton className="h-3 w-2/3 rounded" />
+          </div>
+
+          <Skeleton className="h-4 col-span-2 rounded" />
+          <Skeleton className="h-4 col-span-2 rounded" />
+          <Skeleton className="h-4 col-span-1 rounded" />
+          <Skeleton className="h-6 col-span-1 rounded-full" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+      <div className="w-14 h-14 rounded-full bg-default/60 flex items-center justify-center">
+        <IconCar size={24} className="text-muted" />
+      </div>
+      <p className="text-sm font-semibold text-foreground">No rides yet</p>
+      <p className="text-xs text-muted max-w-xs">
+        This user hasn&apos;t taken any rides.
+      </p>
+    </div>
   );
 }

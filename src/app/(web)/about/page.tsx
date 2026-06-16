@@ -132,7 +132,7 @@ const VALUES = [
 
 function HeroSection() {
   return (
-    <section className="bg-white">
+    <section>
       {/* Text content with split background — full width so right-0 hits viewport edge */}
       <div className="relative overflow-hidden pt-24 sm:pt-36 pb-4 sm:pb-8">
         <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8">
@@ -162,7 +162,7 @@ function HeroSection() {
           {/* Paragraph */}
           <TextAnimate
             as="p"
-            className="text-muted text-center md:text-left mt-5 max-w-lg leading-relaxed"
+            className="text-sm md:text-base text-muted text-center md:text-left mt-5 max-w-lg leading-relaxed"
           >
             Based in Kanyakumari, Tamil Nadu — trusted since 2017. Affordable fares, clean vehicles, and highly courteous drivers for a comfortable journey.
           </TextAnimate>

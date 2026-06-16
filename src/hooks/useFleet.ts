@@ -32,8 +32,13 @@ export function useCreateFleetVehicle() {
 export function useUpdateFleetVehicle() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, body }: { id: string; body: Partial<CreateFleetBody & { active: boolean }> }) =>
-      updateFleetVehicle(id, body),
+    mutationFn: ({
+      id,
+      body,
+    }: {
+      id: string;
+      body: Partial<CreateFleetBody & { active: boolean }>;
+    }) => updateFleetVehicle(id, body),
     onSuccess: () => qc.invalidateQueries({ queryKey: FLEET_KEY }),
   });
 }

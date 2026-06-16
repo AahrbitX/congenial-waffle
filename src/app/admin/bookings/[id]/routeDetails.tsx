@@ -74,10 +74,10 @@ export default function RouteDetails({ route }: Props) {
           <div className="relative flex flex-col items-center">
             <div className="z-10 h-4 w-4 rounded-full border-2 border-primary bg-background" />
 
-            <div className="relative my-2 h-10 w-[2px] overflow-hidden rounded-full bg-border">
+            <div className="relative my-2 h-7.5 w-[2px] overflow-hidden rounded-full bg-border">
               <motion.div
                 animate={{
-                  y: [0, 12, 0],
+                  y: [0, 15, 0],
                 }}
                 transition={{
                   duration: 3,
@@ -85,9 +85,7 @@ export default function RouteDetails({ route }: Props) {
                   ease: "easeInOut",
                 }}
                 className="absolute left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full bg-primary shadow-md"
-              >
-                <IconNavigation size={12} className="text-primary-foreground" />
-              </motion.div>
+              ></motion.div>
             </div>
 
             <div className="z-10 h-4 w-4 rounded-full bg-primary shadow-sm" />
