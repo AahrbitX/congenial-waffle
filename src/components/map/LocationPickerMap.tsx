@@ -66,7 +66,7 @@ export function LocationPickerMap({ initialAddress, onConfirm, onCancel }: Locat
         }
       },
       () => setLocating(false),
-      { timeout: 6000 }
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -114,6 +114,11 @@ export function LocationPickerMap({ initialAddress, onConfirm, onCancel }: Locat
           </Map>
         )}
       </div>
+
+      {/* Drag hint */}
+      <p className="text-xs text-text-muted text-center -mt-1">
+        Pin not accurate? Drag it to your exact location.
+      </p>
 
       {/* Address preview */}
       {address && (

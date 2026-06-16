@@ -8,8 +8,8 @@ import { FaXTwitter, FaFacebook, FaInstagram } from "react-icons/fa6";
 
 const SOCIAL_LINKS = [
   { name: "X (Twitter)", href: "#", icon: FaXTwitter },
-  { name: "Facebook",    href: "#", icon: FaFacebook },
-  { name: "Instagram",   href: "#", icon: FaInstagram },
+  { name: "Facebook",    href: "https://www.facebook.com/share/18yr7RpbET/", icon: FaFacebook },
+  { name: "Instagram",   href: "https://www.instagram.com/mohan_cabs_tours_n_travels", icon: FaInstagram },
 ];
 
 export default function Footer() {
@@ -65,8 +65,7 @@ export default function Footer() {
             </Link>
 
             <p className="text-text-secondary text-sm max-w-xs leading-relaxed">
-              Premium transportation services tailored for your comfort.
-              Reliable, safe, and always on time—wherever you need to go.
+              Affordable cab services with clean vehicles and highly courteous drivers. Comfortable journeys guaranteed — wherever you need to go.
             </p>
             <div className="flex gap-3">
               {SOCIAL_LINKS.map(({ name, href, icon: Icon }) => (
@@ -111,10 +110,10 @@ export default function Footer() {
           </p>
           <div className="flex items-center gap-6 text-xs text-text-muted">
             <span className="flex items-center gap-1">
-              <Phone size={14} className="text-primary" /> +91 98765 43210
+              <Phone size={14} className="text-primary" /> +91 79043 77385
             </span>
             <span className="flex items-center gap-1">
-              <Mail size={14} className="text-primary" /> support@mohandcabs.com
+              <Mail size={14} className="text-primary" /> info@mohancabs.in
             </span>
           </div>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, startTransition, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { buttonVariants } from "@heroui/styles";
@@ -65,7 +65,7 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isPending) return;
     if (role === "admin") return;
-    router.replace(role === "user" ? "/dashboard" : "/login");
+    startTransition(() => router.replace(role === "user" ? "/dashboard" : "/login"));
   }, [isPending, role]);
 
   if (isPending || role !== "admin") return null;

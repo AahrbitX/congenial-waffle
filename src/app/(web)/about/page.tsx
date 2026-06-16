@@ -31,41 +31,41 @@ function useInView(threshold = 0.2) {
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const STATS = [
-  { value: "20+", label: "Years of Service" },
-  { value: "5L+", label: "Happy Riders" },
-  { value: "500+", label: "Verified Drivers" },
+  { value: "8+", label: "Years of Service" },
+  { value: "10K+", label: "Happy Riders" },
+  { value: "50+", label: "Verified Drivers" },
   { value: "24/7", label: "Support Available" },
 ];
 
 const TIMELINE = [
   {
-    year: "2005",
+    year: "2017",
     title: "The Beginning",
-    desc: "Founded in Trivandrum with a single car and a vision to give Kerala a cab service that truly shows up.",
+    desc: "Founded in Kanyakumari with a clear mission — affordable, reliable cab services with clean vehicles and courteous drivers.",
     side: "left",
   },
   {
-    year: "2010",
-    title: "Growing Roots",
-    desc: "Expanded to 50+ drivers across Trivandrum district. Word of mouth became our biggest marketing tool.",
+    year: "2019",
+    title: "Growing Fleet",
+    desc: "Expanded our fleet with sedans, SUVs, and minivans. Word of mouth became our strongest growth engine.",
     side: "right",
   },
   {
-    year: "2016",
-    title: "New Horizons",
-    desc: "Launched outstation and airport transfer packages. Kerala's highways became our playground.",
+    year: "2021",
+    title: "Outstation Packages",
+    desc: "Launched dedicated outstation and airport transfer packages covering Kanyakumari district and beyond.",
     side: "left",
   },
   {
-    year: "2021",
-    title: "One Lakh Rides",
-    desc: "Crossed 1 lakh rides and introduced corporate plans for businesses across the state.",
+    year: "2023",
+    title: "Online Booking",
+    desc: "Introduced online booking so customers could reserve rides anytime, with instant driver assignment.",
     side: "right",
   },
   {
     year: "2025",
-    title: "All of Kerala",
-    desc: "5 lakh+ riders. 500+ drivers. Every district covered. The mission hasn't changed — only the scale.",
+    title: "Still Going Strong",
+    desc: "10,000+ rides completed. 50+ verified drivers. The mission hasn't changed — only the scale.",
     side: "left",
   },
 ];
@@ -73,33 +73,33 @@ const TIMELINE = [
 const TESTIMONIALS = [
   {
     rating: 5,
-    text: "Booked for my parents' hospital visit. Driver was polite, punctual, and helped them with their bags. Absolutely top-notch.",
-    name: "Ramesh K.",
-    location: "Delhi · Regular Customer",
-    initial: "R",
+    text: "Very good service. The driver was polite and the car was clean. Reached on time for my flight. Will definitely book again.",
+    name: "Suresh R.",
+    location: "Kanyakumari · Regular Customer",
+    initial: "S",
     color: "#e8f3ff",
   },
   {
     rating: 5,
-    text: "The airport package saved me so much stress. Flight was delayed and the driver waited without extra charges. Will always use mohan Cabs!",
-    name: "Priya S.",
-    location: "Mumbai · Frequent Traveller",
+    text: "Excellent cab service! Booked for an outstation trip and the driver was very professional. Vehicle was well maintained and comfortable throughout.",
+    name: "Priya M.",
+    location: "Nagercoil · Outstation Traveller",
     initial: "P",
     color: "#d1fae5",
   },
   {
     rating: 5,
-    text: "Used the weekly commute plan for a month. Consistent, professional, and actually affordable. My go-to for office travel.",
-    name: "Arjun T.",
-    location: "Trivandrum · Daily Commuter",
+    text: "Best cab service in Kanyakumari. Always on time, clean vehicles, and very reasonable rates. Highly recommended for family trips.",
+    name: "Anand K.",
+    location: "Kanyakumari · Family Customer",
     initial: "A",
     color: "#fef3c7",
   },
   {
-    rating: 4,
-    text: "Corporate plan is great for our team — GST invoices, professional drivers, no billing surprises. Made my admin job so much easier.",
-    name: "Ankit M.",
-    location: "Bangalore · HR Manager",
+    rating: 5,
+    text: "Used Mohan Cabs for airport drop. Driver arrived early, was very helpful with luggage, and the ride was smooth. Great experience!",
+    name: "Meera V.",
+    location: "Trivandrum · Frequent Traveller",
     initial: "M",
     color: "#ede9fe",
   },
@@ -108,8 +108,8 @@ const TESTIMONIALS = [
 const VALUES = [
   {
     Icon: MapPin,
-    title: "Kerala Rooted",
-    desc: "Born in Trivandrum, we understand Kerala roads and people better than anyone.",
+    title: "Kanyakumari Rooted",
+    desc: "Born and based in Kanyakumari, we know every road and serve our community with pride.",
   },
   {
     Icon: Users,
@@ -119,12 +119,12 @@ const VALUES = [
   {
     Icon: Award,
     title: "Zero Compromise",
-    desc: "Background-checked drivers, maintained vehicles, and transparent billing — always.",
+    desc: "Background-checked drivers, clean vehicles, and transparent billing — always.",
   },
   {
     Icon: Clock,
     title: "Always Punctual",
-    desc: "Live traffic tracking so your ride is on time, every time, no excuses.",
+    desc: "Reliable and on-time service so you never miss a flight, train, or appointment.",
   },
 ];
 
@@ -164,8 +164,7 @@ function HeroSection() {
             as="p"
             className="text-muted text-center md:text-left mt-5 max-w-lg leading-relaxed"
           >
-            Headquartered in Trivandrum, Kerala — trusted across the state since
-            2005. Over two decades of punctual, safe, and honest cab service.
+            Based in Kanyakumari, Tamil Nadu — trusted since 2017. Affordable fares, clean vehicles, and highly courteous drivers for a comfortable journey.
           </TextAnimate>
 
           {/* CTA */}
@@ -292,10 +291,10 @@ function TimelineSection() {
             Our Journey
           </span>
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight mt-3">
-            Two decades, one road.
+            Eight years, one mission.
           </h2>
           <p className="text-gray-400 text-[15px] mt-3 max-w-md mx-auto">
-            From a single car in Trivandrum to all of Kerala — here&apos;s how
+            From a single car in Kanyakumari to a growing fleet — here&apos;s how
             we got here.
           </p>
         </div>
@@ -387,8 +386,7 @@ function TestimonialsSection() {
             What our riders say.
           </h2>
           <p className="text-gray-400 text-[15px] mt-3 max-w-lg leading-relaxed text-center sm:text-left">
-            Real experiences from real people across Kerala — families,
-            commuters, and frequent travellers.
+            Real experiences from real people — families, commuters, and frequent travellers across the region.
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">

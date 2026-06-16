@@ -43,7 +43,7 @@ const SECTIONS = [
     content: [
       "You can update your name, phone number, and other profile details from the 'Profile' section in your dashboard after logging in.",
       "To reset your password, use the 'Forgot Password' option on the login page. An OTP will be sent to your registered phone number.",
-      "If you wish to delete your account, contact our support team at support@mohancabs.in. Account deletion is processed within 7 business days.",
+      "If you wish to delete your account, contact our support team at info@mohancabs.in. Account deletion is processed within 7 business days.",
     ],
   },
   {
@@ -51,7 +51,7 @@ const SECTIONS = [
     title: "Driver Issues & Complaints",
     content: [
       "After each completed ride, you'll be prompted to rate your driver and leave a review. Your feedback helps us maintain service quality.",
-      "If you experienced misconduct or a safety issue during your ride, please contact us immediately at +91 81223 54855 or support@mohancabs.in with your booking reference.",
+      "If you experienced misconduct or a safety issue during your ride, please contact us immediately at +91 79043 77385 or info@mohancabs.in with your booking reference.",
       "All complaints are taken seriously. Our team will investigate and respond within 48 hours. Verified complaints result in appropriate action against the driver.",
     ],
   },
@@ -68,7 +68,7 @@ const SECTIONS = [
     number: "07",
     title: "Contact Support",
     content: [
-      "Our customer support team is available 24/7. You can reach us at support@mohancabs.in or call +91 81223 54855.",
+      "Our customer support team is available 24/7. You can reach us at info@mohancabs.in or call +91 79043 77385.",
       "For faster resolution, always include your booking reference number when contacting support.",
     ],
   },

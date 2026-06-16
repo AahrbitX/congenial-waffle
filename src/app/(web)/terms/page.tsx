@@ -96,7 +96,7 @@ const SECTIONS = [
     number: "10",
     title: "Contact Us",
     content: [
-      "If you have any questions about these Terms and Conditions, please contact us at support@mohancabs.in or call our customer support line at +91 81223 54855.",
+      "If you have any questions about these Terms and Conditions, please contact us at info@mohancabs.in or call our customer support line at +91 79043 77385.",
       "Our support team is available 24/7 to assist you.",
     ],
   },

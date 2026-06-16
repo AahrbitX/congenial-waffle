@@ -14,7 +14,7 @@ const CONTACT_CARDS = [
   {
     icon: IconPhone,
     label: "Call Support",
-    sub: "Mon–Sat, 8am–8pm",
+    sub: "+91 79043 77385",
     bg: "bg-[var(--color-success-light)]",
     text: "text-[var(--color-success)]",
   },
@@ -35,7 +35,7 @@ const CONTACT_CARDS = [
   {
     icon: IconShare,
     label: "WhatsApp",
-    sub: "+91 98765 00000",
+    sub: "+91 79043 77385",
     bg: "bg-[var(--color-success-light)]",
     text: "text-[var(--color-success)]",
   },

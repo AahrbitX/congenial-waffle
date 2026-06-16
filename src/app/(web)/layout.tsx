@@ -18,8 +18,8 @@ function WebLayout({
         {children}
         <Footer />
         <FloatingActionButtons
-          whatsappNumber="91XXXXXXXXXX"
-          phoneNumber="91XXXXXXXXXX"
+          whatsappNumber="917904377385"
+          phoneNumber="+917904377385"
         />
       </div>
     </BookingProvider>

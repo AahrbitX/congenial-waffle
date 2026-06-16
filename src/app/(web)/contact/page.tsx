@@ -21,22 +21,22 @@ const CONTACT_INFO = [
   {
     Icon: Phone,
     label: "Call Us",
-    value: "+91 98765 43210",
-    sub: "Mon – Sat, 8am – 8pm",
-    href: "tel:+919876543210",
+    value: "+91 79043 77385",
+    sub: "Available 24/7",
+    href: "tel:+917904377385",
   },
   {
     Icon: Mail,
     label: "Email Us",
-    value: "support@mohancabs.com",
+    value: "info@mohancabs.in",
     sub: "Reply within 24 hours",
-    href: "mailto:support@mohancabs.com",
+    href: "mailto:info@mohancabs.in",
   },
   {
     Icon: MapPin,
     label: "Head Office",
-    value: "Trivandrum, Kerala",
-    sub: "MG Road, Near Central Station",
+    value: "Kanyakumari, Tamil Nadu",
+    sub: "17-103A8, Swamynathapuram, near Ottapuli Bus Stop",
     href: "#",
   },
   {
@@ -212,7 +212,7 @@ function TicketForm() {
             type="tel"
             value={form.phone}
             onChange={set("phone")}
-            placeholder="+91 98765 43210"
+            placeholder="+91 79043 77385"
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 placeholder-gray-300 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 transition"
           />
         </div>
@@ -373,7 +373,7 @@ export default function ContactPage() {
 
             {/* WhatsApp quick link */}
             <a
-              href="https://wa.me/91XXXXXXXXXX"
+              href="https://wa.me/917904377385"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-8 flex items-center gap-4 bg-[#f0fdf4] border border-green-100 rounded-2xl px-6 py-4 hover:bg-green-50 transition-colors group"
@@ -407,7 +407,7 @@ export default function ContactPage() {
             <div className="text-center">
               <MapPin size={32} className="text-blue-400 mx-auto mb-2" />
               <p className="text-sm font-semibold text-gray-500">
-                MG Road, Trivandrum, Kerala
+                Swamynathapuram, Kanyakumari, Tamil Nadu
               </p>
               <p className="text-[12px] text-gray-400">
                 Embed your Google Maps iframe here

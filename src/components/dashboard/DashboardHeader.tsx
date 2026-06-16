@@ -69,7 +69,7 @@ export function DashboardHeader() {
         <div>
           <h1 className="text-lg font-bold leading-tight">{meta.title}</h1>
           {meta.subFn && (
-            <p className="hidden sm:block text-xs text-muted leading-tight">{meta.subFn(firstName)}</p>
+            <p className="hidden sm:block text-xs text-muted leading-tight" suppressHydrationWarning>{meta.subFn(firstName)}</p>
           )}
         </div>
       </div>

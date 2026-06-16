@@ -1623,7 +1623,7 @@ function LocationInput({
         } finally { setLocating(false); }
       },
       () => setLocating(false),
-      { timeout: 8000 },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 },
     );
   };
 

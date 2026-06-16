@@ -42,7 +42,7 @@ const SECTIONS = [
     title: "Emergency Assistance",
     content: [
       "In case of any emergency during a ride, contact local emergency services (100 for police, 108 for ambulance) immediately.",
-      "Our 24/7 support line (+91 81223 54855) is available for urgent safety concerns. Share your booking reference for faster assistance.",
+      "Our 24/7 support line (+91 79043 77385) is available for urgent safety concerns. Share your booking reference for faster assistance.",
       "If you feel unsafe at any point, you have the right to end the ride and exit the vehicle in a safe location. Your safety always takes precedence.",
     ],
   },
@@ -68,7 +68,7 @@ const SECTIONS = [
     number: "07",
     title: "Reporting Safety Issues",
     content: [
-      "To report a safety concern, contact us at support@mohancabs.in or call +91 81223 54855 with your booking reference and a description of the incident.",
+      "To report a safety concern, contact us at info@mohancabs.in or call +91 79043 77385 with your booking reference and a description of the incident.",
       "All safety reports are treated with strict confidentiality. We investigate every report and take appropriate action, including removing drivers from the platform when necessary.",
       "Your feedback makes our platform safer for everyone. We encourage all passengers to report any concerns, no matter how minor they may seem.",
     ],

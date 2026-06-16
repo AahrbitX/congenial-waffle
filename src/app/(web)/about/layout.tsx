@@ -3,11 +3,11 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "About Us",
   description:
-    "Mohan Cabs has been serving Kanyakumari, Trivandrum and Tamil Nadu since 2005. 20+ years, 5 lakh+ riders, 500+ verified drivers — honest, punctual cab service you can trust.",
+    "Mohan Cabs has been serving Kanyakumari and Tamil Nadu since 2017. Clean vehicles, affordable fares, and highly courteous drivers — honest, punctual cab service you can trust.",
   openGraph: {
     title: "About Us | Mohan Cabs",
     description:
-      "Two decades of honest, punctual cab service across Kanyakumari, Trivandrum and Tamil Nadu. Trusted by 5 lakh+ riders.",
+      "Serving Kanyakumari and Tamil Nadu since 2017. Affordable fares, clean vehicles, and courteous drivers for a comfortable journey.",
     url: "/about",
   },
   alternates: { canonical: "/about" },

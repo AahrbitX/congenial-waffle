@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Surface } from "@heroui/react";
 
@@ -22,9 +22,9 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isPending) return;
-    if (!role) { router.replace("/"); return; }
-    if (role === "admin") { router.replace("/admin"); return; }
-    if (role !== "user") { router.replace("/"); }
+    if (!role) { startTransition(() => router.replace("/")); return; }
+    if (role === "admin") { startTransition(() => router.replace("/admin")); return; }
+    if (role !== "user") { startTransition(() => router.replace("/")); }
   }, [role, isPending]);
 
   // Only block when role is confirmed wrong — avoids SSR/client hydration mismatch
