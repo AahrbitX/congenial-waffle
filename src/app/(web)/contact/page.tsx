@@ -424,7 +424,7 @@ export default function ContactPage() {
                 size={15}
                 className="text-gray-400 group-hover:translate-x-1 transition-transform"
               />
-            </Link>
+            </a>
           </div>
         </div>
       </section>
