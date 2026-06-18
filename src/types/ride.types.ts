@@ -28,6 +28,8 @@ export interface Ride {
   paidAt: string | null;
   paymentId: string | null;
   paidAmount: number;    // amount already paid (advance or full)
+  // Ride-start OTP — only present for confirmed rides (returned from detail view)
+  rideStartOtp?: string | null;
   // Timeline timestamps (populated on detail view)
   timelineAt?: {
     pending:   string | null;

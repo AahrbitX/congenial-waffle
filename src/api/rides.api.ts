@@ -118,6 +118,7 @@ export async function getRideById(id: string): Promise<Ride> {
     paidAt: b.payment?.paidAt ?? null,
     paymentId: b.payment?.id ?? null,
     paidAmount: parseFloat(b.payment?.amount ?? "0"),
+    rideStartOtp: b.rideStartOtp ?? null,
     timelineAt: {
       pending:   b.timeline?.pending   ?? null,
       confirmed: b.timeline?.confirmed ?? null,

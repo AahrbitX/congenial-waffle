@@ -147,12 +147,19 @@ function BookingDetailsPage() {
             <PaymentDetails
               payment={bookingDetails.payment}
               bookingId={bookingId}
+              bookingStatus={bookingDetails.status}
+              qrToken={(bookingDetails as any).qrToken}
             />
           </div>
           <div className="space-y-4">
             <RideInformation info={bookingDetails.info} />
             <RouteDetails route={bookingDetails.route} />
-            <ReviewDetails review={bookingDetails.review ?? null} />
+            <ReviewDetails
+              review={bookingDetails.review ?? null}
+              bookingId={bookingId}
+              bookingStatus={bookingDetails.status}
+              qrToken={(bookingDetails as any).qrToken}
+            />
             {bookingDetails.tripType === "roundtrip" &&
               bookingDetails.linkedBookingId && (
                 <RoundTripDetails

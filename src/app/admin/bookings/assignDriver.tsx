@@ -37,6 +37,8 @@ type Props = {
   /** When true, renders only the Drawer (no trigger button) — caller controls open state */
   isOpen?: boolean;
   onClose?: () => void;
+  /** 'assign' = first assignment (default), 'change' = reassign an already-assigned driver */
+  mode?: "assign" | "change";
 };
 
 function DriverCard({
@@ -103,10 +105,12 @@ function AssignDriverDrawer({
   bookingId,
   isOpen,
   onClose,
+  mode = "assign",
 }: {
   bookingId: string;
   isOpen: boolean;
   onClose: () => void;
+  mode?: "assign" | "change";
 }) {
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -122,19 +126,26 @@ function AssignDriverDrawer({
   });
 
   const assignMutation = useMutation({
-    mutationFn: (driverId: string) =>
-      request(`/api/dispatchers/${bookingId}/assign-driver`, {
+    mutationFn: (driverId: string) => {
+      if (mode === "change") {
+        return request(`/api/dispatchers/${bookingId}/change-driver`, {
+          method: "PATCH",
+          body: JSON.stringify({ driverId }),
+        });
+      }
+      return request(`/api/dispatchers/${bookingId}/assign-driver`, {
         method: "POST",
         body: JSON.stringify({ driverId }),
-      }),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
       queryClient.invalidateQueries({ queryKey: ["booking", bookingId] });
-      toast.success("Driver assigned successfully");
+      toast.success(mode === "change" ? "Driver changed successfully" : "Driver assigned successfully");
       onClose();
     },
     onError: (err: any) => {
-      toast(`Failed to assign driver: ${err?.message ?? "Unknown error"}`, {
+      toast(`Failed to ${mode === "change" ? "change" : "assign"} driver: ${err?.message ?? "Unknown error"}`, {
         variant: "danger",
       });
     },
@@ -168,10 +179,10 @@ function AssignDriverDrawer({
                 </div>
                 <div>
                   <Drawer.Heading className="text-base font-bold">
-                    Assign Driver
+                    {mode === "change" ? "Change Driver" : "Assign Driver"}
                   </Drawer.Heading>
                   <p className="text-xs text-muted">
-                    Select a driver for this booking
+                    {mode === "change" ? "Select a new driver for this booking" : "Select a driver for this booking"}
                   </p>
                 </div>
               </div>
@@ -276,7 +287,7 @@ function AssignDriverDrawer({
                 onPress={() => selectedId && assignMutation.mutate(selectedId)}
               >
                 <UserPlus size={15} />
-                Assign Driver
+                {mode === "change" ? "Change Driver" : "Assign Driver"}
               </Button>
             </Drawer.Footer>
           </Drawer.Dialog>
@@ -299,6 +310,7 @@ function AssignDriver({ bookingId }: { bookingId: string }) {
         bookingId={bookingId}
         isOpen={open}
         onClose={() => setOpen(false)}
+        mode="assign"
       />
     </>
   );

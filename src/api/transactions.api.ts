@@ -46,12 +46,12 @@ export async function verifyDriverCode(paymentId: string, code: string): Promise
   });
 }
 
-export async function notifyDriver(paymentId: string): Promise<{ driverAssigned: boolean }> {
-  const res = await request<{ success: boolean; driverAssigned: boolean }>(
+export async function notifyDriver(paymentId: string): Promise<{ driverAssigned: boolean; cashCode?: string }> {
+  const res = await request<{ success: boolean; driverAssigned: boolean; cashCode?: string }>(
     `/api/payments/${paymentId}/notify-driver`,
     { method: "POST" },
   );
-  return { driverAssigned: res.driverAssigned };
+  return { driverAssigned: res.driverAssigned ?? false, cashCode: res.cashCode };
 }
 
 export async function resendDriverCode(paymentId: string): Promise<void> {

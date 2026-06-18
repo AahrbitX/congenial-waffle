@@ -34,6 +34,7 @@ export function PayToDriverModal({ tx, amountDue, isBalance, onClose }: PayToDri
 
   const [notified, setNotified]             = useState(false);
   const [driverAssigned, setDriverAssigned] = useState(true);
+  const [cashCode, setCashCode]             = useState<string | null>(null);
   const [resendSent, setResendSent]         = useState(false);
   const [cashMarked, setCashMarked]         = useState(
     !isBalance && tx.status === "cash_pending",
@@ -81,10 +82,11 @@ export function PayToDriverModal({ tx, amountDue, isBalance, onClose }: PayToDri
           setCashMarked(true);
         }
 
-        const { driverAssigned: assigned } = await notify.mutateAsync(paymentId!);
+        const { driverAssigned: assigned, cashCode: code } = await notify.mutateAsync(paymentId!);
         if (cancelled) return;
         setDriverAssigned(assigned);
         setNotified(assigned);
+        if (code) setCashCode(code);
       } catch (err: any) {
         if (cancelled) return;
         setErrorMsg(err?.message ?? "Could not contact server. Please try again.");
@@ -114,7 +116,8 @@ export function PayToDriverModal({ tx, amountDue, isBalance, onClose }: PayToDri
     if (!activePaymentId) return;
     setErrorMsg("");
     try {
-      await notify.mutateAsync(activePaymentId);
+      const { cashCode: code } = await notify.mutateAsync(activePaymentId);
+      if (code) setCashCode(code);
       setResendSent(true);
       setTimeout(() => setResendSent(false), 3000);
     } catch (err: any) {
@@ -198,31 +201,31 @@ export function PayToDriverModal({ tx, amountDue, isBalance, onClose }: PayToDri
               </div>
             )}
 
-            {/* OTP sent banner */}
+            {/* OTP display */}
             {notified && (
-              <div className="flex items-center justify-between rounded-xl bg-primary/10 border border-primary/30 px-4 py-3">
-                <p className="text-sm text-primary font-medium">OTP sent to your WhatsApp</p>
-                <button
-                  onClick={handleResend}
-                  disabled={notify.isPending}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
-                >
-                  {notify.isPending
-                    ? <IconLoader size={12} className="animate-spin" />
-                    : <IconShare size={12} />}
-                  {resendSent ? "Sent!" : "Resend OTP"}
-                </button>
-              </div>
-            )}
-
-            {/* Instructions */}
-            {notified && (
-              <div className="rounded-xl bg-surface-muted px-4 py-3 space-y-1">
-                <p className="text-sm font-semibold text-text-primary">
-                  Read the payment OTP to your driver
-                </p>
-                <p className="text-xs text-text-secondary">
-                  Your driver will enter the payment OTP on their tracking page to confirm ₹{amount.toLocaleString("en-IN")} cash collection. This screen will update automatically once confirmed.
+              <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-bold text-text-primary">Payment OTP</p>
+                  <button
+                    onClick={handleResend}
+                    disabled={notify.isPending}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+                  >
+                    {notify.isPending
+                      ? <IconLoader size={12} className="animate-spin" />
+                      : <IconShare size={12} />}
+                    {resendSent ? "Sent!" : "Resend"}
+                  </button>
+                </div>
+                <div className="flex justify-center gap-2">
+                  {(cashCode ?? "------").split("").map((d, i) => (
+                    <div key={i} className="w-10 h-12 rounded-xl bg-[var(--color-surface)] border-2 border-primary/40 flex items-center justify-center text-2xl font-black text-primary shadow-sm">
+                      {cashCode ? d : <span className="text-text-tertiary text-lg">·</span>}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-text-secondary text-center">
+                  Read this code to your driver — they&apos;ll enter it to confirm ₹{amount.toLocaleString("en-IN")} cash collection.
                 </p>
               </div>
             )}

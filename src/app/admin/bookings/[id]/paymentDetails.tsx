@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { Card, Chip, Separator } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { request } from "@/lib/api-client";
 import { toast } from "@heroui/react";
+import { Send, ExternalLink, Copy, Check } from "lucide-react";
 import {
   IconCheckCircle,
   IconXCircle,
@@ -87,13 +89,30 @@ function fmt(iso: string | null) {
 interface PaymentDetailsProps {
   payment: Payment;
   bookingId: string;
+  bookingStatus?: string;
+  qrToken?: string | null;
 }
 
 export default function PaymentDetails({
   payment,
   bookingId,
+  bookingStatus,
+  qrToken,
 }: PaymentDetailsProps) {
   const qc = useQueryClient();
+  const [copiedPayLink, setCopiedPayLink] = useState(false);
+
+  const paymentUrl = qrToken
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/pay/${qrToken}`
+    : null;
+
+  const sendPaymentLink = useMutation({
+    mutationFn: () =>
+      request(`/api/bookings/${bookingId}/send-payment-link`, { method: "POST" }),
+    onSuccess: () => toast.success("Payment link sent via WhatsApp"),
+    onError: (err: any) =>
+      toast(err?.message ?? "Failed to send payment link", { variant: "danger" }),
+  });
 
   const adminVerify = useMutation({
     mutationFn: ({
@@ -151,8 +170,36 @@ export default function PaymentDetails({
       <Separator />
 
       {!payment.id ? (
-        <Card.Content className="text-sm text-text-secondary">
-          No payment record found for this booking.
+        <Card.Content className="space-y-3">
+          <p className="text-sm text-text-secondary">No payment record found for this booking.</p>
+          {["pending", "confirmed", "ongoing"].includes(bookingStatus ?? "") && (
+            <>
+              {paymentUrl && (
+                <div className="space-y-1.5">
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wide">Payment Link</p>
+                  <div className="flex items-center gap-2 rounded-xl border border-border bg-secondary/40 px-3 py-2">
+                    <p className="flex-1 text-xs text-text-secondary truncate font-mono">{paymentUrl}</p>
+                    <a href={paymentUrl} target="_blank" rel="noreferrer">
+                      <Button isIconOnly size="sm" variant="ghost"><ExternalLink size={13} /></Button>
+                    </a>
+                    <Button isIconOnly size="sm" variant="ghost" onPress={() => { navigator.clipboard.writeText(paymentUrl); setCopiedPayLink(true); setTimeout(() => setCopiedPayLink(false), 2000); }}>
+                      {copiedPayLink ? <Check size={13} className="text-success" /> : <Copy size={13} />}
+                    </Button>
+                  </div>
+                </div>
+              )}
+              <Button
+                size="sm"
+                variant="secondary"
+                fullWidth
+                isLoading={sendPaymentLink.isPending}
+                onPress={() => sendPaymentLink.mutate()}
+              >
+                <Send size={13} />
+                Send Payment Link via WhatsApp
+              </Button>
+            </>
+          )}
         </Card.Content>
       ) : (
         <Card.Content className="space-y-3">
@@ -300,6 +347,37 @@ export default function PaymentDetails({
               Verified by admin on {fmt(payment.adminVerifiedAt)}
             </div>
           )}
+
+          {/* Send payment link — shown when payment is pending or partial balance remains */}
+          {(status === "created" || isPartial) &&
+            ["pending", "confirmed", "ongoing"].includes(bookingStatus ?? "") && (
+              <div className="space-y-2">
+                {paymentUrl && (
+                  <div className="space-y-1.5">
+                    <p className="text-xs font-semibold text-muted uppercase tracking-wide">Payment Link</p>
+                    <div className="flex items-center gap-2 rounded-xl border border-border bg-secondary/40 px-3 py-2">
+                      <p className="flex-1 text-xs text-text-secondary truncate font-mono">{paymentUrl}</p>
+                      <a href={paymentUrl} target="_blank" rel="noreferrer">
+                        <Button isIconOnly size="sm" variant="ghost"><ExternalLink size={13} /></Button>
+                      </a>
+                      <Button isIconOnly size="sm" variant="ghost" onPress={() => { navigator.clipboard.writeText(paymentUrl); setCopiedPayLink(true); setTimeout(() => setCopiedPayLink(false), 2000); }}>
+                        {copiedPayLink ? <Check size={13} className="text-success" /> : <Copy size={13} />}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  fullWidth
+                  isLoading={sendPaymentLink.isPending}
+                  onPress={() => sendPaymentLink.mutate()}
+                >
+                  <Send size={13} />
+                  Send Payment Link via WhatsApp
+                </Button>
+              </div>
+            )}
         </Card.Content>
       )}
     </Card>

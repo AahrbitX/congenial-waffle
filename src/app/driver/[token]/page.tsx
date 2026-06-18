@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import {
   IconCar,
   IconCalendar,
@@ -12,6 +12,7 @@ import {
   IconNavigation,
   IconXCircle,
   IconRefreshCw,
+  IconShield,
 } from "@/constants/icons";
 
 type RideData = {
@@ -28,10 +29,8 @@ type RideData = {
   members: number;
   pickupName: string;
   dropName: string;
-  // Calculated from all DB payment records
   totalPaid: string;
   balanceDue: string;
-  // Active cash_pending payment (null if no OTP waiting)
   paymentId: string | null;
   paymentStatus: string | null;
   paymentAmount: string | null;
@@ -56,14 +55,56 @@ function isRideTimeReached(journeyDate: string, journeyTime: string) {
   return Date.now() >= rideAt;
 }
 
+// OTP input component — 4 separate digit boxes
+function OtpInput({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled: boolean }) {
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const digits = value.padEnd(4, " ").split("").slice(0, 4);
+
+  const handleKey = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace") {
+      const next = digits.map((d, idx) => idx === i ? " " : d).join("").trimEnd();
+      onChange(next);
+      if (i > 0) inputRefs.current[i - 1]?.focus();
+    }
+  };
+
+  const handleChange = (i: number, v: string) => {
+    const char = v.replace(/\D/g, "").slice(-1);
+    const next = digits.map((d, idx) => idx === i ? (char || " ") : d).join("").trimEnd();
+    onChange(next);
+    if (char && i < 3) inputRefs.current[i + 1]?.focus();
+  };
+
+  return (
+    <div className="flex gap-2 justify-center">
+      {[0, 1, 2, 3].map((i) => (
+        <input
+          key={i}
+          ref={(el) => { inputRefs.current[i] = el; }}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={digits[i]?.trim() || ""}
+          onChange={(e) => handleChange(i, e.target.value)}
+          onKeyDown={(e) => handleKey(i, e)}
+          disabled={disabled}
+          className="w-14 h-14 text-center text-2xl font-black text-primary bg-background border-2 border-border rounded-2xl focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function DriverRidePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
   const [ride, setRide] = useState<RideData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [starting, setStarting] = useState(false);
   const [started, setStarted] = useState(false);
   const [timeReached, setTimeReached] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [starting, setStarting] = useState(false);
+  const [otpError, setOtpError] = useState<string | null>(null);
   const [cashCode, setCashCode] = useState("");
   const [verifyingPayment, setVerifyingPayment] = useState(false);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
@@ -85,7 +126,6 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
       .finally(() => setLoading(false));
   }, [token]);
 
-  // Re-check time every minute
   useEffect(() => {
     if (!ride || started) return;
     const interval = setInterval(() => {
@@ -95,14 +135,20 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
   }, [ride, started]);
 
   const handleStartRide = async () => {
+    if (otp.trim().length < 4) { setOtpError("Please enter the 4-digit OTP from the customer."); return; }
     setStarting(true);
+    setOtpError(null);
     try {
-      const res = await fetch(`/api/driver/${token}/start`, { method: "PATCH" });
+      const res = await fetch(`/api/driver/${token}/start`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ otp: otp.trim() }),
+      });
       const data = await res.json();
       if (data.success) { setStarted(true); }
-      else { alert(data.message ?? "Failed to start ride"); }
+      else { setOtpError(data.message ?? "Failed to start ride"); }
     } catch {
-      alert("Network error. Please try again.");
+      setOtpError("Network error. Please try again.");
     } finally {
       setStarting(false);
     }
@@ -119,12 +165,8 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
         body: JSON.stringify({ code: cashCode.trim() }),
       });
       const data = await res.json();
-      if (data.success) {
-        setPaymentConfirmed(true);
-        setCashCode("");
-      } else {
-        setPaymentError(data.message ?? "Invalid OTP. Please try again.");
-      }
+      if (data.success) { setPaymentConfirmed(true); setCashCode(""); }
+      else { setPaymentError(data.message ?? "Invalid OTP. Please try again."); }
     } catch {
       setPaymentError("Network error. Please try again.");
     } finally {
@@ -137,11 +179,8 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
     try {
       const res = await fetch(`/api/driver/${token}/end`, { method: "PATCH" });
       const data = await res.json();
-      if (data.success) {
-        setRide((prev) => prev ? { ...prev, status: "completed" } : prev);
-      } else {
-        alert(data.message ?? "Failed to end ride");
-      }
+      if (data.success) { setRide((prev) => prev ? { ...prev, status: "completed" } : prev); }
+      else { alert(data.message ?? "Failed to end ride"); }
     } catch {
       alert("Network error. Please try again.");
     } finally {
@@ -158,29 +197,31 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
         setRide(data.data);
         if (parseFloat(data.data.balanceDue ?? "0") <= 0) setPaymentConfirmed(true);
       }
-    } catch {
-      // silent
-    } finally {
-      setRefreshing(false);
-    }
+    } catch { /* silent */ }
+    finally { setRefreshing(false); }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <IconLoader size={32} className="animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-3">
+          <IconLoader size={32} className="animate-spin text-primary" />
+          <p className="text-sm text-text-tertiary">Loading ride details…</p>
+        </div>
       </div>
     );
   }
 
   if (error || !ride) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-background p-6 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-danger/10 flex items-center justify-center">
-          <IconCar size={24} className="text-danger" />
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background p-6 text-center">
+        <div className="w-16 h-16 rounded-3xl bg-danger/10 flex items-center justify-center">
+          <IconCar size={26} className="text-danger" />
         </div>
-        <p className="text-lg font-bold text-text-primary">Ride Not Found</p>
-        <p className="text-sm text-text-secondary">{error ?? "This link may have expired or is invalid."}</p>
+        <div>
+          <p className="text-lg font-bold text-text-primary">Ride Not Found</p>
+          <p className="text-sm text-text-tertiary mt-1">{error ?? "This link may have expired or is invalid."}</p>
+        </div>
       </div>
     );
   }
@@ -188,73 +229,36 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
   if (ride.status === "completed") {
     return (
       <div className="min-h-screen bg-background">
-        <div className="bg-success px-5 pt-10 pb-6">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
-              <IconCheckCircle size={18} className="text-white" />
+        <div className="bg-success px-5 pt-12 pb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center">
+              <IconCheckCircle size={20} className="text-white" />
             </div>
             <div>
-              <p className="text-white/70 text-xs font-medium">Mohan Cabs — Driver Ride Sheet</p>
-              <p className="text-white font-bold text-lg leading-tight">#{ride.bookingRef}</p>
+              <p className="text-white/70 text-xs font-medium">Mohan Cabs — Driver</p>
+              <p className="text-white font-bold text-xl leading-tight">#{ride.bookingRef}</p>
             </div>
           </div>
-          <div className="mt-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white">
-              ✓ Ride Completed
-            </span>
-          </div>
+          <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white">
+            ✓ Ride Completed
+          </span>
         </div>
-
         <div className="p-5 max-w-md mx-auto space-y-4">
           <div className="rounded-2xl border border-success/30 bg-success/5 p-5 flex flex-col items-center text-center gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-success/10 flex items-center justify-center">
-              <IconCheckCircle size={26} className="text-success" />
+            <div className="w-16 h-16 rounded-2xl bg-success/10 flex items-center justify-center">
+              <IconCheckCircle size={28} className="text-success" />
             </div>
             <div>
               <p className="text-base font-bold text-text-primary">Ride completed successfully</p>
               <p className="text-sm text-text-secondary mt-1">
                 Trip for <span className="font-semibold">{ride.customerName}</span> on{" "}
                 <span className="font-semibold">{formatDate(ride.journeyDate)}</span> at{" "}
-                <span className="font-semibold">{formatTime(ride.journeyTime)}</span> is done.
+                <span className="font-semibold">{formatTime(ride.journeyTime)}</span>
               </p>
             </div>
           </div>
-
-          <div className="rounded-2xl border border-border bg-surface p-4">
-            <div className="flex items-start gap-3 mb-3">
-              <div className="flex flex-col items-center gap-1 pt-1">
-                <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                <div className="w-px h-8 bg-border" />
-                <div className="w-2.5 h-2.5 rounded-full bg-danger" />
-              </div>
-              <div className="flex-1 space-y-3">
-                <div>
-                  <p className="text-[11px] text-text-tertiary uppercase tracking-wide font-semibold">Pick Up</p>
-                  <p className="text-sm font-semibold text-text-primary">{ride.pickupName}</p>
-                </div>
-                <div>
-                  <p className="text-[11px] text-text-tertiary uppercase tracking-wide font-semibold">Drop Off</p>
-                  <p className="text-sm font-semibold text-text-primary">{ride.dropName}</p>
-                </div>
-              </div>
-            </div>
-            <div className="border-t border-border pt-3 flex items-center justify-between">
-              <p className="text-xs text-text-tertiary">Total Fare</p>
-              <p className="text-lg font-black text-success">₹{parseFloat(ride.totalFare).toLocaleString("en-IN")}</p>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-surface p-4 flex items-center gap-4">
-            <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
-              {ride.customerName.charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-text-primary truncate">{ride.customerName}</p>
-              <a href={`tel:${ride.customerPhone}`} className="flex items-center gap-1 text-xs text-primary font-medium">
-                <IconPhone size={11} /> {ride.customerPhone}
-              </a>
-            </div>
-          </div>
+          <RouteCard pickupName={ride.pickupName} dropName={ride.dropName} fare={ride.totalFare} fareColor="text-success" />
+          <CustomerCard name={ride.customerName} phone={ride.customerPhone} />
         </div>
       </div>
     );
@@ -263,49 +267,34 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
   if (ride.status === "cancelled") {
     return (
       <div className="min-h-screen bg-background">
-        <div className="bg-danger px-5 pt-10 pb-6">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
-              <IconXCircle size={18} className="text-white" />
+        <div className="bg-danger px-5 pt-12 pb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center">
+              <IconXCircle size={20} className="text-white" />
             </div>
             <div>
-              <p className="text-white/70 text-xs font-medium">Mohan Cabs — Driver Ride Sheet</p>
-              <p className="text-white font-bold text-lg leading-tight">#{ride.bookingRef}</p>
+              <p className="text-white/70 text-xs font-medium">Mohan Cabs — Driver</p>
+              <p className="text-white font-bold text-xl leading-tight">#{ride.bookingRef}</p>
             </div>
           </div>
-          <div className="mt-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white">
-              ● Ride Cancelled
-            </span>
-          </div>
+          <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white">
+            ✕ Ride Cancelled
+          </span>
         </div>
-
         <div className="p-5 max-w-md mx-auto space-y-4">
           <div className="rounded-2xl border border-danger/30 bg-danger/5 p-5 flex flex-col items-center text-center gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-danger/10 flex items-center justify-center">
-              <IconXCircle size={26} className="text-danger" />
+            <div className="w-16 h-16 rounded-2xl bg-danger/10 flex items-center justify-center">
+              <IconXCircle size={28} className="text-danger" />
             </div>
             <div>
               <p className="text-base font-bold text-text-primary">This ride has been cancelled</p>
               <p className="text-sm text-text-secondary mt-1">
-                The booking for <span className="font-semibold">{ride.customerName}</span> on{" "}
-                <span className="font-semibold">{formatDate(ride.journeyDate)}</span> at{" "}
-                <span className="font-semibold">{formatTime(ride.journeyTime)}</span> is no longer active.
+                Booking for <span className="font-semibold">{ride.customerName}</span> on{" "}
+                <span className="font-semibold">{formatDate(ride.journeyDate)}</span> is no longer active.
               </p>
             </div>
           </div>
-
-          <div className="rounded-2xl border border-border bg-surface p-4 flex items-center gap-4">
-            <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
-              {ride.customerName.charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-text-primary truncate">{ride.customerName}</p>
-              <a href={`tel:${ride.customerPhone}`} className="flex items-center gap-1 text-xs text-primary font-medium">
-                <IconPhone size={11} /> {ride.customerPhone}
-              </a>
-            </div>
-          </div>
+          <CustomerCard name={ride.customerName} phone={ride.customerPhone} />
         </div>
       </div>
     );
@@ -315,152 +304,122 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-primary px-5 pt-10 pb-6">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
-            <IconCar size={18} className="text-white" />
+      {/* Hero header */}
+      <div className={`px-5 pt-12 pb-8 ${started ? "bg-primary" : "bg-primary"}`}>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center">
+            <IconCar size={20} className="text-white" />
           </div>
           <div>
-            <p className="text-white/70 text-xs font-medium">Mohan Cabs — Driver Ride Sheet</p>
-            <p className="text-white font-bold text-lg leading-tight">#{ride.bookingRef}</p>
+            <p className="text-white/70 text-xs font-medium">Mohan Cabs — Driver</p>
+            <p className="text-white font-bold text-xl leading-tight">#{ride.bookingRef}</p>
           </div>
         </div>
-        <div className="mt-3 flex items-center gap-2">
-          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-            started ? "bg-white/20 text-white" : "bg-yellow-400/20 text-yellow-200"
-          }`}>
-            {started ? "● Ride in Progress" : "● Confirmed — Awaiting Start"}
-          </span>
+        <div className="mt-2">
+          {started ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+              Ride in Progress
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-400/25 text-yellow-200">
+              ● Confirmed — Enter OTP to Start
+            </span>
+          )}
         </div>
       </div>
 
       <div className="p-5 space-y-4 max-w-md mx-auto">
 
         {/* Route card */}
-        <div className="rounded-2xl border border-border bg-surface p-4 space-y-3">
-          <div className="flex items-start gap-3">
-            <div className="flex flex-col items-center gap-1 pt-1">
-              <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-              <div className="w-px h-8 bg-border" />
-              <div className="w-2.5 h-2.5 rounded-full bg-danger" />
-            </div>
-            <div className="flex-1 space-y-3">
-              <div>
-                <p className="text-[11px] text-text-tertiary uppercase tracking-wide font-semibold">Pick Up</p>
-                <p className="text-sm font-semibold text-text-primary">{ride.pickupName}</p>
-              </div>
-              <div>
-                <p className="text-[11px] text-text-tertiary uppercase tracking-wide font-semibold">Drop Off</p>
-                <p className="text-sm font-semibold text-text-primary">{ride.dropName}</p>
-              </div>
-            </div>
-          </div>
-          <a
-            href={mapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full rounded-xl bg-primary/10 text-primary py-2.5 text-sm font-semibold hover:bg-primary/20 transition-colors"
-          >
-            <IconNavigation size={15} />
-            Open in Google Maps
-          </a>
-        </div>
+        <RouteCard pickupName={ride.pickupName} dropName={ride.dropName} fare={ride.totalFare} fareColor="text-primary" />
 
-        {/* Journey details */}
+        {/* Maps link */}
+        <a
+          href={mapsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 w-full rounded-2xl bg-primary/8 border border-primary/20 text-primary py-3 text-sm font-bold hover:bg-primary/15 transition-colors"
+        >
+          <IconNavigation size={16} />
+          Open in Google Maps
+        </a>
+
+        {/* Journey info grid */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl border border-border bg-surface p-3 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-surface-muted flex items-center justify-center shrink-0">
-              <IconCalendar size={15} className="text-primary" />
+          {[
+            { icon: <IconCalendar size={16} className="text-primary" />, label: "Date", value: formatDate(ride.journeyDate) },
+            { icon: <IconClock size={16} className="text-primary" />, label: "Time", value: formatTime(ride.journeyTime) },
+            { icon: <IconCar size={16} className="text-primary" />, label: "Vehicle", value: ride.vehicleType.charAt(0).toUpperCase() + ride.vehicleType.slice(1) },
+            { icon: <IconUsers size={16} className="text-primary" />, label: "Passengers", value: `${ride.members} · ${ride.ac ? "AC" : "Non-AC"}` },
+          ].map(({ icon, label, value }) => (
+            <div key={label} className="rounded-2xl border border-border bg-surface p-3 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-surface-muted flex items-center justify-center shrink-0">{icon}</div>
+              <div>
+                <p className="text-[10px] text-text-tertiary">{label}</p>
+                <p className="text-xs font-bold text-text-primary">{value}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] text-text-tertiary">Date</p>
-              <p className="text-xs font-bold text-text-primary">{formatDate(ride.journeyDate)}</p>
-            </div>
-          </div>
-          <div className="rounded-2xl border border-border bg-surface p-3 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-surface-muted flex items-center justify-center shrink-0">
-              <IconClock size={15} className="text-primary" />
-            </div>
-            <div>
-              <p className="text-[10px] text-text-tertiary">Time</p>
-              <p className="text-xs font-bold text-text-primary">{formatTime(ride.journeyTime)}</p>
-            </div>
-          </div>
-          <div className="rounded-2xl border border-border bg-surface p-3 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-surface-muted flex items-center justify-center shrink-0">
-              <IconCar size={15} className="text-primary" />
-            </div>
-            <div>
-              <p className="text-[10px] text-text-tertiary">Vehicle</p>
-              <p className="text-xs font-bold text-text-primary capitalize">{ride.vehicleType}</p>
-            </div>
-          </div>
-          <div className="rounded-2xl border border-border bg-surface p-3 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-surface-muted flex items-center justify-center shrink-0">
-              <IconUsers size={15} className="text-primary" />
-            </div>
-            <div>
-              <p className="text-[10px] text-text-tertiary">Passengers</p>
-              <p className="text-xs font-bold text-text-primary">{ride.members} · {ride.ac ? "AC" : "Non-AC"}</p>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Customer + fare */}
-        <div className="rounded-2xl border border-border bg-surface p-4 flex items-center gap-4">
-          <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
-            {ride.customerName.charAt(0).toUpperCase()}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-text-primary truncate">{ride.customerName}</p>
-            <a href={`tel:${ride.customerPhone}`} className="flex items-center gap-1 text-xs text-primary font-medium">
-              <IconPhone size={11} /> {ride.customerPhone}
-            </a>
-          </div>
-          <div className="text-right shrink-0">
-            <p className="text-[10px] text-text-tertiary">Fare</p>
-            <p className="text-lg font-black text-primary">₹{parseFloat(ride.totalFare).toLocaleString("en-IN")}</p>
-          </div>
-        </div>
+        {/* Customer card */}
+        <CustomerCard name={ride.customerName} phone={ride.customerPhone} />
 
-        {/* Start Ride / Started state */}
+        {/* ── OTP entry / started state ── */}
         {started ? (
           <div className="rounded-2xl border border-success/30 bg-success/8 p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-success/15 flex items-center justify-center shrink-0">
-              <IconCheckCircle size={20} className="text-success" />
+            <div className="w-11 h-11 rounded-2xl bg-success/15 flex items-center justify-center shrink-0">
+              <IconCheckCircle size={22} className="text-success" />
             </div>
             <div>
               <p className="text-sm font-bold text-success">Ride in Progress</p>
-              <p className="text-xs text-text-secondary">Drive safe and have a great trip!</p>
+              <p className="text-xs text-text-secondary mt-0.5">Drive safely and have a great trip!</p>
             </div>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="rounded-2xl border-2 border-primary/20 bg-surface p-5 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                <IconShield size={18} className="text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-text-primary">Enter Customer OTP</p>
+                <p className="text-xs text-text-tertiary">Ask the customer for their 4-digit ride OTP</p>
+              </div>
+            </div>
+
+            <OtpInput value={otp} onChange={setOtp} disabled={!timeReached || starting} />
+
+            {otpError && (
+              <p className="text-xs text-danger font-medium text-center">{otpError}</p>
+            )}
+
             {!timeReached && (
               <p className="text-xs text-center text-text-tertiary">
-                &quot;Start Ride&quot; will be enabled at the scheduled time
+                OTP entry will be enabled at the scheduled time
               </p>
             )}
+
             <button
               onClick={handleStartRide}
-              disabled={!timeReached || starting}
+              disabled={!timeReached || starting || otp.trim().length < 4}
               className={`w-full flex items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold transition-all ${
-                timeReached && !starting
-                  ? "bg-primary text-white hover:bg-primary/90 active:scale-95"
+                timeReached && !starting && otp.trim().length >= 4
+                  ? "bg-primary text-white hover:bg-primary/90 active:scale-[0.98]"
                   : "bg-surface-muted text-text-tertiary cursor-not-allowed"
               }`}
             >
               {starting ? (
-                <><IconLoader size={18} className="animate-spin" /> Starting…</>
+                <><IconLoader size={18} className="animate-spin" /> Verifying…</>
               ) : (
-                <><IconCar size={18} /> Start Ride</>
+                <><IconCar size={18} /> Confirm & Start Ride</>
               )}
             </button>
           </div>
         )}
 
-        {/* Payment section — always shown when ride is ongoing */}
+        {/* ── Payment section ── */}
         {started && (() => {
           const balanceDueAmt = parseFloat(ride.balanceDue ?? "0");
           const fullyPaid = paymentConfirmed || balanceDueAmt <= 0;
@@ -469,7 +428,6 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
 
           return (
             <>
-              {/* Fully paid */}
               {fullyPaid && (
                 <div className="rounded-2xl border border-success/30 bg-success/8 p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -485,11 +443,10 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
                       </p>
                     </div>
                   </div>
-                  <p className="text-lg font-black text-success">₹{parseFloat(ride.totalFare).toLocaleString("en-IN")}</p>
+                  <p className="text-xl font-black text-success">₹{parseFloat(ride.totalFare).toLocaleString("en-IN")}</p>
                 </div>
               )}
 
-              {/* Balance due — waiting for customer to initiate */}
               {!fullyPaid && !cashPending && (
                 <div className="rounded-2xl border border-danger/30 bg-danger/5 p-4 space-y-3">
                   <div className="flex items-center justify-between">
@@ -501,7 +458,7 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
                         ₹{parseFloat(ride.totalPaid).toLocaleString("en-IN")} paid · ₹{parseFloat(ride.balanceDue).toLocaleString("en-IN")} remaining
                       </p>
                     </div>
-                    <p className="text-xl font-black text-danger">₹{parseFloat(ride.balanceDue).toLocaleString("en-IN")}</p>
+                    <p className="text-2xl font-black text-danger">₹{parseFloat(ride.balanceDue).toLocaleString("en-IN")}</p>
                   </div>
                   <button
                     onClick={handleRefresh}
@@ -514,17 +471,16 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
                 </div>
               )}
 
-              {/* Cash OTP entry */}
               {cashPending && (
                 <div className="rounded-2xl border border-warning/40 bg-warning/5 p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-warning/20 text-warning mb-1">
-                        Balance Due
+                        Cash OTP Pending
                       </span>
                       <p className="text-xs text-text-secondary">Ask customer to read their WhatsApp OTP</p>
                     </div>
-                    <p className="text-xl font-black text-warning">₹{parseFloat(ride.balanceDue).toLocaleString("en-IN")}</p>
+                    <p className="text-2xl font-black text-warning">₹{amount}</p>
                   </div>
                   <div className="flex gap-2">
                     <input
@@ -547,13 +503,10 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
                       {verifyingPayment ? <IconLoader size={16} className="animate-spin" /> : "Confirm"}
                     </button>
                   </div>
-                  {paymentError && (
-                    <p className="text-xs text-danger font-medium">{paymentError}</p>
-                  )}
+                  {paymentError && <p className="text-xs text-danger font-medium">{paymentError}</p>}
                 </div>
               )}
 
-              {/* End Ride button */}
               <div className="space-y-1.5">
                 {!fullyPaid && (
                   <p className="text-xs text-center text-text-tertiary">
@@ -565,7 +518,7 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
                   disabled={endingRide || !fullyPaid}
                   className={`w-full flex items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold transition-all ${
                     !endingRide && fullyPaid
-                      ? "bg-danger text-white hover:bg-danger/90 active:scale-95"
+                      ? "bg-danger text-white hover:bg-danger/90 active:scale-[0.98]"
                       : "bg-surface-muted text-text-tertiary cursor-not-allowed"
                   }`}
                 >
@@ -580,6 +533,68 @@ export default function DriverRidePage({ params }: { params: Promise<{ token: st
           );
         })()}
       </div>
+    </div>
+  );
+}
+
+// ── Shared sub-components ─────────────────────────────────────────────────────
+
+function RouteCard({
+  pickupName,
+  dropName,
+  fare,
+  fareColor,
+}: {
+  pickupName: string;
+  dropName: string;
+  fare: string;
+  fareColor: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-border bg-surface p-4">
+      <div className="flex items-stretch gap-3 mb-3">
+        <div className="flex flex-col items-center py-0.5 shrink-0">
+          <div className="w-2.5 h-2.5 rounded-full bg-primary mt-0.5" />
+          <div className="flex-1 w-px bg-border my-1" />
+          <div className="w-2.5 h-2.5 rounded-full bg-danger mb-0.5" />
+        </div>
+        <div className="flex-1 min-w-0 space-y-3">
+          <div>
+            <p className="text-[10px] text-text-tertiary uppercase tracking-wide font-semibold">Pick Up</p>
+            <p className="text-sm font-bold text-text-primary">{pickupName}</p>
+          </div>
+          <div>
+            <p className="text-[10px] text-text-tertiary uppercase tracking-wide font-semibold">Drop Off</p>
+            <p className="text-sm font-bold text-text-primary">{dropName}</p>
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-border pt-3 flex items-center justify-between">
+        <p className="text-xs text-text-tertiary">Total Fare</p>
+        <p className={`text-2xl font-black ${fareColor}`}>₹{parseFloat(fare).toLocaleString("en-IN")}</p>
+      </div>
+    </div>
+  );
+}
+
+function CustomerCard({ name, phone }: { name: string; phone: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-surface p-4 flex items-center gap-4">
+      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 text-primary font-black text-lg">
+        {name.charAt(0).toUpperCase()}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-bold text-text-primary truncate">{name}</p>
+        <a href={`tel:${phone}`} className="inline-flex items-center gap-1 text-xs text-primary font-semibold mt-0.5 hover:underline">
+          <IconPhone size={11} /> {phone}
+        </a>
+      </div>
+      <a
+        href={`tel:${phone}`}
+        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-colors"
+      >
+        <IconPhone size={13} /> Call
+      </a>
     </div>
   );
 }
