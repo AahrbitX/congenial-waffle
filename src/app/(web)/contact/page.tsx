@@ -429,19 +429,20 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Map placeholder */}
+      {/* Map */}
       <section className="px-8 sm:px-16 pb-10 bg-white">
         <div className="max-w-7xl mx-auto">
-          <div className="rounded-3xl overflow-hidden border border-gray-100 shadow-sm h-72 bg-[#e8edf5] flex items-center justify-center">
-            <div className="text-center">
-              <MapPin size={32} className="text-blue-400 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-gray-500">
-                Swamynathapuram, Kanyakumari, Tamil Nadu
-              </p>
-              <p className="text-[12px] text-gray-400">
-                Embed your Google Maps iframe here
-              </p>
-            </div>
+          <div className="rounded-3xl overflow-hidden border border-gray-100 shadow-sm h-72">
+            <iframe
+              title="Mohan Cabs Location"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3951.204!2d77.5385!3d8.0883!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b04ef8f1f7c9b9b%3A0x0!2sSwamynathapuram%2C%20Kanyakumari%2C%20Tamil%20Nadu%20629702!5e0!3m2!1sen!2sin!4v1700000000000"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
           </div>
         </div>
       </section>

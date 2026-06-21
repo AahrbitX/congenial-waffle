@@ -7,14 +7,29 @@ import { saveMarketingConsent } from "@/api/user.api";
 const CONSENT_KEY = "mohan-cabs-consent";
 
 export function ConsentBanner() {
-  const { data: session } = useSession();
+  const { data: session, isPending } = useSession();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    // Wait for session to load before deciding
+    if (isPending) return;
+
+    const user = session?.user as any;
+
+    // If logged in and already made a consent decision in DB → sync to
+    // localStorage and hide without showing the banner at all
+    if (user && user.marketingConsent !== null && user.marketingConsent !== undefined) {
+      const stored = user.marketingConsent ? "accepted" : "declined";
+      localStorage.setItem(CONSENT_KEY, stored);
+      setVisible(false);
+      return;
+    }
+
+    // Not logged in (or logged in but no DB record yet) → fall back to localStorage
     if (!localStorage.getItem(CONSENT_KEY)) {
       setVisible(true);
     }
-  }, []);
+  }, [session, isPending]);
 
   async function handleChoice(accepted: boolean) {
     localStorage.setItem(CONSENT_KEY, accepted ? "accepted" : "declined");

@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, use } from "react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 
 declare global {
   interface Window {
@@ -9,6 +11,7 @@ declare global {
 }
 
 type PayInfo = {
+  bookingUserId: string;
   bookingRef: string;
   customerName: string;
   journeyDate: string;
@@ -34,6 +37,8 @@ function formatTime(t: string) {
 
 export default function PublicPayPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
+  const router = useRouter();
+  const { data: session, isPending: sessionLoading } = authClient.useSession();
 
   const [info, setInfo] = useState<PayInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,6 +65,18 @@ export default function PublicPayPage({ params }: { params: Promise<{ token: str
       document.body.appendChild(s);
     }
   }, [token]);
+
+  // Auth + ownership guard
+  useEffect(() => {
+    if (sessionLoading || loading || error) return;
+    if (!session?.user) {
+      router.replace(`/login?redirect=/pay/${token}`);
+      return;
+    }
+    if (info && (session.user as any).id !== info.bookingUserId) {
+      router.replace("/");
+    }
+  }, [sessionLoading, session, loading, info, error, token, router]);
 
   const handlePay = async () => {
     if (!info) return;
@@ -122,7 +139,7 @@ export default function PublicPayPage({ params }: { params: Promise<{ token: str
     }
   };
 
-  if (loading) {
+  if (loading || sessionLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)]">
         <div className="w-7 h-7 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />

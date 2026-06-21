@@ -44,11 +44,11 @@ export default function PasswordLoginForm() {
       // waitForSession() triggers $sessionSignal directly so useSession() in
       // the layout has the data before we navigate.
       const session = await waitForSession();
+      const role = (session?.user as any)?.role;
+      // Mirror role into a plain cookie so Next.js middleware can route without a DB call
+      document.cookie = `mohan-cabs.user_role=${role === "admin" ? "admin" : "user"}; path=/; SameSite=Lax`;
       const redirect = searchParams.get("redirect");
-      const defaultDest =
-        (session?.user as any)?.role === "admin"
-          ? "/admin"
-          : "/dashboard/overview";
+      const defaultDest = role === "admin" ? "/admin" : "/dashboard/overview";
       const dest = redirect?.startsWith("/") ? redirect : defaultDest;
       router.push(`/redirecting?to=${encodeURIComponent(dest)}`);
     } catch (err: any) {

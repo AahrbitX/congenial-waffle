@@ -1600,10 +1600,18 @@ function LocationInput({
     }, 350);
   };
 
-  const handleSelectRecent = (place: string) => {
+  const handleSelectRecent = async (place: string) => {
     onChange(place, null, null);
     setSuggestions([]);
     setShowDropdown(false);
+    try {
+      const results = await forwardGeocode(place);
+      if (results[0]) {
+        onChange(results[0].name || place, results[0].lat, results[0].lng);
+      }
+    } catch {
+      // coords remain null; distance effect's geocodeAddress fallback will handle it
+    }
   };
 
   const handleSelectSuggestion = (s: GeoResult) => {

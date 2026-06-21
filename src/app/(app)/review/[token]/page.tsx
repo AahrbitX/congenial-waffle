@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, use } from "react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 
 type BookingInfo = {
+  bookingUserId: string;
   bookingRef: string;
   customerName: string;
   journeyDate: string;
@@ -53,6 +56,8 @@ function formatTime(t: string) {
 
 export default function ReviewFormPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
+  const router = useRouter();
+  const { data: session, isPending: sessionLoading } = authClient.useSession();
 
   const [info, setInfo] = useState<BookingInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,6 +85,19 @@ export default function ReviewFormPage({ params }: { params: Promise<{ token: st
       .catch(() => setError("Failed to load booking details."))
       .finally(() => setLoading(false));
   }, [token]);
+
+  // Auth + ownership guard — runs once both session and booking info are loaded
+  useEffect(() => {
+    if (sessionLoading || loading || error) return;
+    if (!session?.user) {
+      // Not logged in → redirect to login, come back after
+      router.replace(`/login?redirect=/review/${token}`);
+      return;
+    }
+    if (info && (session.user as any).id !== info.bookingUserId) {
+      router.replace("/");
+    }
+  }, [sessionLoading, session, loading, info, error, token, router]);
 
   const handleSubmit = async () => {
     if (rating === 0) return;
