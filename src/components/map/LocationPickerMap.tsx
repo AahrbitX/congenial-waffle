@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Map, { Marker, NavigationControl } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Button } from "@/components/ui/Button";
-import { IconMapPin, IconLoader } from "@/constants/icons";
-import { reverseGeocode } from "@/utils/geocoding";
+import { IconMapPin, IconLoader, IconSearch, IconX } from "@/constants/icons";
+import { reverseGeocode, forwardGeocode, type GeoResult } from "@/utils/geocoding";
 
 type MapMoveEvent = { viewState: { latitude: number; longitude: number; zoom: number } };
 
@@ -30,12 +30,16 @@ interface LocationPickerMapProps {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function LocationPickerMap({ initialAddress, onConfirm, onCancel }: LocationPickerMapProps) {
-  const [coords,    setCoords]    = useState<LatLng>({ lat: DEFAULT_LAT, lng: DEFAULT_LNG });
-  const [address,   setAddress]   = useState(initialAddress ?? "");
-  const [locating,  setLocating]  = useState(true);
-  const [viewport,  setViewport]  = useState({ latitude: DEFAULT_LAT, longitude: DEFAULT_LNG, zoom: 14 });
-  const [mapStyle,  setMapStyle]  = useState<object | null>(null);
-  const styleFetched = useRef(false);
+  const [coords,      setCoords]      = useState<LatLng>({ lat: DEFAULT_LAT, lng: DEFAULT_LNG });
+  const [address,     setAddress]     = useState(initialAddress ?? "");
+  const [locating,    setLocating]    = useState(true);
+  const [viewport,    setViewport]    = useState({ latitude: DEFAULT_LAT, longitude: DEFAULT_LNG, zoom: 14 });
+  const [mapStyle,    setMapStyle]    = useState<object | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<GeoResult[]>([]);
+  const [searching,   setSearching]   = useState(false);
+  const styleFetched  = useRef(false);
+  const debounceRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch & pre-filter style so the broken 3d_model_data layer never reaches MapLibre
   useEffect(() => {
@@ -78,8 +82,72 @@ export function LocationPickerMap({ initialAddress, onConfirm, onCancel }: Locat
     setAddress(addr);
   }, []);
 
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!val.trim()) { setSuggestions([]); return; }
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const results = await forwardGeocode(val);
+        setSuggestions(results);
+      } finally {
+        setSearching(false);
+      }
+    }, 350);
+  };
+
+  const handleSelectSuggestion = (s: GeoResult) => {
+    const loc = { lat: s.lat, lng: s.lng };
+    setCoords(loc);
+    setViewport((v) => ({ ...v, latitude: loc.lat, longitude: loc.lng, zoom: 16 }));
+    setAddress(s.name);
+    setSearchQuery(s.name);
+    setSuggestions([]);
+  };
+
   return (
     <div className="flex flex-col gap-3 mt-2">
+      {/* Search bar */}
+      <div className="relative">
+        <div className="flex items-center gap-2 border border-border rounded-xl px-3 py-2 bg-surface focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+          {searching
+            ? <IconLoader size={14} className="text-muted shrink-0 animate-spin" />
+            : <IconSearch size={14} className="text-muted shrink-0" />}
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Search for a place…"
+            className="flex-1 text-sm bg-transparent outline-none text-accent placeholder:text-muted"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => { setSearchQuery(""); setSuggestions([]); }}
+              className="p-0.5 rounded text-muted hover:text-accent"
+            >
+              <IconX size={13} />
+            </button>
+          )}
+        </div>
+        {suggestions.length > 0 && (
+          <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-surface border border-border rounded-xl shadow-xl overflow-hidden max-h-48 overflow-y-auto">
+            {suggestions.map((s, i) => (
+              <button
+                key={i}
+                type="button"
+                onMouseDown={() => handleSelectSuggestion(s)}
+                className="w-full text-left px-3 py-2.5 text-sm hover:bg-surface-muted transition-colors flex items-start gap-2"
+              >
+                <IconMapPin size={13} className="text-primary shrink-0 mt-0.5" />
+                <span className="text-accent leading-snug">{s.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Map */}
       <div className="h-56 rounded-xl overflow-hidden border border-border">
         {locating || !mapStyle ? (

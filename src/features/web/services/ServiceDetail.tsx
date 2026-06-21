@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Car,
@@ -47,6 +47,7 @@ interface ServiceDetailProps {
 export function ServiceDetail({ slug }: ServiceDetailProps) {
   const { data: service, isLoading } = useService(slug);
   const { openBooking } = useBooking();
+  const router = useRouter();
 
   if (isLoading) {
     return (
@@ -63,8 +64,9 @@ export function ServiceDetail({ slug }: ServiceDetailProps) {
     );
   }
 
-  if (!service) {
-    notFound();
+  if (!isLoading && !service) {
+    router.replace("/services");
+    return null;
   }
 
   const Icon = ICON_MAP[service.iconName] ?? Car;
@@ -115,14 +117,22 @@ export function ServiceDetail({ slug }: ServiceDetailProps) {
               What&apos;s Included
             </p>
             <ul className="space-y-3">
-              {service.features.map((f) => (
-                <li key={f} className="flex items-center gap-3">
+              {(service.vehicleCategories ?? []).map((cat) => (
+                <li key={cat} className="flex items-center gap-3">
                   <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center shrink-0">
                     <Check size={11} className="text-white" />
                   </div>
-                  <span className="text-lg text-muted">{f}</span>
+                  <span className="text-lg text-muted">{cat}</span>
                 </li>
               ))}
+              {(service.vehicleCategories ?? []).length === 0 && (
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center shrink-0">
+                    <Check size={11} className="text-white" />
+                  </div>
+                  <span className="text-lg text-muted">Available on request</span>
+                </li>
+              )}
             </ul>
           </div>
 
@@ -140,7 +150,7 @@ export function ServiceDetail({ slug }: ServiceDetailProps) {
                   <p className="text-sm text-muted font-medium">
                     Starting From
                   </p>
-                  <p className="text-xl font-semibold ">{service.basePrice}</p>
+                  <p className="text-xl font-semibold ">Contact us</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -149,9 +159,7 @@ export function ServiceDetail({ slug }: ServiceDetailProps) {
                 </div>
                 <div>
                   <p className="text-sm text-muted font-medium">Availability</p>
-                  <p className="text-lg font-semibold">
-                    {service.availability}
-                  </p>
+                  <p className="text-lg font-semibold">24 × 7</p>
                 </div>
               </div>
             </Card>

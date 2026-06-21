@@ -74,6 +74,7 @@ export async function createBooking(
     customerPhone: req.customerPhone,
     source: "self",
     serviceType: req.serviceTab, // local | outstation | airport
+    serviceSlug: req.serviceSlug,
     pickupName: req.pickup,
     pickupZone: "",
     pickupLat: req.pickupLat,
@@ -91,6 +92,9 @@ export async function createBooking(
     vehicleType: toBackendVehicleType(req.vehicleType),
     ac: req.ac,
     totalFare: req.totalFare,
+    refNumber: req.refNumber,
+    duration: req.duration,
+    notes: req.notes,
   };
 
   const res = await request<{

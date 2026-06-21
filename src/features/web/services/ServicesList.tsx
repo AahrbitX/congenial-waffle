@@ -79,8 +79,9 @@ function ServiceCard({
 export function ServicesList() {
   const { data: services = [], isLoading } = useServices();
 
-  const rides = services.filter((s) => s.category === "ride");
-  const special = services.filter((s) => s.category === "special");
+  const active = services.filter((s) => s.active);
+  const rides = active.filter((s) => s.category === "ride");
+  const special = active.filter((s) => s.category === "special");
 
   if (isLoading) {
     return (

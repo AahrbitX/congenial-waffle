@@ -5,6 +5,7 @@ import { Card, Chip, Link } from "@heroui/react";
 import Image from "next/image";
 import { TextAnimate } from "@/components/ui/text-animate";
 import { usePricing } from "@/hooks/usePricing";
+import { useFleet } from "@/hooks/useFleet";
 
 const CAR_META: Record<string, { meta: string; badge: string }> = {
   Hatchback: { meta: "4 seats · AC · Compact",    badge: "Most Booked" },
@@ -20,8 +21,8 @@ const CAR_IMAGES: Record<string, { src: string; alt: string }> = {
   Luxury:    ASSETS.cars.luxury,
 };
 
-// display name → vehicleType stored in DB / fleet category
-const CAR_DB_TYPE: Record<string, string> = {
+// display name → fleet category
+const CAR_CATEGORY: Record<string, string> = {
   Hatchback: "Hatchback",
   Sedan:     "Sedan",
   SUV:       "MUV",
@@ -32,10 +33,25 @@ const CAR_ORDER = ["Hatchback", "Sedan", "SUV", "Luxury"] as const;
 
 function CarsSection() {
   const { data: pricing } = usePricing();
+  const { data: fleet }   = useFleet();
 
-  const priceMap = Object.fromEntries(
-    (pricing ?? []).map((p) => [p.vehicleType, p]),
-  );
+  // pricing is keyed by model name ("Maruti Swift"), fleet has category per model
+  // Build category → cheapest defaultAmount
+  const categoryPriceMap = (() => {
+    if (!pricing?.length || !fleet?.length) return {} as Record<string, { amount: string; unit: string }>;
+    const priceByModel = Object.fromEntries(pricing.map((p) => [p.vehicleType, p]));
+    const result: Record<string, { amount: string; unit: string }> = {};
+    for (const vehicle of fleet) {
+      const p = priceByModel[vehicle.name];
+      if (!p) continue;
+      const cat = vehicle.category;
+      const amt = parseFloat(p.defaultAmount);
+      if (!result[cat] || amt < parseFloat(result[cat].amount)) {
+        result[cat] = { amount: p.defaultAmount, unit: p.defaultUnit };
+      }
+    }
+    return result;
+  })();
 
   return (
     <section className="px-4 pb-10">
@@ -54,17 +70,17 @@ function CarsSection() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {CAR_ORDER.map((name) => {
-            const img            = CAR_IMAGES[name];
+            const img             = CAR_IMAGES[name];
             const { meta, badge } = CAR_META[name];
-            const dbType         = CAR_DB_TYPE[name];
-            const p              = priceMap[dbType];
-            const price          = p ? `₹${p.defaultAmount}` : "—";
-            const unit           = p?.defaultUnit ?? "";
+            const category        = CAR_CATEGORY[name];
+            const p               = categoryPriceMap[category];
+            const price           = p ? `₹${parseFloat(p.amount).toLocaleString("en-IN")}` : "—";
+            const unit            = p?.unit ?? "";
 
             return (
               <Link
                 key={name}
-                href={`/fleet?category=${dbType}`}
+                href={`/fleet?category=${category}`}
                 className="relative no-underline w-full"
               >
                 <Card className="cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-lg w-full">

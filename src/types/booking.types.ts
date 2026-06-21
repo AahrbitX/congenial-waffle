@@ -44,6 +44,7 @@ export interface Place {
 
 export interface BookingRequest {
   serviceId: string;
+  serviceSlug?: string;
   serviceTab: ServiceTab;
   tripTab: TripTab;
   pickup: string;
@@ -63,6 +64,10 @@ export interface BookingRequest {
   customerName: string;
   customerPhone: string;
   totalFare: string;
+  refNumber?: string;
+  duration?: string;
+  passengers?: string;
+  notes?: string;
 }
 
 export interface BookingResponse {

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button, ListBox, Select, Skeleton, toast } from "@heroui/react";
 import { usePricing, useUpsertPricing } from "@/hooks/usePricing";
 import { useFleet } from "@/hooks/useFleet";
+import { useServices } from "@/hooks/useServices";
 import type { FleetVehicle } from "@/types/fleet.types";
 import { IconPlus, IconX, IconCheck, IconLoader } from "@/constants/icons";
 
@@ -29,22 +30,6 @@ function toUnit(u: string): FareUnit {
     : "per km";
 }
 
-const SERVICE_LABELS: Record<string, string> = {
-  "city-taxi": "City Taxi",
-  airport: "Airport Transfer",
-  railway: "Railway Transfer",
-  "full-day-hire": "Full Day Hire",
-  "weekly-commute": "Weekly Commute",
-  "rent-a-car": "Rent a Car",
-  outstation: "Outstation",
-  "outstation-oneway": "Outstation One-Way",
-  "outstation-roundtrip": "Outstation Round Trip",
-  nationwide: "Nationwide",
-  wedding: "Wedding",
-  tours: "Tours",
-  events: "Events",
-  tempo: "Tempo Traveller",
-};
 
 // CSS-variable-based colors — keyed to globals.css vars
 const CAT_COLOR: Record<string, string> = {
@@ -139,7 +124,13 @@ interface Props {
 export default function PricingSettings({ isLoading }: Props) {
   const { data: dbPricing, isLoading: fetchingPricing } = usePricing();
   const { data: fleetVehicles, isLoading: fetchingFleet } = useFleet();
+  const { data: services } = useServices();
   const upsertPricing = useUpsertPricing();
+
+  // Build dynamic service labels from DB
+  const SERVICE_LABELS: Record<string, string> = Object.fromEntries(
+    (services ?? []).map((s) => [s.slug, s.name])
+  );
 
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [pricingData, setPricingData] = useState<PricingState[]>([]);
@@ -494,7 +485,8 @@ export default function PricingSettings({ isLoading }: Props) {
                               }
                               onSelectionChange={(key) => {
                                 if (key === "__custom__") {
-                                  setRow(idx, "key", "");
+                                  // Use sentinel so the text input appears
+                                  setRow(idx, "key", "__custom_input__");
                                 } else {
                                   setRow(idx, "key", String(key));
                                 }
@@ -529,15 +521,16 @@ export default function PricingSettings({ isLoading }: Props) {
                                 </ListBox>
                               </Select.Popover>
                             </Select>
-                            {/* Show text input when key doesn't match any predefined label */}
+                            {/* Show text input when key doesn't match any DB service */}
                             {row.key && !SERVICE_LABELS[row.key] && (
                               <input
                                 type="text"
-                                value={row.key}
+                                value={row.key === "__custom_input__" ? "" : row.key}
                                 onChange={(e) =>
-                                  setRow(idx, "key", e.target.value)
+                                  setRow(idx, "key", e.target.value || "__custom_input__")
                                 }
-                                placeholder="Enter custom service id"
+                                placeholder="Enter custom service slug (e.g. my-service)"
+                                autoFocus={row.key === "__custom_input__"}
                                 className="w-full rounded-lg border border-primary/40 bg-white dark:bg-zinc-800 px-2.5 py-1.5 text-[13px] font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                               />
                             )}

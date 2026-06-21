@@ -10,6 +10,7 @@ const TABS = [
   { label: "Personal Info", href: "/admin/settings/personal-info" },
   { label: "Fleets", href: "/admin/settings/fleets" },
   { label: "Pricing", href: "/admin/settings/pricing" },
+  { label: "Services", href: "/admin/settings/services" },
 ];
 
 export default function SettingsLayout({

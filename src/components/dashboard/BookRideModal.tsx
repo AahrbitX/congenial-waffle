@@ -6,6 +6,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { useVehicles } from "@/hooks/useBooking";
 import { useRides } from "@/hooks/useRides";
+import { useService } from "@/hooks/useServices";
+import type { ServiceLocation } from "@/types/service.types";
 import { authClient } from "@/lib/auth-client";
 import {
   forwardGeocode,
@@ -164,6 +166,8 @@ export function BookRideModal({
     : undefined;
   const isInquiry = config?.formType === "inquiry";
   const { data: session } = authClient.useSession();
+  // Fetch service from DB to get fixed locations (airport/railway only)
+  const { data: serviceData } = useService(initialData?.serviceId);
   const qc = useQueryClient();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -403,6 +407,7 @@ export function BookRideModal({
     try {
       const result = await createBooking({
         serviceId: config?.id ?? "city-taxi",
+        serviceSlug: config?.id,
         serviceTab: config?.serviceTab ?? "local",
         tripTab: form.tripTab,
         pickup: form.pickup || "Current Location",
@@ -422,6 +427,10 @@ export function BookRideModal({
         customerName: session?.user?.name ?? "Guest",
         customerPhone: session?.user?.phoneNumber ?? "",
         totalFare: String(computedFare),
+        refNumber: form.refNumber || undefined,
+        duration: form.duration || undefined,
+        notes: [form.notes, form.passengers ? `Passengers: ${form.passengers}` : ""]
+          .filter(Boolean).join(" | ") || undefined,
       });
       bookingId = result.bookingId;
     } catch (err) {
@@ -671,6 +680,7 @@ export function BookRideModal({
                         update={update}
                         updateLocation={updateLocation}
                         error={error}
+                        serviceLocations={serviceData?.locations ?? []}
                       />
                     )}
 
@@ -934,6 +944,7 @@ interface Step1Props {
   update: (field: keyof FormState, value: string) => void;
   updateLocation: UpdateLocationFn;
   error: string;
+  serviceLocations?: ServiceLocation[];
 }
 
 function Step1Form({
@@ -943,6 +954,7 @@ function Step1Form({
   update,
   updateLocation,
   error,
+  serviceLocations = [],
 }: Step1Props) {
   switch (formType) {
     case "outstation":
@@ -961,6 +973,7 @@ function Step1Form({
           update={update}
           updateLocation={updateLocation}
           error={error}
+          serviceLocations={serviceLocations}
         />
       );
     case "railway":
@@ -970,6 +983,7 @@ function Step1Form({
           update={update}
           updateLocation={updateLocation}
           error={error}
+          serviceLocations={serviceLocations}
         />
       );
     case "hire":
@@ -1114,7 +1128,50 @@ function OutstationForm({ form, update, updateLocation, error }: FormProps) {
 }
 
 // Airport Transfer
-function AirportForm({ form, update, updateLocation, error }: FormProps) {
+function AirportForm({ form, update, updateLocation, error, serviceLocations = [] }: FormProps & { serviceLocations?: ServiceLocation[] }) {
+  const hasLocations = serviceLocations.length > 0;
+
+  function handleDirectionChange(val: string) {
+    update("direction", val);
+    // Clear both location fields when direction switches
+    updateLocation("pickup", "", null, null);
+    updateLocation("destination", "", null, null);
+  }
+
+  function FixedLocationSelect({ field, highlight }: { field: "pickup" | "destination"; highlight: boolean }) {
+    const value = field === "pickup" ? form.pickup : form.destination;
+    return (
+      <div>
+        <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-1.5">
+          Airport / Terminal
+        </p>
+        <select
+          value={value}
+          onChange={(e) => {
+            const loc = serviceLocations.find((l) => l.name === e.target.value);
+            if (loc) {
+              const lat = loc.lat ? parseFloat(loc.lat) : null;
+              const lng = loc.lng ? parseFloat(loc.lng) : null;
+              updateLocation(field, loc.name, lat, lng);
+            } else {
+              updateLocation(field, "", null, null);
+            }
+          }}
+          className={`w-full rounded-xl border px-3 py-2.5 text-sm font-medium bg-[var(--color-surface-muted)] focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all ${
+            highlight && !value ? "border-red-400" : "border-[var(--color-border)]"
+          }`}
+        >
+          <option value="">— Select airport —</option>
+          {serviceLocations.map((loc) => (
+            <option key={loc.id} value={loc.name}>
+              {loc.name}{loc.sublabel ? ` (${loc.sublabel})` : ""}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Direction */}
@@ -1125,15 +1182,11 @@ function AirportForm({ form, update, updateLocation, error }: FormProps) {
         <div className="flex gap-2">
           {[
             { val: "to", label: "To Airport", icon: <IconPlane size={13} /> },
-            {
-              val: "from",
-              label: "From Airport",
-              icon: <IconArrowLeftRight size={13} />,
-            },
+            { val: "from", label: "From Airport", icon: <IconArrowLeftRight size={13} /> },
           ].map(({ val, label, icon }) => (
             <button
               key={val}
-              onClick={() => update("direction", val)}
+              onClick={() => handleDirectionChange(val)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[13px] font-semibold border transition-all ${
                 form.direction === val
                   ? "bg-primary text-white border-primary"
@@ -1146,25 +1199,69 @@ function AirportForm({ form, update, updateLocation, error }: FormProps) {
           ))}
         </div>
       </div>
-      <LocationInput
-        label={
-          form.direction === "to" ? "Your Pickup Address" : "Airport Terminal"
-        }
-        dotClass="rounded-full bg-primary"
-        value={form.pickup}
-        onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
-        placeholder={
-          form.direction === "to" ? "Home / Office address" : "E.g. Terminal 1"
-        }
-        highlight={!!error && !form.pickup.trim()}
-      />
-      <DateTimeRow
-        label="Flight Date & Time"
-        date={form.date}
-        time={form.time}
-        onDate={(v) => update("date", v)}
-        onTime={(v) => update("time", v)}
-      />
+
+      {form.direction === "to" ? (
+        <>
+          <LocationInput
+            label="Your Pickup Address"
+            dotClass="rounded-full bg-primary"
+            value={form.pickup}
+            onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
+            placeholder="Home / Office address"
+            highlight={!!error && !form.pickup.trim()}
+          />
+          <DateTimeRow
+            label="Flight Date & Time"
+            date={form.date}
+            time={form.time}
+            onDate={(v) => update("date", v)}
+            onTime={(v) => update("time", v)}
+          />
+          {hasLocations ? (
+            <FixedLocationSelect field="destination" highlight={!!error} />
+          ) : (
+            <LocationInput
+              label="Airport / Terminal"
+              dotClass="rounded bg-primary"
+              value={form.destination}
+              onChange={(v, lat, lng) => updateLocation("destination", v, lat, lng)}
+              placeholder="E.g. Trivandrum International Airport"
+              highlight={!!error && !form.destination.trim()}
+            />
+          )}
+        </>
+      ) : (
+        <>
+          {hasLocations ? (
+            <FixedLocationSelect field="pickup" highlight={!!error} />
+          ) : (
+            <LocationInput
+              label="Airport / Terminal"
+              dotClass="rounded-full bg-primary"
+              value={form.pickup}
+              onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
+              placeholder="E.g. Trivandrum International Airport"
+              highlight={!!error && !form.pickup.trim()}
+            />
+          )}
+          <DateTimeRow
+            label="Flight Date & Time"
+            date={form.date}
+            time={form.time}
+            onDate={(v) => update("date", v)}
+            onTime={(v) => update("time", v)}
+          />
+          <LocationInput
+            label="Your Drop Address"
+            dotClass="rounded bg-primary"
+            value={form.destination}
+            onChange={(v, lat, lng) => updateLocation("destination", v, lat, lng)}
+            placeholder="Home / Office address"
+            highlight={!!error && !form.destination.trim()}
+          />
+        </>
+      )}
+
       <div>
         <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-1.5">
           Flight Number{" "}
@@ -1182,7 +1279,49 @@ function AirportForm({ form, update, updateLocation, error }: FormProps) {
 }
 
 // Railway Transfer
-function RailwayForm({ form, update, updateLocation, error }: FormProps) {
+function RailwayForm({ form, update, updateLocation, error, serviceLocations = [] }: FormProps & { serviceLocations?: ServiceLocation[] }) {
+  const hasLocations = serviceLocations.length > 0;
+
+  function handleDirectionChange(val: string) {
+    update("direction", val);
+    updateLocation("pickup", "", null, null);
+    updateLocation("destination", "", null, null);
+  }
+
+  function FixedLocationSelect({ field, highlight }: { field: "pickup" | "destination"; highlight: boolean }) {
+    const value = field === "pickup" ? form.pickup : form.destination;
+    return (
+      <div>
+        <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-1.5">
+          Station Name
+        </p>
+        <select
+          value={value}
+          onChange={(e) => {
+            const loc = serviceLocations.find((l) => l.name === e.target.value);
+            if (loc) {
+              const lat = loc.lat ? parseFloat(loc.lat) : null;
+              const lng = loc.lng ? parseFloat(loc.lng) : null;
+              updateLocation(field, loc.name, lat, lng);
+            } else {
+              updateLocation(field, "", null, null);
+            }
+          }}
+          className={`w-full rounded-xl border px-3 py-2.5 text-sm font-medium bg-[var(--color-surface-muted)] focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all ${
+            highlight && !value ? "border-red-400" : "border-[var(--color-border)]"
+          }`}
+        >
+          <option value="">— Select station —</option>
+          {serviceLocations.map((loc) => (
+            <option key={loc.id} value={loc.name}>
+              {loc.name}{loc.sublabel ? ` (${loc.sublabel})` : ""}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
   return (
     <>
       <div>
@@ -1196,7 +1335,7 @@ function RailwayForm({ form, update, updateLocation, error }: FormProps) {
           ].map(({ val, label }) => (
             <button
               key={val}
-              onClick={() => update("direction", val)}
+              onClick={() => handleDirectionChange(val)}
               className={`flex-1 py-2.5 rounded-xl text-[13px] font-semibold border transition-all ${
                 form.direction === val
                   ? "bg-primary text-white border-primary"
@@ -1208,25 +1347,69 @@ function RailwayForm({ form, update, updateLocation, error }: FormProps) {
           ))}
         </div>
       </div>
-      <LocationInput
-        label={form.direction === "to" ? "Your Pickup Address" : "Station Name"}
-        dotClass="rounded-full bg-primary"
-        value={form.pickup}
-        onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
-        placeholder={
-          form.direction === "to"
-            ? "Home / Office address"
-            : "E.g. Trivandrum Central"
-        }
-        highlight={!!error && !form.pickup.trim()}
-      />
-      <DateTimeRow
-        label="Train Date & Time"
-        date={form.date}
-        time={form.time}
-        onDate={(v) => update("date", v)}
-        onTime={(v) => update("time", v)}
-      />
+
+      {form.direction === "to" ? (
+        <>
+          <LocationInput
+            label="Your Pickup Address"
+            dotClass="rounded-full bg-primary"
+            value={form.pickup}
+            onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
+            placeholder="Home / Office address"
+            highlight={!!error && !form.pickup.trim()}
+          />
+          <DateTimeRow
+            label="Train Date & Time"
+            date={form.date}
+            time={form.time}
+            onDate={(v) => update("date", v)}
+            onTime={(v) => update("time", v)}
+          />
+          {hasLocations ? (
+            <FixedLocationSelect field="destination" highlight={!!error} />
+          ) : (
+            <LocationInput
+              label="Station Name"
+              dotClass="rounded bg-primary"
+              value={form.destination}
+              onChange={(v, lat, lng) => updateLocation("destination", v, lat, lng)}
+              placeholder="E.g. Trivandrum Central"
+              highlight={!!error && !form.destination.trim()}
+            />
+          )}
+        </>
+      ) : (
+        <>
+          {hasLocations ? (
+            <FixedLocationSelect field="pickup" highlight={!!error} />
+          ) : (
+            <LocationInput
+              label="Station Name"
+              dotClass="rounded-full bg-primary"
+              value={form.pickup}
+              onChange={(v, lat, lng) => updateLocation("pickup", v, lat, lng)}
+              placeholder="E.g. Trivandrum Central"
+              highlight={!!error && !form.pickup.trim()}
+            />
+          )}
+          <DateTimeRow
+            label="Train Date & Time"
+            date={form.date}
+            time={form.time}
+            onDate={(v) => update("date", v)}
+            onTime={(v) => update("time", v)}
+          />
+          <LocationInput
+            label="Your Drop Address"
+            dotClass="rounded bg-primary"
+            value={form.destination}
+            onChange={(v, lat, lng) => updateLocation("destination", v, lat, lng)}
+            placeholder="Home / Office address"
+            highlight={!!error && !form.destination.trim()}
+          />
+        </>
+      )}
+
       <div>
         <p className="text-[10px] font-bold tracking-widest text-[var(--color-text-tertiary)] uppercase mb-1.5">
           Train Number{" "}
@@ -2035,7 +2218,8 @@ function validateStep1(form: FormState, formType?: string): string {
   switch (formType) {
     case "airport":
     case "railway":
-      if (!form.pickup.trim()) return "Please enter your address.";
+      if (!form.pickup.trim()) return "Please enter a pickup location.";
+      if (!form.destination.trim()) return "Please select a destination.";
       if (!form.date) return "Please select a date.";
       if (!form.time) return "Please select a time.";
       return "";
