@@ -21,6 +21,7 @@ export default function LoginPage() {
 
       {/* Car behind the form */}
       <div className="pointer-events-none select-none absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={ASSETS.car}
           alt=""

@@ -27,9 +27,7 @@ import {
   IconAlert,
   IconClock,
   IconArrowLeftRight,
-  IconCopy,
 } from "@/constants/icons";
-import { Car } from "lucide";
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 function getInitials(name: string) {
@@ -202,24 +200,6 @@ function ActionItem({
     >
       {inner}
     </button>
-  );
-}
-
-/* ── Section card ────────────────────────────────────────────────────────── */
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border border-border bg-surface px-5 pt-5 mb-10">
-      <p className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-1">
-        {title}
-      </p>
-      {children}
-    </div>
   );
 }
 

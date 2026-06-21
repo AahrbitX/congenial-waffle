@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Button, buttonVariants, Card, Chip, Skeleton } from "@heroui/react";
+import { buttonVariants, Card, Chip, Skeleton } from "@heroui/react";
 import { useMyTransaction } from "@/hooks/useTransactions";
 import {
   IconArrowLeft,

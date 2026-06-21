@@ -1,5 +1,5 @@
 import React from "react";
-import { Flag, Star } from "lucide-react";
+import { Flag } from "lucide-react";
 
 import { Review } from "@/types/reviews.types";
 import { dateParser } from "@/utils/DateParser";

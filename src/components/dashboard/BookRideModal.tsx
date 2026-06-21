@@ -48,7 +48,6 @@ import {
   IconClock,
   IconWind,
   IconUsers,
-  IconRoundTrip,
   IconPlane,
   IconArrowLeftRight,
   IconLoader,
@@ -56,11 +55,9 @@ import {
 } from "@/constants/icons";
 import {
   Drawer,
-  FieldError,
   Input,
   Label,
   Modal,
-  Tab,
   Tabs,
 } from "@heroui/react";
 
@@ -469,7 +466,6 @@ export function BookRideModal({
     setRzpActive(true);
     setPayProcessing(false);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rzp = new (window as any).Razorpay({
       key: orderData.keyId,
       order_id: orderData.orderId,
@@ -1633,7 +1629,7 @@ function GroupForm({ form, update, updateLocation, error }: FormProps) {
 }
 
 // Inquiry: Corporate, School
-function InquiryForm({ form, update, updateLocation, error }: FormProps) {
+function InquiryForm({ form, update, error }: FormProps) {
   return (
     <>
       <div className="grid grid-cols-2 gap-3">

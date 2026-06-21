@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Users,
@@ -9,7 +9,6 @@ import {
   Fuel,
   Check,
   ArrowRight,
-  X,
 } from "lucide-react";
 import { useFleet } from "@/hooks/useFleet";
 import { useBooking } from "@/context/BookingContext";
@@ -85,6 +84,7 @@ export function FleetList() {
                 }}
                 className="text-left bg-white border border-gray-100 rounded-2xl"
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={car.image ?? undefined}
                   alt={car.name}
@@ -169,6 +169,7 @@ export function FleetList() {
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Image */}
                     <div>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={selectedCar.image ?? undefined}
                         alt={selectedCar.name}

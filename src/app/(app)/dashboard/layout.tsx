@@ -25,7 +25,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
     if (!role) { startTransition(() => router.replace("/")); return; }
     if (role === "admin") { startTransition(() => router.replace("/admin")); return; }
     if (role !== "user") { startTransition(() => router.replace("/")); }
-  }, [role, isPending]);
+  }, [role, isPending, router]);
 
   // Only block when role is confirmed wrong — avoids SSR/client hydration mismatch
   if (!isPending && role && role !== "user") return null;

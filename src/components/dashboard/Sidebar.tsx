@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { authClient } from "@/lib/auth-client";
-import { useNotifications } from "@/hooks/useNotifications";
 import { useDashboard } from "@/context/DashboardContext";
 
 import { ROUTES } from "@/constants/routes";
@@ -48,10 +46,7 @@ const NAV_ITEMS = [
 export function Sidebar() {
   const pathname = usePathname();
 
-  const { data: session } = authClient.useSession();
-  const { data: notifications } = useNotifications();
-  const { openNotifPanel, openBookModal } = useDashboard();
-  const unread = notifications?.filter((n) => !n.read).length ?? 0;
+  const { openBookModal } = useDashboard();
 
   return (
     <>

@@ -5,7 +5,6 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { useDashboard } from "@/context/DashboardContext";
-import { useNotifications } from "@/hooks/useNotifications";
 import { greeting } from "@/lib/dashboard/helpers";
 import { ROUTES } from "@/constants/routes";
 import { ASSETS } from "@/constants/assets";
@@ -47,11 +46,8 @@ export function DashboardHeader() {
   const pathname = usePathname();
   const { data: session } = authClient.useSession();
   const { openNotifPanel } = useDashboard();
-  const { data: notifications } = useNotifications();
-
   const firstName = session?.user?.name?.split(" ")[0] ?? "there";
   const meta = PAGE_META[pathname] ?? { title: "Dashboard" };
-  const unread = notifications?.filter((n) => !n.read).length ?? 0;
 
   return (
     <div className="flex items-center justify-between mb-2">

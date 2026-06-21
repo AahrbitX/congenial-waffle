@@ -66,7 +66,7 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
     if (isPending) return;
     if (role === "admin") return;
     startTransition(() => router.replace(role === "user" ? "/dashboard" : "/login"));
-  }, [isPending, role]);
+  }, [isPending, role, router]);
 
   if (isPending || role !== "admin") return null;
 

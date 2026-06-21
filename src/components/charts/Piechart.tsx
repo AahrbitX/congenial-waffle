@@ -1,6 +1,6 @@
 "use client";
 
-import { Pie, PieChart, Tooltip } from "recharts";
+import { Pie, PieChart } from "recharts";
 
 import { Card } from "@heroui/react";
 

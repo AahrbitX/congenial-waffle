@@ -77,7 +77,6 @@ function HeroSectionImpl() {
     setDirection("to");
   }
 
-  const sectionRef = useRef<HTMLElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const [bodyHeight, setBodyHeight] = useState<number | undefined>(undefined);
 
@@ -150,6 +149,7 @@ function HeroSectionImpl() {
               transition={{ duration: 0.9, delay: 0.35, ease: EASE }}
               className="mb-8 hidden w-full max-w-[480px] lg:block xl:max-w-[540px] md:ml-12"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/car.png"
                 alt="Mohan Cabs vehicle"
@@ -186,6 +186,7 @@ function HeroSectionImpl() {
             transition={{ duration: 0.9, delay: 0.35, ease: EASE }}
             className="mb-6 lg:hidden"
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/car.png"
               alt="Mohan Cabs vehicle"

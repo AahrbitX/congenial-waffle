@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/Button";
 import { AssignDriverDrawer } from "../assignDriver";
 import Link from "next/link";
 import { request } from "@/lib/api-client";
-import { queryClient } from "@/lib/query-client";
 
 type Props = {
   driver: any;

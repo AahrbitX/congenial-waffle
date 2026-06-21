@@ -89,6 +89,7 @@ type TicketStatus = "idle" | "submitting" | "success" | "error";
 
 // ─── FAQ Item ─────────────────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
@@ -114,6 +115,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 
 // ─── Ticket Form ──────────────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function TicketForm() {
   const [form, setForm] = useState({
     name: "",

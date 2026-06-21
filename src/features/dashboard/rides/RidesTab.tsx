@@ -8,7 +8,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 
 import { COLORS } from "@/constants/colors";
 import { ROUTES } from "@/constants/routes";
-import { IconCar, IconLoader, IconChevronRight } from "@/constants/icons";
+import { IconCar, IconLoader } from "@/constants/icons";
 import { ArrowRight } from "lucide-react";
 import { dateParser } from "@/utils/DateParser";
 

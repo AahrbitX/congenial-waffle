@@ -26,11 +26,9 @@ import {
   IconPlus,
   IconEdit,
   IconTrash,
-  IconX,
   IconCar,
   IconLoader,
 } from "@/constants/icons";
-import Image from "next/image";
 import { BsQuestionCircle } from "react-icons/bs";
 import { Snowflake } from "lucide-react";
 
@@ -275,6 +273,7 @@ export default function FleetSettings({ isLoading }: Props) {
                   {/* Image + gradient overlay */}
                   <div className="relative h-44 overflow-hidden">
                     {car.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={car.image}
                         alt={car.name}
@@ -449,6 +448,7 @@ export default function FleetSettings({ isLoading }: Props) {
                 />
                 {form.image && (
                   <div className="aspect-video rounded-xl overflow-hidden border border-border shadow-sm">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={form.image}
                       alt="preview"

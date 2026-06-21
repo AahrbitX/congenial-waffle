@@ -10,15 +10,6 @@ import StatusIndicator from "@/components/data/statusIndicator";
 
 const columnHelper = createColumnHelper<Booking>();
 
-const statusColorMap: Record<
-  string,
-  "default" | "accent" | "success" | "danger" | "warning" | undefined
-> = {
-  pending: "warning",
-  confirmed: "accent",
-  completed: "success",
-  cancelled: "danger",
-};
 
 export const bookingColumns: ColumnDef<Booking, any>[] = [
   columnHelper.accessor("id", {

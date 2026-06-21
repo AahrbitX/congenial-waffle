@@ -1,21 +1,18 @@
 "use client";
 
 import { differenceInYears } from "date-fns";
-import React, { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import {
   Breadcrumbs,
   Button,
   Card,
   Chip,
-  Input,
   Skeleton,
   Surface,
   Tabs,
-  toast,
 } from "@heroui/react";
-import { Ban, Pencil, Trash2, RefreshCcw } from "lucide-react";
 
 import { request } from "@/lib/api-client";
 import {
@@ -32,13 +29,7 @@ import SuspendModal from "./suspendModal";
 function UserDetailsPage() {
   const params = useParams<{ id: string }>();
   const userId = params.id;
-  const queryClient = useQueryClient();
   const router = useRouter();
-
-  const [editing, setEditing] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [editName, setEditName] = useState("");
-  const [editPhone, setEditPhone] = useState("");
 
   const { data: responseData, isLoading } = useQuery({
     queryKey: ["user", userId],
@@ -47,38 +38,6 @@ function UserDetailsPage() {
   });
 
   const userData = responseData?.data;
-
-  useEffect(() => {
-    if (userData) {
-      setEditName(userData.name ?? "");
-      setEditPhone(userData.phoneNumber ?? "");
-    }
-  }, [userData?.id]);
-
-  const updateMutation = useMutation({
-    mutationFn: () =>
-      request(`/api/users/${userId}`, {
-        method: "PATCH",
-        body: JSON.stringify({ name: editName, phone: editPhone }),
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user", userId] });
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("User updated");
-      setEditing(false);
-    },
-    onError: () => toast("Failed to update user", { variant: "danger" }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: () => request(`/api/users/${userId}`, { method: "DELETE" }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("User deleted");
-      router.push("/admin/users");
-    },
-    onError: () => toast("Failed to delete user", { variant: "danger" }),
-  });
 
   // ── Not found ──────────────────────────────────────────────────────────────
   if (!isLoading && !userData) {
@@ -137,9 +96,7 @@ function UserDetailsPage() {
               <Button
                 size="sm"
                 variant="primary"
-                onPress={() => setEditing((v) => !v)}
               >
-                <Pencil size={14} />
                 Edit
               </Button>
             </div>

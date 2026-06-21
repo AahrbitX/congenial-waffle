@@ -1,7 +1,6 @@
 import { request } from "@/lib/api-client";
 import type {
   Vehicle,
-  VehicleFare,
   Place,
   BookingRequest,
   BookingResponse,

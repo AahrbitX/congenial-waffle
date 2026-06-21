@@ -55,7 +55,7 @@ function BookingDetailsPage() {
       setConfirmOpen(false);
       toast.success("Booking cancelled");
     },
-    onError: (err: any) =>
+    onError: () =>
       toast("Failed to cancel booking", { variant: "danger" }),
   });
 

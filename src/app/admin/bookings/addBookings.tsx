@@ -565,6 +565,7 @@ function StepThree({ data, vehicles, distanceKm, onChange }: StepThreeProps) {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function AssignDriverForBookingForm() {
   return (
     <ComboBox className="w-[256px]">

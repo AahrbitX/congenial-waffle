@@ -2,22 +2,12 @@
 
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Chip, Skeleton, Table, Tabs } from "@heroui/react";
+import { Skeleton, Table, Tabs } from "@heroui/react";
 import { request } from "@/lib/api-client";
 import { IconCar } from "@/constants/icons";
 import Link from "next/link";
 import StatusIndicator from "@/components/data/statusIndicator";
 
-const STATUS_COLOR: Record<
-  string,
-  "success" | "warning" | "danger" | "default" | "accent"
-> = {
-  completed: "success",
-  ongoing: "accent",
-  confirmed: "accent",
-  pending: "warning",
-  cancelled: "danger",
-};
 
 export default function RideHistoryTab({
   userId,

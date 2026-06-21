@@ -82,10 +82,11 @@ export function ProfileMain() {
   const [saveError, setSaveError] = useState("");
 
   // Sync state once session loads (session is async) or when session data changes
+  const userGender = (user as any)?.gender;
   useEffect(() => {
     if (user?.name) setName(user.name);
-    setGender((user as any)?.gender ?? "");
-  }, [user?.name, (user as any)?.gender]);
+    setGender(userGender ?? "");
+  }, [user, userGender]);
 
   const [showSignOut, setShowSignOut] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);

@@ -3,8 +3,6 @@
 import React from "react";
 import {
   Button,
-  FieldError,
-  Fieldset,
   Label,
   Modal,
   TextArea,

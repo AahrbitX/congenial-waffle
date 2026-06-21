@@ -1,20 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { request } from "@/lib/api-client";
 import {
   Breadcrumbs,
-  Button,
   buttonVariants,
   Card,
   Skeleton,
   Surface,
   Tabs,
-  toast,
 } from "@heroui/react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useParams, useRouter } from "next/navigation";
-import { Ban } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
 import {
   ProfileHeader,
   ProfileHeaderSkeleton,
@@ -29,8 +26,6 @@ import SuspendModal from "./suspendModal";
 function DriverProfilePage() {
   const params = useParams<{ id: string }>();
   const driverId = params.id;
-  const router = useRouter();
-  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery<any>({
     queryKey: ["driver", driverId],

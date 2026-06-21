@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import type { SortDescriptor } from "@heroui/react";
 import {
   cn,
   Table,
@@ -39,28 +38,10 @@ export interface DataTableProps<TData> {
 }
 
 declare module "@tanstack/react-table" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData, TValue> {
     isRowHeader?: boolean;
   }
-}
-
-// --- Internal Helpers ---
-function toSortDescriptor(sorting: SortingState): SortDescriptor | undefined {
-  const first = sorting[0];
-  if (!first) return undefined;
-  return {
-    column: first.id,
-    direction: first.desc ? "descending" : "ascending",
-  };
-}
-
-function toSortingState(descriptor: SortDescriptor): SortingState {
-  return [
-    {
-      desc: descriptor.direction === "descending",
-      id: descriptor.column as string,
-    },
-  ];
 }
 
 function SortableColumnHeader({

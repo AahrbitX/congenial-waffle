@@ -543,6 +543,7 @@ function DetailPanel({ service }: DetailPanelProps) {
     });
     setSaved(false);
     setConfirmDelete(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [service.id]);
 
   const set = <K extends keyof UpdateServiceBody>(key: K, val: UpdateServiceBody[K]) =>
@@ -812,7 +813,7 @@ function DetailPanel({ service }: DetailPanelProps) {
           </div>
           {confirmDelete && (
             <p className="text-xs text-danger mt-2 text-center">
-              Click "Confirm Delete" again to permanently delete.{" "}
+              Click &quot;Confirm Delete&quot; again to permanently delete.{" "}
               <button onClick={() => setConfirmDelete(false)} className="underline">Cancel</button>
             </p>
           )}
@@ -835,6 +836,7 @@ export default function ServicesSettings() {
     if (services?.length && !selectedId) {
       setSelectedId(services[0].id);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [services]);
 
   const selected = services?.find((s) => s.id === selectedId);
@@ -882,7 +884,7 @@ export default function ServicesSettings() {
             {(services ?? []).length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center px-4">
                 <p className="text-sm font-semibold text-muted">No services yet</p>
-                <p className="text-xs text-text-tertiary mt-1">Click "Add New" to create one</p>
+                <p className="text-xs text-text-tertiary mt-1">Click &quot;Add New&quot; to create one</p>
               </div>
             ) : (
               (services ?? [])

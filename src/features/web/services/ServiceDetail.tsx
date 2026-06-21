@@ -69,7 +69,9 @@ export function ServiceDetail({ slug }: ServiceDetailProps) {
     return null;
   }
 
-  const Icon = ICON_MAP[service.iconName] ?? Car;
+  // service is guaranteed non-null here (early return above handles undefined)
+  const svc = service!;
+  const Icon = ICON_MAP[svc.iconName] ?? Car;
 
   return (
     <main className="w-full">
@@ -88,21 +90,21 @@ export function ServiceDetail({ slug }: ServiceDetailProps) {
               <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0">
                 <Icon size={26} className="text-accent" />
               </div>
-              {service.badge && (
+              {svc.badge && (
                 <Chip variant="primary" color="accent">
-                  {service.badge}
+                  {svc.badge}
                 </Chip>
               )}
             </div>
 
             <h1 className="text-[clamp(2.2rem,6vw,4rem)] font-black leading-[1.05] tracking-tight text-[#0f0f0f] mb-3">
-              {service.name}
+              {svc.name}
             </h1>
             <p className="text-accent text-[15px] mb-5 leading-relaxed max-w-xl font-medium">
-              {service.tagline}
+              {svc.tagline}
             </p>
             <p className="text-gray-600 text-[15px] leading-relaxed max-w-xl">
-              {service.description}
+              {svc.description}
             </p>
           </div>
         </div>
@@ -117,7 +119,7 @@ export function ServiceDetail({ slug }: ServiceDetailProps) {
               What&apos;s Included
             </p>
             <ul className="space-y-3">
-              {(service.vehicleCategories ?? []).map((cat) => (
+              {(svc.vehicleCategories ?? []).map((cat) => (
                 <li key={cat} className="flex items-center gap-3">
                   <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center shrink-0">
                     <Check size={11} className="text-white" />
@@ -125,7 +127,7 @@ export function ServiceDetail({ slug }: ServiceDetailProps) {
                   <span className="text-lg text-muted">{cat}</span>
                 </li>
               ))}
-              {(service.vehicleCategories ?? []).length === 0 && (
+              {(svc.vehicleCategories ?? []).length === 0 && (
                 <li className="flex items-center gap-3">
                   <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center shrink-0">
                     <Check size={11} className="text-white" />
@@ -167,7 +169,7 @@ export function ServiceDetail({ slug }: ServiceDetailProps) {
             <Button
               fullWidth
               size="lg"
-              onClick={() => openBooking({ serviceId: service.slug })}
+              onClick={() => openBooking({ serviceId: svc.slug })}
             >
               Book Now
               <ArrowRight

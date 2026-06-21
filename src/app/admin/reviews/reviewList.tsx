@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card, ScrollShadow, Skeleton, toast } from "@heroui/react";
-import { Star } from "lucide-react";
+import { Card, ScrollShadow, Skeleton } from "@heroui/react";
 
 import { Review } from "@/types/reviews.types";
 import { request } from "@/lib/api-client";
@@ -20,13 +19,6 @@ export default function ReviewList({
 }) {
   const qc = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  const flagMutation = useMutation({
-    mutationFn: (id: string) =>
-      request(`/api/reviews/${id}/flag`, { method: "PATCH" }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-reviews"] }),
-    onError: () => toast.danger("Could not update flag"),
-  });
 
   const readMutation = useMutation({
     mutationFn: (id: string) =>

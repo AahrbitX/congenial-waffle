@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getRideById } from "@/api/rides.api";
 import type { Ride } from "@/types/ride.types";
@@ -21,7 +21,7 @@ function formatTime(t: string) {
   return d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
 }
 
-export default function ConfirmPage() {
+function ConfirmPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const bookingId = searchParams.get("bookingId");
@@ -142,5 +142,13 @@ export default function ConfirmPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function ConfirmPage() {
+  return (
+    <Suspense>
+      <ConfirmPageInner />
+    </Suspense>
   );
 }

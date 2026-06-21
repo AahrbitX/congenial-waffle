@@ -57,6 +57,7 @@ export function FleetDetail({ id }: FleetDetailProps) {
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10">
           {/* Image */}
           <div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={car.image ?? undefined}
               alt={car.name}

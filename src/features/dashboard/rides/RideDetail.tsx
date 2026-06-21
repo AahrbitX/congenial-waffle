@@ -15,8 +15,6 @@ import {
   IconCreditCard,
   IconPhone,
   IconShield,
-  IconCalendar,
-  IconClock,
 } from "@/constants/icons";
 
 import { ROUTES } from "@/constants/routes";
@@ -196,10 +194,10 @@ export function RideDetail({ id }: { id: string }) {
         {/* ── Date / Time / Payment ── */}
         <div className="grid grid-cols-3 gap-2">
           {[
-            { icon: <IconCalendar size={15} className="text-[var(--color-text-tertiary)]" />, label: "Date",    value: fmtDate(ride.journeyDate) },
-            { icon: <IconClock    size={15} className="text-[var(--color-text-tertiary)]" />, label: "Time",    value: fmtTime(ride.journeyTime) },
-            { icon: <IconCar      size={15} className="text-[var(--color-text-tertiary)]" />, label: "Payment", value: paymentLabel },
-          ].map(({ icon, label, value }) => (
+            { label: "Date",    value: fmtDate(ride.journeyDate) },
+            { label: "Time",    value: fmtTime(ride.journeyTime) },
+            { label: "Payment", value: paymentLabel },
+          ].map(({ label, value }) => (
             <div key={label} className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3">
               <p className="text-[9px] font-bold text-[var(--color-text-tertiary)] uppercase tracking-wider mb-1">{label}</p>
               <p className="text-sm font-bold text-[var(--color-text-primary)] leading-tight">{value}</p>

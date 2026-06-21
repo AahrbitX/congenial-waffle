@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Drawer, Input, Badge, Separator } from "@heroui/react";
+import { Drawer, Input, Separator } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
 import {
   UserPlus,
@@ -32,14 +32,6 @@ type SuggestedDriversResponse = {
   data: Driver[];
 };
 
-type Props = {
-  bookingId: string;
-  /** When true, renders only the Drawer (no trigger button) — caller controls open state */
-  isOpen?: boolean;
-  onClose?: () => void;
-  /** 'assign' = first assignment (default), 'change' = reassign an already-assigned driver */
-  mode?: "assign" | "change";
-};
 
 function DriverCard({
   driver,

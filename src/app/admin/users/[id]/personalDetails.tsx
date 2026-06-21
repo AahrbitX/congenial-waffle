@@ -1,4 +1,4 @@
-import { Card, Chip, Separator, Skeleton } from "@heroui/react";
+import { Card, Separator, Skeleton } from "@heroui/react";
 
 export function PersonalDetailsSkeleton() {
   return (

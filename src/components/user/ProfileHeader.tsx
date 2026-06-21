@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, buttonVariants, Card, Chip, Skeleton } from "@heroui/react";
+import { buttonVariants, Card, Chip, Skeleton } from "@heroui/react";
 
 import UserAvatar from "@/components/user/avatar";
 import Link from "next/link";

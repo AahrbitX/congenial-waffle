@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Avatar, Button } from "@heroui/react";
+import { Card, Button } from "@heroui/react";
 import { IconStar, IconArrowRight } from "@/constants/icons";
 import type { Ride } from "@/types/ride.types";
 

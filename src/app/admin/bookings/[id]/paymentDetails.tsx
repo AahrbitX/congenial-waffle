@@ -15,7 +15,6 @@ import {
   IconCar,
   IconCreditCard,
 } from "@/constants/icons";
-import { BiQuestionMark } from "react-icons/bi";
 
 type PaymentStatus =
   | "created"
