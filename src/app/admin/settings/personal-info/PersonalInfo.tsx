@@ -405,7 +405,7 @@ export default function PersonalInfo({ isLoading, user }: Props) {
                   sub={
                     hasPw
                       ? "Change your password via OTP"
-                      : "Set a password for email sign-in"
+                      : "Set a password for sign-in"
                   }
                   onClick={() => setShowPasswordModal(true)}
                   badge={hasPw ? undefined : "Set up"}
@@ -414,7 +414,7 @@ export default function PersonalInfo({ isLoading, user }: Props) {
                 <ActionItem
                   icon={IconBellRing}
                   label="Notifications"
-                  sub="Manage email and SMS alerts"
+                  sub="Manage SMS alerts"
                   disabled
                   badge="Soon"
                 />

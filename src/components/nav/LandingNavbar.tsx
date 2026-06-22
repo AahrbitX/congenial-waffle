@@ -367,9 +367,11 @@ export default function LandingNavbar() {
                   <p className="text-sm font-semibold text-text-primary truncate">
                     {session.user.name}
                   </p>
-                  <p className="text-xs text-text-muted truncate">
-                    {session.user.email}
-                  </p>
+                  {session.user.email && !session.user.email.endsWith("@mohan-cabs.com") && (
+                    <p className="text-xs text-text-muted truncate">
+                      {session.user.email}
+                    </p>
+                  )}
                 </div>
               </div>
               <Link
