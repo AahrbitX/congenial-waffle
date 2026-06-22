@@ -6,13 +6,11 @@ import { AnimatePresence, motion } from "motion/react";
 import { ASSETS } from "@/constants/assets";
 
 export function SplashScreen() {
-  // Start false → SSR renders nothing (SEO safe: Googlebot sees full page HTML)
-  // useEffect sets true client-side only on cold loads
-  const [visible, setVisible] = useState(false);
+  // Start true → splash is visible immediately on first render (no layout flash).
+  // The fixed overlay covers content visually but HTML is still in the DOM for crawlers.
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    setVisible(true); // show on every cold load (client-only, never in SSR output)
-
     const dismiss = () => setVisible(false);
 
     // Wait for both: minimum display time (500ms) AND page fully loaded
